@@ -325,6 +325,13 @@ tests_ieee80_test_LDADD   = src/libespeak-ng-test.la
 tests_ieee80_test_SOURCES = tests/ieee80.c
 tests/ieee80.check: LOG_COMPILER=$(VALGRIND)
 
+check_PROGRAMS += tests/buffer.test
+
+tests_buffer_test_CFLAGS  = -Isrc/libespeak-ng ${AM_CFLAGS}
+tests_buffer_test_LDADD   = src/libespeak-ng-test.la -lm -lstdc++
+tests_buffer_test_SOURCES = tests/buffer.c
+tests/buffer.check: LOG_COMPILER=$(VALGRIND)
+
 .test.check:
 	@echo "  TEST      $<"
 	@ESPEAK_DATA_PATH=$(CURDIR) $(LOG_COMPILER) $< && echo "  PASSED    $<"
