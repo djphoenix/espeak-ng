@@ -87,10 +87,10 @@ const char *WordToString(char buf[5], unsigned int word)
 
 void SynthesizeInit()
 {
-	last_pitch_cmd = 0;
-	last_amp_cmd = 0;
+	last_pitch_cmd = -1;
+	last_amp_cmd = -1;
 	last_frame = NULL;
-	syllable_centre = -1;
+	syllable_start = syllable_end = syllable_centre = -1;
 }
 
 static void EndAmplitude(void)
@@ -1214,7 +1214,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 				DoMarker(espeakEVENT_WORD, sourceix, p->sourceix >> 11, clause_start_word + word_count++); // NOTE, this count doesn't include multiple-word pronunciations in *_list. eg (of a)
 		}
 
-		EndAmplitude();
+		if (last_amp_cmd >= 0) EndAmplitude();
 
 		if ((p->prepause > 0) && !(p->ph->phflags & phPREVOICE))
 			DoPause(p->prepause, 1);

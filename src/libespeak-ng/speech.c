@@ -463,7 +463,7 @@ static espeak_ng_STATUS Synthesize(unsigned int unique_identifier, const void *t
 		out_ptr = outbuf;
 		out_end = &outbuf[outbuf_size];
 		event_list_ix = 0;
-		WavegenFill();
+		if (WavegenFill()) SynthesizeInit();
 
 		length = (out_ptr - outbuf)/2;
 		count_samples += length;
