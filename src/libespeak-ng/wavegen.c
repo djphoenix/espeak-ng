@@ -1286,6 +1286,7 @@ static int WavegenFill2()
 		switch (q[0] & 0xff)
 		{
 		case WCMD_PITCH:
+			if (length == 0) return 0;
 			SetPitch(length, (unsigned char *)q[2], q[3] >> 16, q[3] & 0xffff);
 			break;
 		case WCMD_PHONEME_ALIGNMENT:
