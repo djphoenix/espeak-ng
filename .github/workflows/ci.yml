@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}-${{ matrix.osver }}
 
-    name: "${{ matrix.os }} ${{ matrix.arch }}: ${{ matrix.compiler }} + ${{ matrix.sanitizer }}"
+    name: "${{ matrix.os }} ${{ matrix.arch }}: ${{ matrix.compiler }} + ${{ matrix.sanitizer }} + buffer=${{ matrix.buffer }}"
     strategy:
       fail-fast: false
       matrix:
@@ -19,6 +19,7 @@ jobs:
         arch: [amd64, i386, aarch64, arm, riscv64]
         sanitizer: [no, address, leak, memory, thread, undefined, valgrind]
         compiler: [gcc, clang]
+        buffer: [0, 3000]
 
         include:
           - os: ubuntu
@@ -212,7 +213,7 @@ jobs:
         [ 'x${{ matrix.cross }}' = 'xyes' ] && export LD="${{ matrix.ccarch }}-${{ matrix.sys }}-ld"
         export CFLAGS="-g -Og -fno-omit-frame-pointer ${{ matrix.compiler_flags }} ${{ matrix.sanitizer_cflags }} ${{ matrix.archcflags }}"
         export CXXFLAGS="-g -Og -fno-omit-frame-pointer ${{ matrix.compiler_flags }} ${{ matrix.sanitizer_cflags }} ${{ matrix.archcflags }}"
-        cmake -Bbuild ${{ matrix.config }} -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} -DUSE_ASYNC:BOOL=OFF
+        cmake -Bbuild ${{ matrix.config }} -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} -DUSE_ASYNC:BOOL=OFF -DCLI_BUFFER_SIZE:STRING=${{ matrix.buffer }}
 
     - name: config-failed-upload
       if: ${{ failure() }}
