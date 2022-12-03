@@ -53,7 +53,7 @@ PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
 
 SPEED_FACTORS speed;
 
-static int last_pitch_cmd;
+static int last_pitch_cmd, last2_pitch_cmd;
 static int last_amp_cmd;
 static frame_t  *last_frame;
 static int last_wcmdq;
@@ -61,6 +61,7 @@ static int pitch_length;
 static int amp_length;
 static int modn_flags;
 static int fmt_amplitude = 0;
+static int restore_tail = -1;
 
 static int syllable_start;
 static int syllable_end;
@@ -87,18 +88,18 @@ const char *WordToString(char buf[5], unsigned int word)
 
 void SynthesizeInit()
 {
-	last_pitch_cmd = 0;
-	last_amp_cmd = 0;
+	last_pitch_cmd = last2_pitch_cmd = -1;
+	last_amp_cmd = -1;
 	last_frame = NULL;
 	syllable_centre = -1;
 }
 
 static void EndAmplitude(void)
 {
-	if (amp_length > 0) {
-		if (wcmdq[last_amp_cmd][1] == 0)
-			wcmdq[last_amp_cmd][1] = amp_length;
+	if ((amp_length > 0) && (last_amp_cmd >= 0)) {
+		wcmdq[last_amp_cmd][1] = amp_length;
 		amp_length = 0;
+		last_amp_cmd = -1;
 	}
 }
 
@@ -106,9 +107,9 @@ static void EndPitch(int voice_break)
 {
 	// possible end of pitch envelope, fill in the length
 	if ((pitch_length > 0) && (last_pitch_cmd >= 0)) {
-		if (wcmdq[last_pitch_cmd][1] == 0)
-			wcmdq[last_pitch_cmd][1] = pitch_length;
+		wcmdq[last_pitch_cmd][1] = pitch_length;
 		pitch_length = 0;
+		last_pitch_cmd = -1;
 	}
 
 	if (voice_break) {
@@ -122,6 +123,8 @@ static void EndPitch(int voice_break)
 
 static void DoAmplitude(int amp, const unsigned char *amp_env)
 {
+	EndAmplitude();
+
 	intptr_t *q;
 
 	last_amp_cmd = wcmdq_tail;
@@ -155,7 +158,7 @@ static void DoPitch(const unsigned char *env, int pitch1, int pitch2)
 		pitch2 = 76;
 		env = envelope_data[PITCHfall];
 	}
-	last_pitch_cmd = wcmdq_tail;
+	last_pitch_cmd = last2_pitch_cmd = wcmdq_tail;
 	pitch_length = 0; // total length of spect with this pitch envelope
 
 	if (pitch2 < 0)
@@ -1154,6 +1157,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 #endif
 
 	if (resume == false) {
+		restore_tail = -1;
 		ix = 1;
 		embedded_ix = 0;
 		word_count = 0;
@@ -1164,9 +1168,13 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 		syllable_start = wcmdq_tail;
 		syllable_end = wcmdq_tail;
 		syllable_centre = -1;
-		last_pitch_cmd = -1;
+		last_pitch_cmd = last2_pitch_cmd = -1;
 		memset(&worddata, 0, sizeof(worddata));
 		DoPause(0, 0); // isolate from the previous clause
+	}
+	if (restore_tail >= 0) {
+		wcmdq_tail = restore_tail;
+		restore_tail = -1;
 	}
 
 	while ((ix < (*n_ph)) && (ix < N_PHONEME_LIST-2)) {
@@ -1187,8 +1195,32 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 		else
 			free_min = MIN_WCMDQ;
 
-		if (WcmdqFree() <= free_min)
+		if (WcmdqFree() <= free_min) {
+			int amp_dist = 0, pitch_dist = 0, syl_dist = 0, lst_dist = 0, max_dist = 0;
+
+			if (last_amp_cmd >= 0) {
+				amp_dist = wcmdq_tail - last_amp_cmd + 1;
+				MAKE_MEM_UNDEFINED(&wcmdq[last_amp_cmd][1], 4);
+			}
+			if (last_pitch_cmd >= 0) {
+				pitch_dist = wcmdq_tail - last_pitch_cmd + 1;
+				MAKE_MEM_UNDEFINED(&wcmdq[last_pitch_cmd][1], 4);
+			}
+			if (syllable_start != syllable_end) syl_dist = wcmdq_tail - syllable_start + 1;
+			if (last_wcmdq >= 0) lst_dist = wcmdq_tail - last_wcmdq + 1;
+
+			if (amp_dist > max_dist) max_dist = amp_dist;
+			if (pitch_dist > max_dist) max_dist = pitch_dist;
+			if (syl_dist > max_dist) max_dist = syl_dist;
+			if (lst_dist > max_dist) max_dist = lst_dist;
+
+			if (max_dist > 0) {
+				restore_tail = wcmdq_tail;
+				wcmdq_tail -= max_dist;
+				if (wcmdq_tail < 0) wcmdq_tail += N_WCMDQ;
+			}
 			return 1; // wait
+		}
 
 			PHONEME_LIST *prev;
 			PHONEME_LIST *next;
@@ -1256,7 +1288,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 				fmtp.fmt_addr = phdata.sound_addr[pd_FMT];
 				fmtp.fmt_amp = phdata.sound_param[pd_FMT];
 
-				if (last_pitch_cmd < 0) {
+				if (last2_pitch_cmd < 0) {
 					DoAmplitude(next->amp, NULL);
 					DoPitch(envelope_data[p->env], next->pitch1, next->pitch2);
 				}
@@ -1290,7 +1322,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 				DoPitch(envelope_data[next->env], next->pitch1, next->pitch2);
 				pre_voiced = true;
 			} else {
-				if (last_pitch_cmd < 0) {
+				if (last2_pitch_cmd < 0) {
 					DoAmplitude(next->amp, NULL);
 					DoPitch(envelope_data[p->env], p->pitch1, p->pitch2);
 				}
@@ -1339,7 +1371,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 				DoAmplitude(next->amp, NULL);
 				DoPitch(envelope_data[next->env], next->pitch1, next->pitch2);
 			} else {
-				if (last_pitch_cmd < 0) {
+				if (last2_pitch_cmd < 0) {
 					DoAmplitude(p->amp, NULL);
 					DoPitch(envelope_data[p->env], p->pitch1, p->pitch2);
 				}
@@ -1519,6 +1551,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 		ix++;
 	}
 	EndPitch(1);
+	EndAmplitude();
 	if (*n_ph > 0) {
 		DoMarker(espeakEVENT_END, count_characters, 0, count_sentences); // end of clause
 		*n_ph = 0;
@@ -1576,7 +1609,7 @@ int SpeakNextClause(int control)
 		return 1;
 	}
 
-	Generate(phoneme_list, &n_phoneme_list, 0);
+	if (Generate(phoneme_list, &n_phoneme_list, 0) == 1) return 1;
 
 	if (voice_change != NULL) {
 		// voice change at the end of the clause (i.e. clause was terminated by a voice change)
