@@ -12,3 +12,5 @@ if (HAVE_PTHREAD)
 else()
   set(USE_ASYNC OFF)
 endif()
+
+set(CLI_BUFFER_SIZE 3000 CACHE STRING "Buffer size for CLI")

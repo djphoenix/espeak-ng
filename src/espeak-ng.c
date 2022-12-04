@@ -607,7 +607,7 @@ int main(int argc, char **argv)
 
 	if (option_waveout || quiet) {
 		// writing to a file (or no output), we can use synchronous mode
-		result = espeak_ng_InitializeOutput(ENOUTPUT_MODE_SYNCHRONOUS, 0, devicename[0] ? devicename : NULL);
+		result = espeak_ng_InitializeOutput(ENOUTPUT_MODE_SYNCHRONOUS, CLI_BUFFER_SIZE, devicename[0] ? devicename : NULL);
 		samplerate = espeak_ng_GetSampleRate();
 		samples_split = samplerate * samples_split_seconds;
 
@@ -622,7 +622,7 @@ int main(int argc, char **argv)
 		}
 	} else {
 		// play the sound output
-		result = espeak_ng_InitializeOutput(PLAYBACK_MODE, 0, devicename[0] ? devicename : NULL);
+		result = espeak_ng_InitializeOutput(PLAYBACK_MODE, CLI_BUFFER_SIZE, devicename[0] ? devicename : NULL);
 		samplerate = espeak_ng_GetSampleRate();
 	}
 
