@@ -30,11 +30,11 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
-#include "spect.h"
-#include "ieee80.h"                    // for ConvertFromIeeeExtended
-#include "wavegen.h"                   // for wavegen_peaks_t, PeaksToHarmspect
-#include "synthesize.h"                // for KLATT_AV, KLATT_Kopen, N_KLATTP2
-#include "voice.h"                     // for N_PEAKS
+#include "spect.hpp"
+#include "ieee80.hpp"                    // for ConvertFromIeeeExtended
+#include "wavegen.hpp"                   // for wavegen_peaks_t, PeaksToHarmspect
+#include "synthesize.hpp"                // for KLATT_AV, KLATT_Kopen, N_KLATTP2
+#include "voice.hpp"                     // for N_PEAKS
 
 static const int default_freq[N_PEAKS] =
 { 200, 500, 1200, 3000, 3500, 4000, 6900, 7800, 9000 };

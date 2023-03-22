@@ -28,11 +28,11 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "intonation.h"
-#include "phoneme.h"     // for PHONEME_TAB, PhonemeCode2, phonPAUSE, phPAUSE
-#include "synthdata.h"   // for PhonemeCode
-#include "synthesize.h"  // for PHONEME_LIST, TUNE, phoneme_list, phoneme_tab
-#include "translate.h"   // for Translator, LANGUAGE_OPTIONS, L, OPTION_EMPH...
+#include "intonation.hpp"
+#include "phoneme.hpp"     // for PHONEME_TAB, PhonemeCode2, phonPAUSE, phPAUSE
+#include "synthdata.hpp"   // for PhonemeCode
+#include "synthesize.hpp"  // for PHONEME_LIST, TUNE, phoneme_list, phoneme_tab
+#include "translate.hpp"   // for Translator, LANGUAGE_OPTIONS, L, OPTION_EMPH...
 
 /* Note this module is mostly old code that needs to be rewritten to
    provide a more flexible intonation system.

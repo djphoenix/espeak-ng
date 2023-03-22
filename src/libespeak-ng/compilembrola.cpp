@@ -28,14 +28,14 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
-#include "mbrola.h"
+#include "mbrola.hpp"
 
-#include "error.h"                // for create_file_error_context
-#include "common.h"               // for StringToWord
-#include "mbrola.h"               // for MBROLA_TAB
-#include "phoneme.h"              // for N_PHONEME_TAB
-#include "speech.h"               // for path_home
-#include "synthesize.h"           // for Write4Bytes
+#include "error.hpp"                // for create_file_error_context
+#include "common.hpp"               // for StringToWord
+#include "mbrola.hpp"               // for MBROLA_TAB
+#include "phoneme.hpp"              // for N_PHONEME_TAB
+#include "speech.hpp"               // for path_home
+#include "synthesize.hpp"           // for Write4Bytes
 
 static const char *_basename(const char *filename)
 {

@@ -32,18 +32,18 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "synthesize.h"
-#include "dictionary.h"           // for WritePhMnemonic, GetTranslatedPhone...
-#include "intonation.h"           // for CalcPitches
-#include "mbrola.h"               // for MbrolaGenerate, mbrola_name
-#include "phoneme.h"              // for PHONEME_TAB, phVOWEL, phLIQUID, phN...
-#include "setlengths.h"           // for CalcLengths
-#include "soundicon.h"               // for soundicon_tab, n_soundicon
-#include "synthdata.h"            // for InterpretPhoneme, GetEnvelope, Inte...
-#include "translate.h"            // for translator, LANGUAGE_OPTIONS, Trans...
-#include "voice.h"                // for voice_t, voice, LoadVoiceVariant
-#include "wavegen.h"              // for WcmdqInc, WcmdqFree, WcmdqStop
-#include "speech.h"               // for MAKE_MEM_UNDEFINED
+#include "synthesize.hpp"
+#include "dictionary.hpp"           // for WritePhMnemonic, GetTranslatedPhone...
+#include "intonation.hpp"           // for CalcPitches
+#include "mbrola.hpp"               // for MbrolaGenerate, mbrola_name
+#include "phoneme.hpp"              // for PHONEME_TAB, phVOWEL, phLIQUID, phN...
+#include "setlengths.hpp"           // for CalcLengths
+#include "soundicon.hpp"               // for soundicon_tab, n_soundicon
+#include "synthdata.hpp"            // for InterpretPhoneme, GetEnvelope, Inte...
+#include "translate.hpp"            // for translator, LANGUAGE_OPTIONS, Trans...
+#include "voice.hpp"                // for voice_t, voice, LoadVoiceVariant
+#include "wavegen.hpp"              // for WcmdqInc, WcmdqFree, WcmdqStop
+#include "speech.hpp"               // for MAKE_MEM_UNDEFINED
 
 static void SmoothSpect(void);
 

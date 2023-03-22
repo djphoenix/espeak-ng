@@ -28,16 +28,16 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "readclause.h"
-#include "setlengths.h"
-#include "synthdata.h"
-#include "wavegen.h"
-#include "speech.h"
+#include "readclause.hpp"
+#include "setlengths.hpp"
+#include "synthdata.hpp"
+#include "wavegen.hpp"
+#include "speech.hpp"
 
-#include "phoneme.h"
-#include "voice.h"
-#include "synthesize.h"
-#include "translate.h"
+#include "phoneme.hpp"
+#include "voice.hpp"
+#include "synthesize.hpp"
+#include "translate.hpp"
 
 static void SetSpeedFactors(voice_t *voice, int x, int speeds[3]);
 static void SetSpeedMods(SPEED_FACTORS *speed, int voiceSpeedF1, int wpm, int x);

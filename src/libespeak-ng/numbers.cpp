@@ -33,15 +33,15 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "numbers.h"
-#include "common.h"
-#include "dictionary.h"  // for Lookup, TranslateRules, EncodePhonemes, Look...
-#include "phoneme.h"     // for phonSWITCH, PHONEME_TAB, phonEND_WORD, phonP...
-#include "readclause.h"  // for WordToString2
-#include "synthdata.h"   // for SelectPhonemeTable
-#include "synthesize.h"  // for phoneme_tab
-#include "translate.h"   // for Translator, LANGUAGE_OPTIONS, WOR...
-#include "voice.h"       // for voice, voice_t
+#include "numbers.hpp"
+#include "common.hpp"
+#include "dictionary.hpp"  // for Lookup, TranslateRules, EncodePhonemes, Look...
+#include "phoneme.hpp"     // for phonSWITCH, PHONEME_TAB, phonEND_WORD, phonP...
+#include "readclause.hpp"  // for WordToString2
+#include "synthdata.hpp"   // for SelectPhonemeTable
+#include "synthesize.hpp"  // for phoneme_tab
+#include "translate.hpp"   // for Translator, LANGUAGE_OPTIONS, WOR...
+#include "voice.hpp"       // for voice, voice_t
 
 #define M_LIGATURE  0x8000
 #define M_NAME      0

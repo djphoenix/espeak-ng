@@ -25,7 +25,7 @@
 
 #include <espeak-ng/espeak_ng.h>
 
-#include "espeak_command.h"
+#include "espeak_command.hpp"
 
 #if USE_ASYNC
 

@@ -23,7 +23,7 @@
 
 #include <espeak-ng/espeak_ng.h>
 
-#include "mnemonics.h"  // for MNEM_TAB, LookupMnem, LookupMnemName
+#include "mnemonics.hpp"  // for MNEM_TAB, LookupMnem, LookupMnemName
 
 int LookupMnem(const MNEM_TAB *table, const char *string)
 {

@@ -5,7 +5,7 @@ list(APPEND _binary_tests)
 macro(compiled_test _test_name)
   add_executable(test_${_test_name}
     $<TARGET_OBJECTS:espeak-ng>
-    ${_test_name}.c
+    ${_test_name}.cpp
   )
   target_link_libraries(test_${_test_name} PRIVATE
     $<TARGET_PROPERTY:espeak-ng,LINK_LIBRARIES>

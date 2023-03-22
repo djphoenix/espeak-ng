@@ -32,16 +32,16 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "common.h"                // for GetFileLength, strncpy0
-#include "dictionary.h"
-#include "numbers.h"                       // for LookupAccentedLetter, Look...
-#include "phoneme.h"                       // for PHONEME_TAB, phVOWEL, phon...
-#include "readclause.h"                    // for WordToString2
-#include "speech.h"                        // for path_home
-#include "compiledict.h"                   // for DecodeRule
-#include "synthdata.h"                     // for PhonemeCode, InterpretPhoneme
-#include "synthesize.h"                    // for STRESS_IS_PRIMARY, phoneme...
-#include "translate.h"                     // for Translator, utf8_in, LANGU...
+#include "common.hpp"                // for GetFileLength, strncpy0
+#include "dictionary.hpp"
+#include "numbers.hpp"                       // for LookupAccentedLetter, Look...
+#include "phoneme.hpp"                       // for PHONEME_TAB, phVOWEL, phon...
+#include "readclause.hpp"                    // for WordToString2
+#include "speech.hpp"                        // for path_home
+#include "compiledict.hpp"                   // for DecodeRule
+#include "synthdata.hpp"                     // for PhonemeCode, InterpretPhoneme
+#include "synthesize.hpp"                    // for STRESS_IS_PRIMARY, phoneme...
+#include "translate.hpp"                     // for Translator, utf8_in, LANGU...
 
 static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2]);
 static void DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points);

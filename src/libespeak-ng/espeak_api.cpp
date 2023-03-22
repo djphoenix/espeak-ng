@@ -27,10 +27,10 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "compiledict.h"
+#include "compiledict.hpp"
 
-#include "synthesize.h"           // for espeakINITIALIZE_PHONEME_IPA
-#include "translate.h"            // for dictionary_name, option_phoneme_events
+#include "synthesize.hpp"           // for espeakINITIALIZE_PHONEME_IPA
+#include "translate.hpp"            // for dictionary_name, option_phoneme_events
 
 static espeak_ERROR status_to_espeak_error(espeak_ng_STATUS status)
 {

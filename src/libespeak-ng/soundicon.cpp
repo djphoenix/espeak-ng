@@ -35,11 +35,11 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
-#include "soundicon.h" 
-#include "common.h"                // for GetFileLength
-#include "error.h"                // for create_file_error_context
-#include "speech.h"                   // for path_home, PATHSEP
-#include "synthesize.h"                   // for samplerate
+#include "soundicon.hpp" 
+#include "common.hpp"                // for GetFileLength
+#include "error.hpp"                // for create_file_error_context
+#include "speech.hpp"                   // for path_home, PATHSEP
+#include "synthesize.hpp"                   // for samplerate
 
 int n_soundicon_tab = 0;
 SOUND_ICON soundicon_tab[N_SOUNDICON_TAB];

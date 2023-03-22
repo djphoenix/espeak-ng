@@ -23,7 +23,7 @@
 #include <windows.h>
 #endif
 
-#include "mbrowrap.h"
+#include "mbrowrap.hpp"
 
 int (WINAPI *init_MBR)(char *voice_path);
 void (WINAPI *close_MBR)(void);

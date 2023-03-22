@@ -29,16 +29,14 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "phonemelist.h"
-#include "phoneme.h"     // for PHONEME_TAB, phVOWEL, REPLACE_PHONEMES, phPAUSE
-#include "synthdata.h"   // for InterpretPhoneme, SelectPhonemeTable
-#include "synthesize.h"  // for PHONEME_LIST, PHONEME_LIST2, phoneme_tab
-#include "translate.h"   // for Translator, LANGUAGE_OPTIONS, option_wordgap
+#include "phonemelist.hpp"
+#include "phoneme.hpp"     // for PHONEME_TAB, phVOWEL, REPLACE_PHONEMES, phPAUSE
+#include "synthdata.hpp"   // for InterpretPhoneme, SelectPhonemeTable
+#include "synthesize.hpp"  // for PHONEME_LIST, PHONEME_LIST2, phoneme_tab
+#include "translate.hpp"   // for Translator, LANGUAGE_OPTIONS, option_wordgap
 
-#include "phoneme.h"
-#include "synthesize.h"
-#include "translate.h"
-#include "speech.h"
+#include "phoneme.hpp"
+#include "speech.hpp"
 
 static void SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_TAB *ph, Translator *tr);
 static void ReInterpretPhoneme(PHONEME_TAB *ph, PHONEME_TAB *ph2, PHONEME_LIST *plist3, Translator *tr, PHONEME_DATA *phdata, WORD_PH_DATA *worddata);

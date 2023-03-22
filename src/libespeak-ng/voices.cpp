@@ -39,18 +39,18 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "voice.h"                    // for voice_t, DoVoiceChange, N_PEAKS
-#include "common.h"                    // for GetFileLength, strncpy0
-#include "dictionary.h"               // for LoadDictionary
-#include "langopts.h"                 // for LoadLanguageOptions
-#include "mnemonics.h"               // for LookupMnemName, MNEM_TAB
-#include "phoneme.h"                  // for REPLACE_PHONEMES, n_replace_pho...
-#include "speech.h"                   // for PATHSEP
-#include "mbrola.h"                   // for LoadMbrolaTable
-#include "synthdata.h"                // for SelectPhonemeTableName, LookupP...
-#include "synthesize.h"               // for SetSpeed, SPEED_FACTORS, speed
-#include "translate.h"                // for LANGUAGE_OPTIONS, DeleteTranslator
-#include "wavegen.h"                  // for InitBreath
+#include "voice.hpp"                    // for voice_t, DoVoiceChange, N_PEAKS
+#include "common.hpp"                    // for GetFileLength, strncpy0
+#include "dictionary.hpp"               // for LoadDictionary
+#include "langopts.hpp"                 // for LoadLanguageOptions
+#include "mnemonics.hpp"               // for LookupMnemName, MNEM_TAB
+#include "phoneme.hpp"                  // for REPLACE_PHONEMES, n_replace_pho...
+#include "speech.hpp"                   // for PATHSEP
+#include "mbrola.hpp"                   // for LoadMbrolaTable
+#include "synthdata.hpp"                // for SelectPhonemeTableName, LookupP...
+#include "synthesize.hpp"               // for SetSpeed, SPEED_FACTORS, speed
+#include "translate.hpp"                // for LANGUAGE_OPTIONS, DeleteTranslator
+#include "wavegen.hpp"                  // for InitBreath
 
 static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
 

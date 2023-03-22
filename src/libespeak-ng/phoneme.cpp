@@ -24,7 +24,7 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
-#include "phoneme.h"
+#include "phoneme.hpp"
 
 phoneme_feature_t phoneme_feature_from_string(const char *feature)
 {

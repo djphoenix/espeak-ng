@@ -39,15 +39,15 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
-#include "ssml.h"
-#include "common.h"           // for strncpy0
-#include "mnemonics.h"               // for LookupMnemName, MNEM_TAB, 
-#include "readclause.h"           // for PARAM_STACK, param_stack, AddNameData
-#include "soundicon.h"               // for LoadSoundFile2
-#include "synthesize.h"           // for SPEED_FACTORS, speed
-#include "translate.h"            // for CTRL_EMBEDDED
-#include "voice.h"                // for SelectVoice, SelectVoiceByName
-#include "speech.h"               // for MAKE_MEM_UNDEFINED
+#include "ssml.hpp"
+#include "common.hpp"           // for strncpy0
+#include "mnemonics.hpp"               // for LookupMnemName, MNEM_TAB, 
+#include "readclause.hpp"           // for PARAM_STACK, param_stack, AddNameData
+#include "soundicon.hpp"               // for LoadSoundFile2
+#include "synthesize.hpp"           // for SPEED_FACTORS, speed
+#include "translate.hpp"            // for CTRL_EMBEDDED
+#include "voice.hpp"                // for SelectVoice, SelectVoiceByName
+#include "speech.hpp"               // for MAKE_MEM_UNDEFINED
 
 static const MNEM_TAB ssmltags[] = {
 	{ "speak",     SSML_SPEAK },

@@ -21,7 +21,7 @@
 
 #include <math.h>
 #include <stdint.h>
-#include "ieee80.h"
+#include "ieee80.hpp"
 
 #ifndef INFINITY
 # define INFINITY 0.

@@ -32,19 +32,19 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "dictionary.h"
-#include "mbrola.h"
-#include "setlengths.h"
-#include "synthdata.h"
-#include "wavegen.h"
+#include "dictionary.hpp"
+#include "mbrola.hpp"
+#include "setlengths.hpp"
+#include "synthdata.hpp"
+#include "wavegen.hpp"
 
 
-#include "common.h"
-#include "phoneme.h"
-#include "voice.h"
-#include "speech.h"
-#include "synthesize.h"
-#include "translate.h"
+#include "common.hpp"
+#include "phoneme.hpp"
+#include "voice.hpp"
+#include "speech.hpp"
+#include "synthesize.hpp"
+#include "translate.hpp"
 
 // included here so tests can find these even without OPT_MBROLA set
 int mbrola_delay;
@@ -56,7 +56,7 @@ char mbrola_name[20];
 #include <windows.h>
 #endif
 
-#include "mbrowrap.h"
+#include "mbrowrap.hpp"
 
 static MBROLA_TAB *mbrola_tab = NULL;
 static int mbrola_control = 0;

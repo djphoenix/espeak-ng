@@ -35,17 +35,17 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "common.h"                    // for GetFileLength, strncpy0, ...c
-#include "error.h"                    // for create_file_error_context
-#include "mnemonics.h"               // for LookupMnemName, MNEM_TAB
-#include "phoneme.h"                  // for PHONEME_TAB, PHONEME_TAB_LIST
-#include "spect.h"                    // for SpectFrame, peak_t, SpectSeq
-#include "speech.h"			// for path_home, GetFileLength
-#include "synthdata.h"                // for LoadPhData
-#include "synthesize.h"               // for TUNE, frame_t, CONDITION_IS_OTHER
-#include "translate.h"                // for utf8_out, utf8_in
-#include "voice.h"                    // for LoadVoice, voice
-#include "wavegen.h"                  // for WavegenInit, WavegenSetVoice
+#include "common.hpp"                    // for GetFileLength, strncpy0, ...c
+#include "error.hpp"                    // for create_file_error_context
+#include "mnemonics.hpp"               // for LookupMnemName, MNEM_TAB
+#include "phoneme.hpp"                  // for PHONEME_TAB, PHONEME_TAB_LIST
+#include "spect.hpp"                    // for SpectFrame, peak_t, SpectSeq
+#include "speech.hpp"			// for path_home, GetFileLength
+#include "synthdata.hpp"                // for LoadPhData
+#include "synthesize.hpp"               // for TUNE, frame_t, CONDITION_IS_OTHER
+#include "translate.hpp"                // for utf8_out, utf8_in
+#include "voice.hpp"                    // for LoadVoice, voice
+#include "wavegen.hpp"                  // for WavegenInit, WavegenSetVoice
 
 static int CalculateSample(unsigned char c3, int c1);
 

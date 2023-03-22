@@ -33,10 +33,10 @@
 
 #include <espeak-ng/espeak_ng.h>
 
-#include "speech.h"
-#include "espeak_command.h"
-#include "fifo.h"
-#include "event.h"
+#include "speech.hpp"
+#include "espeak_command.hpp"
+#include "fifo.hpp"
+#include "event.hpp"
 
 #if USE_ASYNC
 

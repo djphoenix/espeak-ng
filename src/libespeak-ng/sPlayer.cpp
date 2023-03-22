@@ -1,6 +1,6 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
-#include "sPlayer.h"
+#include "sPlayer.hpp"
 
 extern unsigned char *out_ptr;
 extern unsigned char *out_end;

@@ -31,9 +31,9 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "common.h"
-#include "setlengths.h"          // for SetLengthMods
-#include "translate.h"           // for Translator, LANGUAGE_OPTIONS, L, NUM...
+#include "common.hpp"
+#include "setlengths.hpp"          // for SetLengthMods
+#include "translate.hpp"           // for Translator, LANGUAGE_OPTIONS, L, NUM...
 
 // start of unicode pages for character sets
 #define OFFSET_GREEK    0x380

@@ -33,14 +33,14 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "common.h"               // for strncpy0
-#include "compiledict.h"
-#include "dictionary.h"           // for EncodePhonemes, HashDicti...
-#include "error.h"                // for create_file_error_context
-#include "mnemonics.h"               // for LookupMnemName, MNEM_TAB
-#include "phoneme.h"              // for PHONEME_TAB_LIST, phonSWITCH, phone...
-#include "speech.h"		// for path_home
-#include "synthesize.h"           // for Write4Bytes
+#include "common.hpp"               // for strncpy0
+#include "compiledict.hpp"
+#include "dictionary.hpp"           // for EncodePhonemes, HashDicti...
+#include "error.hpp"                // for create_file_error_context
+#include "mnemonics.hpp"               // for LookupMnemName, MNEM_TAB
+#include "phoneme.hpp"              // for PHONEME_TAB_LIST, phonSWITCH, phone...
+#include "speech.hpp"		// for path_home
+#include "synthesize.hpp"           // for Write4Bytes
 
 static const MNEM_TAB mnem_rules[] = {
 	{ "unpr",     DOLLAR_UNPR },

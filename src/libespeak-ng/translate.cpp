@@ -32,18 +32,18 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "translate.h"
-#include "common.h"
-#include "dictionary.h"           // for TranslateRules, LookupDictList, Cha...
-#include "phoneme.h"              // for phonSWITCH, PHONEME_TAB, phonPAUSE_...
-#include "phonemelist.h"          // for MakePhonemeList
-#include "readclause.h"           // for towlower2, Eof, ReadClause, is_str_...
-#include "synthdata.h"            // for SelectPhonemeTable, LookupPhonemeTable
-#include "synthesize.h"           // for PHONEME_LIST2, N_PHONEME_LIST, PHON...
+#include "translate.hpp"
+#include "common.hpp"
+#include "dictionary.hpp"           // for TranslateRules, LookupDictList, Cha...
+#include "phoneme.hpp"              // for phonSWITCH, PHONEME_TAB, phonPAUSE_...
+#include "phonemelist.hpp"          // for MakePhonemeList
+#include "readclause.hpp"           // for towlower2, Eof, ReadClause, is_str_...
+#include "synthdata.hpp"            // for SelectPhonemeTable, LookupPhonemeTable
+#include "synthesize.hpp"           // for PHONEME_LIST2, N_PHONEME_LIST, PHON...
 #include "ucd/ucd.h"              // for ucd_toupper
-#include "voice.h"                // for voice, voice_t
-#include "speech.h"               // for MAKE_MEM_UNDEFINED
-#include "translateword.h"
+#include "voice.hpp"                // for voice, voice_t
+#include "speech.hpp"               // for MAKE_MEM_UNDEFINED
+#include "translateword.hpp"
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count);
 static void CombineFlag(Translator *tr, WORD_TAB *wtab, char *word, int *flags, unsigned char *p, char *word_phonemes);

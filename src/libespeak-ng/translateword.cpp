@@ -33,16 +33,16 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "translate.h"
-#include "translateword.h"
-#include "common.h"               // for strncpy0
-#include "dictionary.h"           // for TranslateRules, LookupDictList
-#include "numbers.h"              // for SetSpellingStress, ...
-#include "phoneme.h"              // for phonSWITCH, PHONEME_TAB, phonPAUSE_...
-#include "readclause.h"           // for towlower2
-#include "synthdata.h"            // for SelectPhonemeTable, LookupPhonemeTable
+#include "translate.hpp"
+#include "translateword.hpp"
+#include "common.hpp"               // for strncpy0
+#include "dictionary.hpp"           // for TranslateRules, LookupDictList
+#include "numbers.hpp"              // for SetSpellingStress, ...
+#include "phoneme.hpp"              // for phonSWITCH, PHONEME_TAB, phonPAUSE_...
+#include "readclause.hpp"           // for towlower2
+#include "synthdata.hpp"            // for SelectPhonemeTable, LookupPhonemeTable
 #include "ucd/ucd.h"              // for ucd_toupper
-#include "voice.h"                // for voice, voice_t
+#include "voice.hpp"                // for voice, voice_t
 
 
 static void addPluralSuffixes(int flags, Translator *tr, char last_char, char *word_phonemes);

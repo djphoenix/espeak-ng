@@ -31,13 +31,13 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "langopts.h"
-#include "mnemonics.h"                // for MNEM_TAB
-#include "translate.h"                // for Translator
-#include "soundicon.h"                // for soundicon_tab, n_soundicon_tab
-#include "speech.h"                    // for path_home, PATHSEP
-#include "synthdata.h"                    // for n_tunes, tunes
-#include "voice.h"                    // for ReadNumbers, Read8Numbers, ...
+#include "langopts.hpp"
+#include "mnemonics.hpp"                // for MNEM_TAB
+#include "translate.hpp"                // for Translator
+#include "soundicon.hpp"                // for soundicon_tab, n_soundicon_tab
+#include "speech.hpp"                    // for path_home, PATHSEP
+#include "synthdata.hpp"                    // for n_tunes, tunes
+#include "voice.hpp"                    // for ReadNumbers, Read8Numbers, ...
 
 static int CheckTranslator(Translator *tr, const MNEM_TAB *keyword_tab, int key);
 static int LookupTune(const char *name);

@@ -32,21 +32,21 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
-#include "wavegen.h"
-#include "common.h"                   // for espeak_rand
-#include "synthesize.h"               // for WGEN_DATA, RESONATOR, frame_t
-#include "mbrola.h"                  // for MbrolaFill, MbrolaReset, mbrola...
+#include "wavegen.hpp"
+#include "common.hpp"                   // for espeak_rand
+#include "synthesize.hpp"               // for WGEN_DATA, RESONATOR, frame_t
+#include "mbrola.hpp"                  // for MbrolaFill, MbrolaReset, mbrola...
 
 #if USE_KLATT
-#include "klatt.h"
+#include "klatt.hpp"
 #endif
 
 #if USE_LIBSONIC
 #include "sonic.h"
 #endif
 
-#include "sintab.h"
-#include "speech.h"
+#include "sintab.hpp"
+#include "speech.hpp"
 
 static void SetSynth(int length, int modn, frame_t *fr1, frame_t *fr2, voice_t *v);
 

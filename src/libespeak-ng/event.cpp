@@ -33,7 +33,7 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
-#include "event.h"
+#include "event.hpp"
 
 // my_mutex: protects my_thread_is_talking,
 static pthread_mutex_t my_mutex;

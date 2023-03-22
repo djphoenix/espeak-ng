@@ -36,17 +36,17 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
-#include "readclause.h"
-#include "common.h"               // for GetFileLength, strncpy0
-#include "dictionary.h"           // for LookupDictList, DecodePhonemes, Set...
-#include "error.h"                // for create_file_error_context
-#include "phoneme.h"              // for phonSWITCH
-#include "soundicon.h"               // for LookupSoundIcon
-#include "speech.h"               // for LookupMnem, PATHSEP
-#include "ssml.h"                 // for SSML_STACK, ProcessSsmlTag, N_PARAM...
-#include "synthdata.h"            // for SelectPhonemeTable
-#include "translate.h"            // for Translator, utf8_out, CLAUSE_OPTION...
-#include "voice.h"                // for voice, voice_t, espeak_GetCurrentVoice
+#include "readclause.hpp"
+#include "common.hpp"               // for GetFileLength, strncpy0
+#include "dictionary.hpp"           // for LookupDictList, DecodePhonemes, Set...
+#include "error.hpp"                // for create_file_error_context
+#include "phoneme.hpp"              // for phonSWITCH
+#include "soundicon.hpp"               // for LookupSoundIcon
+#include "speech.hpp"               // for LookupMnem, PATHSEP
+#include "ssml.hpp"                 // for SSML_STACK, ProcessSsmlTag, N_PARAM...
+#include "synthdata.hpp"            // for SelectPhonemeTable
+#include "translate.hpp"            // for Translator, utf8_out, CLAUSE_OPTION...
+#include "voice.hpp"                // for voice, voice_t, espeak_GetCurrentVoice
 
 #define N_XML_BUF   500
 

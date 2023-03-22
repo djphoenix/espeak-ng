@@ -34,12 +34,12 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
-#include "klatt.h"
-#include "common.h"      // for espeak_rand
-#include "synthesize.h"  // for frame_t, WGEN_DATA, STEPSIZE, N_KLATTP, echo...
-#include "voice.h"       // for voice_t, N_PEAKS
+#include "klatt.hpp"
+#include "common.hpp"      // for espeak_rand
+#include "synthesize.hpp"  // for frame_t, WGEN_DATA, STEPSIZE, N_KLATTP, echo...
+#include "voice.hpp"       // for voice_t, N_PEAKS
 #if USE_SPEECHPLAYER
-#include "sPlayer.h"
+#include "sPlayer.hpp"
 #endif
 
 extern unsigned char *out_ptr;

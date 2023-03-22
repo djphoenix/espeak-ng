@@ -35,8 +35,8 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
-#include "common.h"
-#include "translate.h"
+#include "common.hpp"
+#include "translate.hpp"
 
 #pragma GCC visibility push(default)
 

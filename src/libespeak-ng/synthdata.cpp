@@ -31,16 +31,16 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
-#include "synthdata.h"
-#include "common.h"                    // for GetFileLength
-#include "error.h"                    // for create_file_error_context, crea...
-#include "phoneme.h"                  // for PHONEME_TAB, PHONEME_TAB_LIST
-#include "speech.h"                   // for path_home, PATHSEP
-#include "mbrola.h"                   // for mbrola_name
-#include "soundicon.h"               // for soundicon_tab
-#include "synthesize.h"               // for PHONEME_LIST, frameref_t, PHONE...
-#include "translate.h"                // for Translator, LANGUAGE_OPTIONS
-#include "voice.h"                    // for ReadTonePoints, tone_points, voice
+#include "synthdata.hpp"
+#include "common.hpp"                    // for GetFileLength
+#include "error.hpp"                    // for create_file_error_context, crea...
+#include "phoneme.hpp"                  // for PHONEME_TAB, PHONEME_TAB_LIST
+#include "speech.hpp"                   // for path_home, PATHSEP
+#include "mbrola.hpp"                   // for mbrola_name
+#include "soundicon.hpp"               // for soundicon_tab
+#include "synthesize.hpp"               // for PHONEME_LIST, frameref_t, PHONE...
+#include "translate.hpp"                // for Translator, LANGUAGE_OPTIONS
+#include "voice.hpp"                    // for ReadTonePoints, tone_points, voice
 
 int n_tunes = 0;
 TUNE *tunes = NULL;
