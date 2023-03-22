@@ -287,7 +287,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE 
 	outbuf_size = (millisamples + 1000 - millisamples % 1000) / 500;
 	out_start = (unsigned char *)realloc(outbuf, outbuf_size);
 	if (out_start == NULL)
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 	else
 		outbuf = out_start;
 
@@ -296,7 +296,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE 
 	n_event_list = (buffer_length*200)/1000 + 20;
 	espeak_EVENT *new_event_list = (espeak_EVENT *)realloc(event_list, sizeof(espeak_EVENT) * n_event_list);
 	if (new_event_list == NULL)
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 	event_list = new_event_list;
 
 	return ENS_OK;
@@ -691,7 +691,7 @@ espeak_ng_Synthesize(const void *text, size_t size,
 
 	delete_espeak_command(c1);
 	delete_espeak_command(c2);
-	return ENOMEM;
+	return espeak_ng_STATUS(ENOMEM);
 #else
 	return sync_espeak_Synth(0, text, position, position_type, end_position, flags, user_data);
 #endif
@@ -741,7 +741,7 @@ espeak_ng_SynthesizeMark(const void *text,
 
 	delete_espeak_command(c1);
 	delete_espeak_command(c2);
-	return ENOMEM;
+	return espeak_ng_STATUS(ENOMEM);
 #else
 	return sync_espeak_Synth_Mark(0, text, index_mark, end_position, flags, user_data);
 #endif

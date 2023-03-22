@@ -59,7 +59,7 @@ static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ER
 	}
 
 	if (fname == NULL)
-		return EINVAL;
+		return espeak_ng_STATUS(EINVAL);
 
 	if (fname[0] != '/') {
 		// a relative path, look in espeak-ng-data/soundicons
@@ -77,7 +77,7 @@ static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ER
 		if (fseek(f, 20, SEEK_SET) == -1) {
 			int error = errno;
 			fclose(f);
-			return create_file_error_context(context, error, fname);
+			return create_file_error_context(context, espeak_ng_STATUS(error), fname);
 		}
 
 		for (ix = 0; ix < 3; ix++)
@@ -106,22 +106,22 @@ static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ER
 	if (f == NULL) {
 		f = fopen(fname, "rb");
 		if (f == NULL)
-			return create_file_error_context(context, errno, fname);
+			return create_file_error_context(context, espeak_ng_STATUS(errno), fname);
 	}
 
 	length = GetFileLength(fname);
 	if (length < 0) { // length == -errno
 		fclose(f);
-		return create_file_error_context(context, -length, fname);
+		return create_file_error_context(context, espeak_ng_STATUS(-length), fname);
 	}
 	if (fseek(f, 0, SEEK_SET) == -1) {
 		int error = errno;
 		fclose(f);
-		return create_file_error_context(context, error, fname);
+		return create_file_error_context(context, espeak_ng_STATUS(error), fname);
 	}
-	if ((p = realloc(soundicon_tab[index].data, length)) == NULL) {
+	if ((p = (unsigned char*)realloc(soundicon_tab[index].data, length)) == NULL) {
 		fclose(f);
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 	}
 	if (fread(p, 1, length, f) != length) {
 		int error = errno;
@@ -129,7 +129,7 @@ static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ER
 		if (fname_temp[0])
 			remove(fname_temp);
 		free(p);
-		return create_file_error_context(context, error, fname);
+		return create_file_error_context(context, espeak_ng_STATUS(error), fname);
 	}
 	fclose(f);
 	if (fname_temp[0])

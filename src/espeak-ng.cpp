@@ -42,9 +42,11 @@
 #define PLAYBACK_MODE ENOUTPUT_MODE_SPEAK_AUDIO
 #endif
 
+extern "C" {
 extern ESPEAK_NG_API void strncpy0(char *to, const char *from, int size);
 extern ESPEAK_NG_API int utf8_in(int *c, const char *buf);
 extern ESPEAK_NG_API int GetFileLength(const char *filename);
+}
 
 static const char *help_text =
     "\n" PROGRAM_NAME " [options] [\"<words>\"]\n\n"
@@ -725,7 +727,7 @@ int main(int argc, char **argv)
 	} else if (flag_stdin) {
 		size_t max = 1000;
 		if ((p_text = (char *)malloc(max)) == NULL) {
-			espeak_ng_PrintStatusCodeMessage(ENOMEM, stderr, NULL);
+			espeak_ng_PrintStatusCodeMessage(espeak_ng_STATUS(ENOMEM), stderr, NULL);
 			exit(EXIT_FAILURE);
 		}
 
@@ -755,7 +757,7 @@ int main(int argc, char **argv)
 					}
 					if (new_text == NULL) {
 						free(p_text);
-						espeak_ng_PrintStatusCodeMessage(ENOMEM, stderr, NULL);
+						espeak_ng_PrintStatusCodeMessage(espeak_ng_STATUS(ENOMEM), stderr, NULL);
 						exit(EXIT_FAILURE);
 					}
 					p_text = new_text;
@@ -770,7 +772,7 @@ int main(int argc, char **argv)
 		free(p_text);
 	} else if (f_text != NULL) {
 		if ((p_text = (char *)malloc(filesize+1)) == NULL) {
-			espeak_ng_PrintStatusCodeMessage(ENOMEM, stderr, NULL);
+			espeak_ng_PrintStatusCodeMessage(espeak_ng_STATUS(ENOMEM), stderr, NULL);
 			exit(EXIT_FAILURE);
 		}
 

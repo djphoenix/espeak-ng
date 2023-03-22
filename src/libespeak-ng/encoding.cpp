@@ -154,7 +154,7 @@ static const MNEM_TAB mnem_encoding[] = {
 espeak_ng_ENCODING
 espeak_ng_EncodingFromName(const char *encoding)
 {
-	return LookupMnem(mnem_encoding, encoding);
+	return espeak_ng_ENCODING(LookupMnem(mnem_encoding, encoding));
 }
 
 #pragma GCC visibility pop
@@ -660,7 +660,7 @@ static const encoding_t string_decoders[] = {
 espeak_ng_TEXT_DECODER *
 create_text_decoder(void)
 {
-	espeak_ng_TEXT_DECODER *decoder = malloc(sizeof(espeak_ng_TEXT_DECODER));
+	espeak_ng_TEXT_DECODER *decoder = (espeak_ng_TEXT_DECODER*)malloc(sizeof(espeak_ng_TEXT_DECODER));
 	if (!decoder) return NULL;
 
 	decoder->current = NULL;

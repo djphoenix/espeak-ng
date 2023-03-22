@@ -233,7 +233,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 		return 1;
 	}
 
-	if ((tr->data_dictlist = malloc(size)) == NULL) {
+	if ((tr->data_dictlist = (char*)malloc(size)) == NULL) {
 		fclose(f);
 		return 3;
 	}

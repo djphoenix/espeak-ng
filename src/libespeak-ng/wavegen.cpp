@@ -1440,7 +1440,7 @@ ESPEAK_NG_API espeak_ng_STATUS
 espeak_ng_SetOutputHooks(espeak_ng_OUTPUT_HOOKS* hooks)
 {
 	output_hooks = hooks;
-	return 0;
+	return ENS_OK;
 }
 
 ESPEAK_NG_API espeak_ng_STATUS

@@ -66,7 +66,7 @@ static frameref_t frames_buf[N_SEQ_FRAMES];
 
 static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
 {
-	if (!ptr) return EINVAL;
+	if (!ptr) return espeak_ng_STATUS(EINVAL);
 
 	FILE *f_in;
 	int length;
@@ -75,23 +75,23 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 	snprintf(buf, sizeof(buf), "%s%c%s", path_home, PATHSEP, fname);
 	length = GetFileLength(buf);
 	if (length < 0) // length == -errno
-		return create_file_error_context(context, -length, buf);
+		return create_file_error_context(context, espeak_ng_STATUS(-length), buf);
 
 	if ((f_in = fopen(buf, "rb")) == NULL)
-		return create_file_error_context(context, errno, buf);
+		return create_file_error_context(context, espeak_ng_STATUS(errno), buf);
 
 	if (*ptr != NULL)
 		free(*ptr);
 
 	if ((*ptr = malloc(length)) == NULL) {
 		fclose(f_in);
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 	}
 	if (fread(*ptr, 1, length, f_in) != length) {
 		int error = errno;
 		fclose(f_in);
 		free(*ptr);
-		return create_file_error_context(context, error, buf);
+		return create_file_error_context(context, espeak_ng_STATUS(error), buf);
 	}
 
 	fclose(f_in);

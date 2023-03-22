@@ -30,14 +30,14 @@ phoneme_feature_t phoneme_feature_from_string(const char *feature)
 {
 	if (!feature || strlen(feature) != 3)
 		return inv;
-	return (feature[0] << 16) | (feature[1] << 8) | feature[2];
+	return phoneme_feature_t((feature[0] << 16) | (feature[1] << 8) | feature[2]);
 }
 
 espeak_ng_STATUS
 phoneme_add_feature(PHONEME_TAB *phoneme,
                     phoneme_feature_t feature)
 {
-	if (!phoneme) return EINVAL;
+	if (!phoneme) return espeak_ng_STATUS(EINVAL);
 	switch (feature)
 	{
 	// manner of articulation

@@ -205,10 +205,10 @@ static int event_delete(espeak_EVENT *event)
 espeak_ng_STATUS event_declare(espeak_EVENT *event)
 {
 	if (!event)
-		return EINVAL;
+		return espeak_ng_STATUS(EINVAL);
 
 	espeak_ng_STATUS status;
-	if ((status = pthread_mutex_lock(&my_mutex)) != ENS_OK) {
+	if ((status = espeak_ng_STATUS(pthread_mutex_lock(&my_mutex))) != ENS_OK) {
 		my_start_is_required = true;
 		return status;
 	}
@@ -220,7 +220,7 @@ espeak_ng_STATUS event_declare(espeak_EVENT *event)
 	} else {
 		my_start_is_required = true;
 		pthread_cond_signal(&my_cond_start_is_required);
-		status = pthread_mutex_unlock(&my_mutex);
+		status = espeak_ng_STATUS(pthread_mutex_unlock(&my_mutex));
 	}
 
 
@@ -230,7 +230,7 @@ espeak_ng_STATUS event_declare(espeak_EVENT *event)
 espeak_ng_STATUS event_clear_all(void)
 {
 	espeak_ng_STATUS status;
-	if ((status = pthread_mutex_lock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_lock(&my_mutex))) != ENS_OK)
 		return status;
 
 	int a_event_is_running = 0;
@@ -248,7 +248,7 @@ espeak_ng_STATUS event_clear_all(void)
 		}
 	}
 
-	if ((status = pthread_mutex_unlock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_unlock(&my_mutex))) != ENS_OK)
 		return status;
 
 	return ENS_OK;
@@ -332,14 +332,14 @@ static espeak_ng_STATUS push(void *the_data)
 	assert((!head && !tail) || (head && tail));
 
 	if (the_data == NULL)
-		return EINVAL;
+		return espeak_ng_STATUS(EINVAL);
 
 	if (node_counter >= MAX_NODE_COUNTER)
 		return ENS_EVENT_BUFFER_FULL;
 
 	node *n = (node *)malloc(sizeof(node));
 	if (n == NULL)
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 
 	if (head == NULL) {
 		head = n;

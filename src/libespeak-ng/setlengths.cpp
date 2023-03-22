@@ -32,6 +32,7 @@
 #include "setlengths.h"
 #include "synthdata.h"
 #include "wavegen.h"
+#include "speech.h"
 
 #include "phoneme.h"
 #include "voice.h"
@@ -294,7 +295,6 @@ espeak_ng_STATUS SetParameter(int parameter, int value, int relative)
 	// relative 0=absolute  1=relative
 
 	int new_value = value;
-	extern const int param_defaults[N_SPEECH_PARAM];
 
 	if (relative) {
 		if (parameter < 5) {
@@ -340,7 +340,7 @@ espeak_ng_STATUS SetParameter(int parameter, int value, int relative)
   case espeakSSML_BREAK_MUL:
     break;
 	default:
-		return EINVAL;
+		return espeak_ng_STATUS(EINVAL);
 	}
 	return ENS_OK;
 }

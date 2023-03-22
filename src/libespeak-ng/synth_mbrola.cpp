@@ -130,18 +130,18 @@ espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, 
 	snprintf(path, sizeof(path), "%s/mbrola_ph/%s", path_home, phtrans);
 	size = GetFileLength(path);
 	if (size < 0) // size == -errno
-		return -size;
+		return espeak_ng_STATUS(-size);
 	if ((f_in = fopen(path, "rb")) == NULL) {
 		int error = errno;
 		close_MBR();
-		return error;
+		return espeak_ng_STATUS(error);
 	}
 
 	MBROLA_TAB *new_mbrola_tab = (MBROLA_TAB *)realloc(mbrola_tab, size);
 	if (new_mbrola_tab == NULL) {
 		fclose(f_in);
 		close_MBR();
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 	}
 	mbrola_tab = new_mbrola_tab;
 

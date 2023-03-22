@@ -37,7 +37,7 @@
 #include "speech.h"               // for path_home
 #include "synthesize.h"           // for Write4Bytes
 
-static const char *basename(const char *filename)
+static const char *_basename(const char *filename)
 {
 	const char *current = filename + strlen(filename);
 	while (current != filename && !(*current == '/' || *current == '\\'))
@@ -69,7 +69,7 @@ espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, e
 	MBROLA_TAB data[N_PHONEME_TAB];
 
 	if ((f_in = fopen(filepath, "r")) == NULL)
-		return create_file_error_context(context, errno, filepath);
+		return create_file_error_context(context, espeak_ng_STATUS(errno), filepath);
 
 	while (fgets(buf, sizeof(phoneme), f_in) != NULL) {
 		buf[sizeof(phoneme)-1] = 0;
@@ -105,10 +105,10 @@ espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, e
 	}
 	fclose(f_in);
 
-	strcpy(mbrola_voice, basename(filepath));
+	strcpy(mbrola_voice, _basename(filepath));
 	snprintf(buf, sizeof(buf), "%s/mbrola_ph/%s_phtrans", path_home, mbrola_voice);
 	if ((f_out = fopen(buf, "wb")) == NULL)
-		return create_file_error_context(context, errno, buf);
+		return create_file_error_context(context, espeak_ng_STATUS(errno), buf);
 
 	memset(&data[count], 0, sizeof(data[count]));
 	data[count].name = 0; // list terminator

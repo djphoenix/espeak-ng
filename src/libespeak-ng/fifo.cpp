@@ -121,7 +121,7 @@ void fifo_init(void)
 espeak_ng_STATUS fifo_add_command(t_espeak_command *the_command)
 {
 	espeak_ng_STATUS status;
-	if ((status = pthread_mutex_lock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_lock(&my_mutex))) != ENS_OK)
 		return status;
 
 	if ((status = push(the_command)) != ENS_OK) {
@@ -133,12 +133,12 @@ espeak_ng_STATUS fifo_add_command(t_espeak_command *the_command)
 	pthread_cond_signal(&my_cond_start_is_required);
 
 	while (my_start_is_required && !my_command_is_running) {
-		if((status = pthread_cond_wait(&my_cond_command_is_running, &my_mutex)) != ENS_OK && errno != EINTR) {
+		if((status = espeak_ng_STATUS(pthread_cond_wait(&my_cond_command_is_running, &my_mutex))) != ENS_OK && errno != EINTR) {
 			pthread_mutex_unlock(&my_mutex);
 			return status;
 		}
 	}
-	if ((status = pthread_mutex_unlock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_unlock(&my_mutex))) != ENS_OK)
 		return status;
 
 	return ENS_OK;
@@ -150,7 +150,7 @@ espeak_ng_STATUS fifo_add_commands(t_espeak_command *command1, t_espeak_command 
 	if (!thread_inited) {
 		return ENS_NOT_INITIALIZED;
 	}
-	if ((status = pthread_mutex_lock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_lock(&my_mutex))) != ENS_OK)
 		return status;
 
 	if (node_counter+1 >= MAX_NODE_COUNTER) {
@@ -172,12 +172,12 @@ espeak_ng_STATUS fifo_add_commands(t_espeak_command *command1, t_espeak_command 
 	pthread_cond_signal(&my_cond_start_is_required);
 	
 	while (my_start_is_required && !my_command_is_running) {
-		if((status = pthread_cond_wait(&my_cond_command_is_running, &my_mutex)) != ENS_OK && errno != EINTR) {
+		if((status = espeak_ng_STATUS(pthread_cond_wait(&my_cond_command_is_running, &my_mutex))) != ENS_OK && errno != EINTR) {
 			pthread_mutex_unlock(&my_mutex);
 			return status;
 		}
 	}
-	if ((status = pthread_mutex_unlock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_unlock(&my_mutex))) != ENS_OK)
 		return status;
 
 	return ENS_OK;
@@ -187,7 +187,7 @@ espeak_ng_STATUS fifo_stop(void)
 {
 	if (!thread_inited) return ENS_OK;
 	espeak_ng_STATUS status;
-	if ((status = pthread_mutex_lock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_lock(&my_mutex))) != ENS_OK)
 		return status;
 
 	bool a_command_is_running = false;
@@ -205,7 +205,7 @@ espeak_ng_STATUS fifo_stop(void)
 	}
 
 	my_stop_is_required = false;
-	if ((status = pthread_mutex_unlock(&my_mutex)) != ENS_OK)
+	if ((status = espeak_ng_STATUS(pthread_mutex_unlock(&my_mutex))) != ENS_OK)
 		return status;
 
 	return ENS_OK;
@@ -255,7 +255,7 @@ static int sleep_until_start_request_or_inactivity(void)
 
 static espeak_ng_STATUS close_stream(void)
 {
-	espeak_ng_STATUS status = pthread_mutex_lock(&my_mutex);
+	espeak_ng_STATUS status = espeak_ng_STATUS(pthread_mutex_lock(&my_mutex));
 	if (status != ENS_OK)
 		return status;
 
@@ -263,19 +263,19 @@ static espeak_ng_STATUS close_stream(void)
 	if (!a_stop_is_required)
 		my_command_is_running = true;
 
-	status = pthread_mutex_unlock(&my_mutex);
+	status = espeak_ng_STATUS(pthread_mutex_unlock(&my_mutex));
 
 	if (!a_stop_is_required) {
 		int a_status = pthread_mutex_lock(&my_mutex);
 		if (status == ENS_OK)
-			status = a_status;
+			status = espeak_ng_STATUS(a_status);
 
 		my_command_is_running = false;
 		a_stop_is_required = my_stop_is_required;
 
 		a_status = pthread_mutex_unlock(&my_mutex);
 		if (status == ENS_OK)
-			status = a_status;
+			status = espeak_ng_STATUS(a_status);
 
 		if (a_stop_is_required) {
 			// cancel the audio early, to be more responsive when using eSpeak NG
@@ -284,15 +284,15 @@ static espeak_ng_STATUS close_stream(void)
 
 			// acknowledge the stop request
 			if((a_status = pthread_mutex_lock(&my_mutex)) != ENS_OK)
-				return a_status;
+				return espeak_ng_STATUS(a_status);
 
 			my_stop_is_acknowledged = true;
 			a_status = pthread_cond_signal(&my_cond_stop_is_acknowledged);
 			if(a_status != ENS_OK)
-				return a_status;
+				return espeak_ng_STATUS(a_status);
 			a_status = pthread_mutex_unlock(&my_mutex);
 			if (status == ENS_OK)
-				status = a_status;
+				status = espeak_ng_STATUS(a_status);
 			
 		}
 	}
@@ -398,14 +398,14 @@ static espeak_ng_STATUS push(t_espeak_command *the_command)
 	assert((!head && !tail) || (head && tail));
 
 	if (the_command == NULL)
-		return EINVAL;
+		return espeak_ng_STATUS(EINVAL);
 
 	if (node_counter >= MAX_NODE_COUNTER)
 		return ENS_FIFO_BUFFER_FULL;
 
 	node *n = (node *)malloc(sizeof(node));
 	if (n == NULL)
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 
 	if (head == NULL) {
 		head = n;

@@ -1230,19 +1230,19 @@ static void* output_rule_group(int n_rules, char **rules, char *name, size_t *ou
 		outpos = outlen;
 		if ((common[0] != 0) && (strcmp(p, common) == 0)) {
 			outlen += len2 + 1;
-			outptr = realloc(outptr, outlen);
+			outptr = (char*)realloc(outptr, outlen);
 			memmove(outptr + outpos, p2, len2);
 			outptr[outlen-1] = 0;
 		} else {
 			if ((ix < n_rules-1) && (strcmp(p, rules[ix+1]) == 0)) {
 				outlen ++;
-				outptr = realloc(outptr, outlen);
+				outptr = (char*)realloc(outptr, outlen);
 				common = rules[ix]; // phoneme string is same as next, set as common
 				outptr[outpos++] = RULE_PH_COMMON;
 			}
 
 			outlen += len2 + 1 + len1;
-			outptr = realloc(outptr, outlen);
+			outptr = (char*)realloc(outptr, outlen);
 			memmove(outptr + outpos, p2, len2);
 			outpos += len2;
 			outptr[outpos++] = RULE_PHONEMES;
@@ -1536,7 +1536,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 	char fname_out[sizeof(path_home)+45];
 	char path[sizeof(path_home)+40];       // path_dsource+20
 
-	CompileContext *ctx = calloc(1, sizeof(CompileContext));
+	CompileContext *ctx = (CompileContext*)calloc(1, sizeof(CompileContext));
 
 	ctx->error_count = 0;
 	ctx->error_need_dictionary = 0;
@@ -1558,7 +1558,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 		snprintf(fname_in, sizeof(fname_in), "%srules", path);
 		if ((f_in = fopen(fname_in, "r")) == NULL) {
 			clean_context(ctx);
-			return create_file_error_context(context, errno, fname_in);
+			return create_file_error_context(context, espeak_ng_STATUS(errno), fname_in);
 		}
 	}
 
@@ -1567,7 +1567,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 		int error = errno;
 		fclose(f_in);
 		clean_context(ctx);
-		return create_file_error_context(context, error, fname_out);
+		return create_file_error_context(context, espeak_ng_STATUS(error), fname_out);
 	}
 
 	value = N_HASH_DICT;

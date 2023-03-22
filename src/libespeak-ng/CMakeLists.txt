@@ -6,39 +6,40 @@ add_library(espeak-ng-config INTERFACE)
 target_include_directories(espeak-ng-config INTERFACE ${ESPEAK_CONFIG_DIR})
 
 add_library(espeak-ng
-  common.c
-  mnemonics.c
-  error.c
-  ieee80.c
+  common.cpp
+  mnemonics.cpp
+  error.cpp
+  ieee80.cpp
 
-  compiledata.c
-  compiledict.c
+  compiledata.cpp
+  compiledict.cpp
 
-  dictionary.c
-  encoding.c
-  intonation.c
-  langopts.c
-  numbers.c
-  phoneme.c
-  phonemelist.c
-  readclause.c
-  setlengths.c
-  soundicon.c
-  spect.c
-  ssml.c
-  synthdata.c
-  synthesize.c
-  tr_languages.c
-  translate.c
-  translateword.c
-  voices.c
-  wavegen.c
-  speech.c
+  dictionary.cpp
+  encoding.cpp
+  intonation.cpp
+  langopts.cpp
+  numbers.cpp
+  phoneme.cpp
+  phonemelist.cpp
+  readclause.cpp
+  setlengths.cpp
+  soundicon.cpp
+  spect.cpp
+  ssml.cpp
+  synthdata.cpp
+  synthesize.cpp
+  tr_languages.cpp
+  translate.cpp
+  translateword.cpp
+  voices.cpp
+  wavegen.cpp
+  speech.cpp
 
-  espeak_api.c
+  espeak_api.cpp
 )
 set_target_properties(
   espeak-ng PROPERTIES
+  CXX_STANDARD 17
   MACOSX_RPATH ON
   INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib"
 )
@@ -58,9 +59,9 @@ if (NOT MSVC)
     "-Wunused"
     "-Wuninitialized"
     "-Wreturn-type"
-    "-Wmissing-prototypes"
-    "-Wint-conversion"
-    "-Wimplicit"
+    # "-Wmissing-prototypes"
+    # "-Wint-conversion"
+    # "-Wimplicit"
     "-Wmisleading-indentation"
   )
 endif()
@@ -73,26 +74,26 @@ target_compile_definitions(espeak-ng PRIVATE "PATH_ESPEAK_DATA=\"${CMAKE_INSTALL
 
 if (USE_ASYNC)
   target_sources(espeak-ng PRIVATE
-    event.c
-    fifo.c
-    espeak_command.c
+    event.cpp
+    fifo.cpp
+    espeak_command.cpp
   )
 endif(USE_ASYNC)
 
 if (USE_MBROLA)
   target_sources(espeak-ng PRIVATE
-    mbrowrap.c
-    compilembrola.c
-    synth_mbrola.c
+    mbrowrap.cpp
+    compilembrola.cpp
+    synth_mbrola.cpp
   )
 endif(USE_MBROLA)
 
 if (USE_KLATT)
-  target_sources(espeak-ng PRIVATE klatt.c)
+  target_sources(espeak-ng PRIVATE klatt.cpp)
 endif(USE_KLATT)
 
 if (USE_SPEECHPLAYER)
-  target_sources(espeak-ng PRIVATE sPlayer.c)
+  target_sources(espeak-ng PRIVATE sPlayer.cpp)
   target_link_libraries(espeak-ng PRIVATE speechPlayer)
 endif(USE_SPEECHPLAYER)
 

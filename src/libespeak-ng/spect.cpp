@@ -90,7 +90,7 @@ static SpectFrame *SpectFrameCreate(void)
 	int ix;
 	SpectFrame *frame;
 
-	frame = malloc(sizeof(SpectFrame));
+	frame = (SpectFrame*)malloc(sizeof(SpectFrame));
 	if (!frame)
 		return NULL;
 
@@ -185,10 +185,10 @@ static espeak_ng_STATUS LoadFrame(SpectFrame *frame, FILE *stream, int file_form
 		}
 	}
 
-	spect_data = malloc(sizeof(unsigned short) * frame->nx);
+	spect_data = (unsigned short*)malloc(sizeof(unsigned short) * frame->nx);
 
 	if (spect_data == NULL)
-		return ENOMEM;
+		return espeak_ng_STATUS(ENOMEM);
 
 	frame->max_y = 0;
 	for (ix = 0; ix < frame->nx; ix++) {
@@ -230,7 +230,7 @@ double GetFrameRms(SpectFrame *frame, int seq_amplitude)
 #pragma GCC visibility push(default)
 SpectSeq *SpectSeqCreate(void)
 {
-	SpectSeq *spect = malloc(sizeof(SpectSeq));
+	SpectSeq *spect = (SpectSeq*)malloc(sizeof(SpectSeq));
 	if (!spect)
 		return NULL;
 
@@ -293,7 +293,7 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 	FILE *stream = fopen(filename, "rb");
 	if (stream == NULL) {
 		fprintf(stderr, "Failed to open: '%s'", filename);
-		return errno;
+		return espeak_ng_STATUS(errno);
 	}
 
 	fread(&id1, sizeof(uint32_t), 1, stream);
@@ -318,7 +318,7 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 	if (name_len > 0) {
 		if ((spect->name = (char *)malloc(name_len)) == NULL) {
 			fclose(stream);
-			return ENOMEM;
+			return espeak_ng_STATUS(ENOMEM);
 		}
 		fread(spect->name, sizeof(char), name_len, stream);
 	} else
@@ -345,7 +345,7 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 		}
 		free(spect->frames);
 	}
-	spect->frames = calloc(n, sizeof(SpectFrame *));
+	spect->frames = (SpectFrame**)calloc(n, sizeof(SpectFrame *));
 
 	spect->numframes = 0;
 	spect->max_x = 3000;
@@ -357,7 +357,7 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 		SpectFrame *frame = SpectFrameCreate();
 		if (!frame) {
 			fclose(stream);
-			return ENOMEM;
+			return espeak_ng_STATUS(ENOMEM);
 		}
 
 		espeak_ng_STATUS status = LoadFrame(frame, stream, spect->file_format);
