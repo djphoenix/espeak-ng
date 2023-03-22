@@ -35,6 +35,8 @@
 
 #include "event.hpp"
 
+namespace espeak {
+
 // my_mutex: protects my_thread_is_talking,
 static pthread_mutex_t my_mutex;
 static pthread_cond_t my_cond_start_is_required;
@@ -431,4 +433,6 @@ void add_time_in_ms(struct timespec *ts, int time_in_ms)
 		t_ns -= ONE_BILLION;
 	}
 	ts->tv_nsec = (long int)t_ns;
+}
+
 }

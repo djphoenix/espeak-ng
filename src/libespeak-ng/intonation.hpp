@@ -22,4 +22,8 @@
 
 #include "translate.hpp"
 
+namespace espeak {
+
 void CalcPitches(Translator *tr, int clause_type);
+
+}

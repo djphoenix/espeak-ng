@@ -49,6 +49,8 @@
 #include "voice.hpp"                // for SelectVoice, SelectVoiceByName
 #include "speech.hpp"               // for MAKE_MEM_UNDEFINED
 
+namespace espeak {
+
 static const MNEM_TAB ssmltags[] = {
 	{ "speak",     SSML_SPEAK },
 	{ "voice",     SSML_VOICE },
@@ -1018,4 +1020,6 @@ int ParseSsmlReference(char *ref, int *c1, int *c2) {
 		}
 	}
 	return -1;
+}
+
 }

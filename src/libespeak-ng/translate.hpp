@@ -24,6 +24,8 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/encoding.h>
 
+namespace espeak {
+
 #define L(c1, c2) (c1<<8)+c2 // combine two characters into an integer for translator name
 #define L3(c1, c2, c3) (c1<<16)+(c2<<8) + c3 // combine three characters into an integer for translator name
 #define L4(c1, c2, c3, c4) (c1<<24)+(c2<<16)+(c3<<8) + c4 // combine four characters into an integer for translator name
@@ -666,3 +668,5 @@ void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_c
 void SetVoiceStack(espeak_VOICE *v, const char *variant_name);
 
 extern FILE *f_trans; // for logging
+
+}

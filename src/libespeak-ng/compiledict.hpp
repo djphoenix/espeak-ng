@@ -20,6 +20,8 @@
 
 #pragma once
 
+namespace espeak {
+
 char *DecodeRule(const char *group_chars, 
 		int group_length,
 		char *rule,
@@ -29,3 +31,5 @@ char *DecodeRule(const char *group_chars,
 void print_dictionary_flags(unsigned int *flags,
 		char *buf,
 		int buf_len);
+
+}

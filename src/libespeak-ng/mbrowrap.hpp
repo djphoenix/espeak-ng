@@ -18,6 +18,8 @@
 
 #pragma once
 
+namespace espeak {
+
 #if !defined(_WIN32) && !defined(_WIN64)
 #define WINAPI
 typedef int BOOL;
@@ -94,3 +96,5 @@ extern void (WINAPI *setNoError_MBR)(int no_error);
 
 BOOL load_MBR(void);
 void unload_MBR(void);
+
+}

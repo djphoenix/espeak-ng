@@ -22,4 +22,8 @@
 
 #include "translate.hpp"
 
+namespace espeak {
+
 void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence);
+
+}

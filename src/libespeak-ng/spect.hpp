@@ -23,6 +23,8 @@
 #include "voice.hpp"                   // for N_PEAKS
 #include "synthesize.hpp"              // for N_KLATTP2
 
+namespace espeak {
+
 float polint(float xa[], float ya[], int n, float x);
 
 #define FRAME_WIDTH  1000  // max width for 8000kHz frame
@@ -102,3 +104,5 @@ typedef struct {
 SpectSeq *SpectSeqCreate(void);
 void SpectSeqDestroy(SpectSeq *spect);
 espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename);
+
+}

@@ -39,6 +39,8 @@
 #include "synthdata.hpp"                    // for n_tunes, tunes
 #include "voice.hpp"                    // for ReadNumbers, Read8Numbers, ...
 
+namespace espeak {
+
 static int CheckTranslator(Translator *tr, const MNEM_TAB *keyword_tab, int key);
 static int LookupTune(const char *name);
 
@@ -230,4 +232,6 @@ int CheckTranslator(Translator *tr, const MNEM_TAB *keyword_tab, int key)
 
 	fprintf(stderr, "Cannot set %s: language not set, or is invalid.\n", LookupMnemName(keyword_tab, key));
 	return 1;
+}
+
 }

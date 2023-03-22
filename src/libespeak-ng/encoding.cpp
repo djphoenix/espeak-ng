@@ -30,6 +30,8 @@
 #include "mnemonics.hpp"               // for LookupMnem, MNEM_TAB
 #include "translate.hpp"            // for LEADING_2_BITS, UTF8_TAIL_BITS
 
+namespace espeak {
+
 // http://www.iana.org/assignments/character-sets/character-sets.xhtml
 static const MNEM_TAB mnem_encoding[] = {
 	{ "ANSI_X3.4-1968",   ESPEAKNG_ENCODING_US_ASCII },
@@ -149,15 +151,7 @@ static const MNEM_TAB mnem_encoding[] = {
 	{ "",                 ESPEAKNG_ENCODING_UNKNOWN }
 };
 
-#pragma GCC visibility push(default)
-
-espeak_ng_ENCODING
-espeak_ng_EncodingFromName(const char *encoding)
-{
-	return espeak_ng_ENCODING(LookupMnem(mnem_encoding, encoding));
 }
-
-#pragma GCC visibility pop
 
 struct espeak_ng_TEXT_DECODER_
 {
@@ -167,6 +161,8 @@ struct espeak_ng_TEXT_DECODER_
 	uint32_t (*get)(espeak_ng_TEXT_DECODER *decoder);
 	const uint16_t *codepage;
 };
+
+namespace espeak {
 
 // Reference: http://www.iana.org/go/rfc1345
 // Reference: http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-1.TXT
@@ -655,7 +651,17 @@ static const encoding_t string_decoders[] = {
 	{ string_decoder_getc_iso_10646_ucs_2, NULL },
 };
 
+}
+
+using namespace espeak;
+
 #pragma GCC visibility push(default)
+
+espeak_ng_ENCODING
+espeak_ng_EncodingFromName(const char *encoding)
+{
+	return espeak_ng_ENCODING(LookupMnem(mnem_encoding, encoding));
+}
 
 espeak_ng_TEXT_DECODER *
 create_text_decoder(void)

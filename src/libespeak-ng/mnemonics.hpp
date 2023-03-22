@@ -20,9 +20,13 @@
 
 #pragma once
 
+namespace espeak {
+
 typedef struct {
 	const char mnem[64];
 	int value;
 } MNEM_TAB;
 int LookupMnem(const MNEM_TAB *table, const char *string);
 const char *LookupMnemName(const MNEM_TAB *table, const int value);
+
+}

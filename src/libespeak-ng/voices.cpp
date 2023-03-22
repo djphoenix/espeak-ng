@@ -52,6 +52,8 @@
 #include "translate.hpp"                // for LANGUAGE_OPTIONS, DeleteTranslator
 #include "wavegen.hpp"                  // for InitBreath
 
+namespace espeak {
+
 static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
 
 static const MNEM_TAB genders[] = {
@@ -1235,6 +1237,45 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 #endif
 }
 
+static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file) {
+	int ftype = GetFileLength(fname);
+
+	if (ftype == -EISDIR) {
+		// a sub-directory
+		GetVoices(fname, len_path_voices, is_language_file);
+	} else if (ftype > 0) {
+		// a regular file, add it to the voices list
+		FILE *f_voice;
+		if ((f_voice = fopen(fname, "r")) == NULL)
+			return 1;
+
+		// pass voice file name within the voices directory
+		espeak_VOICE *voice_data;
+		voice_data = ReadVoiceFile(f_voice, fname+len_path_voices, is_language_file);
+		fclose(f_voice);
+
+		if (voice_data != NULL)
+			voices_list[n_voices_list++] = voice_data;
+	}
+	return 0;
+}
+
+void FreeVoiceList(void)
+{
+	int ix;
+	for (ix = 0; ix < n_voices_list; ix++) {
+		if (voices_list[ix] != NULL) {
+			free(voices_list[ix]);
+			voices_list[ix] = NULL;
+		}
+	}
+	n_voices_list = 0;
+}
+
+}
+
+using namespace espeak;
+
 #pragma GCC visibility push(default)
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByFile(const char *filename)
@@ -1339,22 +1380,6 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByProperties(espeak_VOICE *voic
 	return ENS_OK;
 }
 
-#pragma GCC visibility pop
-
-void FreeVoiceList(void)
-{
-	int ix;
-	for (ix = 0; ix < n_voices_list; ix++) {
-		if (voices_list[ix] != NULL) {
-			free(voices_list[ix]);
-			voices_list[ix] = NULL;
-		}
-	}
-	n_voices_list = 0;
-}
-
-#pragma GCC visibility push(default)
-
 ESPEAK_API const espeak_VOICE **espeak_ListVoices(espeak_VOICE *voice_spec)
 {
 	char path_voices[sizeof(path_home)+12];
@@ -1405,26 +1430,3 @@ ESPEAK_API espeak_VOICE *espeak_GetCurrentVoice(void)
 }
 
 #pragma GCC visibility pop
-
-static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file) {
-	int ftype = GetFileLength(fname);
-
-	if (ftype == -EISDIR) {
-		// a sub-directory
-		GetVoices(fname, len_path_voices, is_language_file);
-	} else if (ftype > 0) {
-		// a regular file, add it to the voices list
-		FILE *f_voice;
-		if ((f_voice = fopen(fname, "r")) == NULL)
-			return 1;
-
-		// pass voice file name within the voices directory
-		espeak_VOICE *voice_data;
-		voice_data = ReadVoiceFile(f_voice, fname+len_path_voices, is_language_file);
-		fclose(f_voice);
-
-		if (voice_data != NULL)
-			voices_list[n_voices_list++] = voice_data;
-	}
-	return 0;
-}

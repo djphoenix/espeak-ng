@@ -25,6 +25,8 @@
 #include "synthesize.hpp"                // for PHONEME_LIST
 #include "translate.hpp"                 // for Translator, WORD_TAB
 
+namespace espeak {
+
 extern const char stress_phonemes[];
 
 int LoadDictionary(Translator *tr, const char *name, int no_error);
@@ -42,3 +44,5 @@ int TransposeAlphabet(Translator *tr, char *text);
 int Lookup(Translator *tr, const char *word, char *ph_out);
 int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *flags, int end_flags, WORD_TAB *wtab);
 int RemoveEnding(Translator *tr, char *word, int end_type, char *word_copy);
+
+}

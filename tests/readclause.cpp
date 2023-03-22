@@ -36,6 +36,8 @@
 #include "synthesize.hpp"
 #include "translate.hpp"
 
+using namespace espeak;
+
 // Arguments to ReadClause. Declared here to avoid duplicating them across the
 // different test functions.
 static char source[N_TR_SOURCE+40]; // extra space for embedded command & voice change info at end

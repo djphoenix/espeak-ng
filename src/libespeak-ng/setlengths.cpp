@@ -39,6 +39,8 @@
 #include "synthesize.hpp"
 #include "translate.hpp"
 
+namespace espeak {
+
 static void SetSpeedFactors(voice_t *voice, int x, int speeds[3]);
 static void SetSpeedMods(SPEED_FACTORS *speed, int voiceSpeedF1, int wpm, int x);
 static void SetSpeedMultiplier(int *x, int *wpm);
@@ -803,4 +805,6 @@ void SetLengthMods(Translator *tr, int value)
 	tr->langopts.length_mods0 = tr->langopts.length_mods = length_mod_tabs[value % 100];
 	if ((value2 = value / 100) != 0)
 		tr->langopts.length_mods0 = length_mod_tabs[value2];
+}
+
 }

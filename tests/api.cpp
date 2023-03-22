@@ -32,6 +32,8 @@
 #include "synthesize.hpp"
 #include "translate.hpp"
 
+using namespace espeak;
+
 // region espeak_Initialize
 
 static void

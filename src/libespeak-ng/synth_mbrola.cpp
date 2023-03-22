@@ -46,9 +46,13 @@
 #include "synthesize.hpp"
 #include "translate.hpp"
 
+namespace espeak {
+
 // included here so tests can find these even without OPT_MBROLA set
 int mbrola_delay;
 char mbrola_name[20];
+
+}
 
 #if USE_MBROLA
 
@@ -57,6 +61,8 @@ char mbrola_name[20];
 #endif
 
 #include "mbrowrap.hpp"
+
+namespace espeak {
 
 static MBROLA_TAB *mbrola_tab = NULL;
 static int mbrola_control = 0;
@@ -592,9 +598,13 @@ void MbrolaReset(void)
 	reset_MBR();
 }
 
+}
+
 #else
 
 // mbrola interface is not compiled, provide dummy functions.
+
+namespace espeak {
 
 espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, int *srate)
 {
@@ -622,6 +632,8 @@ int MbrolaFill(int length, bool resume, int amplitude)
 
 void MbrolaReset(void)
 {
+}
+
 }
 
 #endif

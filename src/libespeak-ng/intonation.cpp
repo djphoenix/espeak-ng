@@ -34,6 +34,8 @@
 #include "synthesize.hpp"  // for PHONEME_LIST, TUNE, phoneme_list, phoneme_tab
 #include "translate.hpp"   // for Translator, LANGUAGE_OPTIONS, L, OPTION_EMPH...
 
+namespace espeak {
+
 /* Note this module is mostly old code that needs to be rewritten to
    provide a more flexible intonation system.
  */
@@ -1090,4 +1092,6 @@ void CalcPitches(Translator *tr, int clause_type)
 			st_ix++;
 		}
 	}
+}
+
 }

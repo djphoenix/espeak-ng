@@ -48,6 +48,8 @@
 #include "translate.hpp"            // for Translator, utf8_out, CLAUSE_OPTION...
 #include "voice.hpp"                // for voice, voice_t, espeak_GetCurrentVoice
 
+namespace espeak {
+
 #define N_XML_BUF   500
 
 static void DecodeWithPhonemeMode(char *buf, size_t buf_sz, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]);
@@ -1019,4 +1021,6 @@ static void DecodeWithPhonemeMode(char *buf, size_t buf_sz, char *phonemes, Tran
 			char wbuf[5];
 	    snprintf(buf, buf_sz, "[\002_^_%s %s _^_%s]]", ESPEAKNG_DEFAULT_VOICE, phonemes2, WordToString2(wbuf, tr->translator_name));
     }
+}
+
 }

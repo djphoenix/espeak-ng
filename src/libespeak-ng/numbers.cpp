@@ -43,6 +43,8 @@
 #include "translate.hpp"   // for Translator, LANGUAGE_OPTIONS, WOR...
 #include "voice.hpp"       // for voice, voice_t
 
+namespace espeak {
+
 #define M_LIGATURE  0x8000
 #define M_NAME      0
 #define M_SMALLCAP  1
@@ -1819,4 +1821,6 @@ int TranslateNumber(Translator *tr, char *word1, char *ph_out, unsigned int *fla
 	if (tr->langopts.numbers != 0)
 		return TranslateNumber_1(tr, word1, ph_out, flags, wtab, control);
 	return 0;
+}
+
 }

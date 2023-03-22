@@ -35,6 +35,8 @@
 #include "setlengths.hpp"          // for SetLengthMods
 #include "translate.hpp"           // for Translator, LANGUAGE_OPTIONS, L, NUM...
 
+namespace espeak {
+
 // start of unicode pages for character sets
 #define OFFSET_GREEK    0x380
 #define OFFSET_CYRILLIC 0x420
@@ -1658,4 +1660,6 @@ static void Translator_Russian(Translator *tr)
 	tr->langopts.numbers2 = NUM2_THOUSANDPLEX_VAR_THOUSANDS | NUM2_THOUSANDS_VAR1; // variant numbers before thousands
 	tr->langopts.max_digits = 32;
 	tr->langopts.max_initial_consonants = 5;
+}
+
 }

@@ -24,6 +24,8 @@
 #include <espeak-ng/espeak_ng.h>
 #include "espeak_command.hpp"
 
+namespace espeak {
+
 // Initialize the fifo component.
 // First function to be called.
 void fifo_init(void);
@@ -59,3 +61,5 @@ void fifo_terminate(void);
 //
 // Returns 1 if yes, or 0 otherwise.
 int fifo_is_command_enabled(void);
+
+}

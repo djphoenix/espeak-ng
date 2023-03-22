@@ -25,6 +25,8 @@
 
 #include "mbrowrap.hpp"
 
+namespace espeak {
+
 int (WINAPI *init_MBR)(char *voice_path);
 void (WINAPI *close_MBR)(void);
 void (WINAPI *reset_MBR)(void);
@@ -36,7 +38,11 @@ void (WINAPI *setVolumeRatio_MBR)(float value);
 char * (WINAPI *lastErrorStr_MBR)(char *buffer, int bufsize);
 void (WINAPI *setNoError_MBR)(int no_error);
 
+}
+
 #if defined(_WIN32) || defined(_WIN64)
+
+namespace espeak {
 
 HINSTANCE hinstDllMBR = NULL;
 
@@ -68,6 +74,8 @@ void unload_MBR()
 	}
 }
 
+}
+
 #else
 
 #include <errno.h>
@@ -87,6 +95,8 @@ void unload_MBR()
 /*
  * mbrola instance parameters
  */
+
+namespace espeak {
 
 enum mbr_state {
 	MBR_INACTIVE = 0,
@@ -673,6 +683,8 @@ BOOL load_MBR(void)
 
 void unload_MBR(void)
 {
+}
+
 }
 
 #endif

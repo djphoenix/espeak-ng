@@ -42,6 +42,8 @@
 #include "speech.hpp"		// for path_home
 #include "synthesize.hpp"           // for Write4Bytes
 
+namespace espeak {
+
 static const MNEM_TAB mnem_rules[] = {
 	{ "unpr",     DOLLAR_UNPR },
 	{ "noprefix", DOLLAR_NOPREFIX },  // rule fails if a prefix has been removed
@@ -1519,9 +1521,13 @@ static espeak_ng_STATUS compile_dictrules(CompileContext *ctx, FILE *f_in, FILE 
 	return ENS_OK;
 }
 
+}
+
 #pragma GCC visibility push(default)
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, const char *dict_name, FILE *log, int flags, espeak_ng_ERROR_CONTEXT *context)
 {
+	using namespace espeak;
+	
 	if (!log) log = stderr;
 	if (!dict_name) dict_name = dictionary_name;
 

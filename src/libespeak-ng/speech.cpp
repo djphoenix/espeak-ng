@@ -63,6 +63,8 @@
 #include "voice.hpp"                // for FreeVoiceList, VoiceReset, current_...
 #include "wavegen.hpp"              // for WavegenFill, WavegenInit, WcmdqUsed
 
+namespace espeak {
+
 static unsigned char *outbuf = NULL;
 static int outbuf_size = 0;
 static unsigned char *out_start;
@@ -259,85 +261,6 @@ static int check_data_path(const char *path, int allow_directory)
 	return GetFileLength(path_home) == -EISDIR;
 }
 
-#pragma GCC visibility push(default)
-
-ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE output_mode, int buffer_length, const char *device)
-{
-	(void)device; // unused if  USE_LIBPCAUDIO is not defined
-
-	my_mode = output_mode;
-	out_samplerate = 0;
-
-#if USE_LIBPCAUDIO
-	if (((my_mode & ENOUTPUT_MODE_SPEAK_AUDIO) == ENOUTPUT_MODE_SPEAK_AUDIO) && (my_audio == NULL))
-		my_audio = create_audio_device_object(device, "eSpeak", "Text-to-Speech");
-#endif
-
-#if USE_ASYNC
-	if ((my_mode & ENOUTPUT_MODE_SYNCHRONOUS) == 0) fifo_init();
-#endif
-
-	// Don't allow buffer be smaller than safe minimum
-	if (buffer_length < min_buffer_length)
-		buffer_length = min_buffer_length;
-
-	// allocate 2 bytes per sample
-	// Always round up to the nearest sample and the nearest byte.
-	int millisamples = buffer_length * samplerate;
-	outbuf_size = (millisamples + 1000 - millisamples % 1000) / 500;
-	out_start = (unsigned char *)realloc(outbuf, outbuf_size);
-	if (out_start == NULL)
-		return espeak_ng_STATUS(ENOMEM);
-	else
-		outbuf = out_start;
-
-	// allocate space for event list.  Allow 200 events per second.
-	// Add a constant to allow for very small buffer_length
-	n_event_list = (buffer_length*200)/1000 + 20;
-	espeak_EVENT *new_event_list = (espeak_EVENT *)realloc(event_list, sizeof(espeak_EVENT) * n_event_list);
-	if (new_event_list == NULL)
-		return espeak_ng_STATUS(ENOMEM);
-	event_list = new_event_list;
-
-	return ENS_OK;
-}
-
-
-ESPEAK_NG_API void espeak_ng_InitializePath(const char *path)
-{
-	if (check_data_path(path, 1))
-		return;
-
-#if PLATFORM_WINDOWS
-	HKEY RegKey;
-	unsigned long size;
-	unsigned long var_type;
-	unsigned char buf[sizeof(path_home)-13];
-
-	if (check_data_path(getenv("ESPEAK_DATA_PATH"), 1))
-		return;
-
-	buf[0] = 0;
-	RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\eSpeak NG", 0, KEY_READ, &RegKey);
-	if (RegKey == NULL)
-		RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\WOW6432Node\\eSpeak NG", 0, KEY_READ, &RegKey);
-	size = sizeof(buf);
-	var_type = REG_SZ;
-	RegQueryValueExA(RegKey, "Path", 0, &var_type, buf, &size);
-
-	if (check_data_path(buf, 1))
-		return;
-#elif !defined(PLATFORM_DOS)
-	if (check_data_path(getenv("ESPEAK_DATA_PATH"), 1))
-		return;
-
-	if (check_data_path(getenv("HOME"), 0))
-		return;
-#endif
-
-	strcpy(path_home, PATH_ESPEAK_DATA);
-}
-
 const int param_defaults[N_SPEECH_PARAM] = {
 	0,   // silence (internal use)
 	espeakRATE_NORMAL, // rate wpm
@@ -355,73 +278,6 @@ const int param_defaults[N_SPEECH_PARAM] = {
 	0,   // line length
 	0,   // voice type
 };
-
-
-ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *context)
-{
-	int param;
-	int srate = 22050; // default sample rate 22050 Hz
-
-	// It seems that the wctype functions don't work until the locale has been set
-	// to something other than the default "C".  Then, not only Latin1 but also the
-	// other characters give the correct results with iswalpha() etc.
-	if (setlocale(LC_CTYPE, "C.UTF-8") == NULL) {
-		if (setlocale(LC_CTYPE, "UTF-8") == NULL) {
-			if (setlocale(LC_CTYPE, "en_US.UTF-8") == NULL)
-				setlocale(LC_CTYPE, "");
-		}
-	}
-
-	espeak_ng_STATUS result = LoadPhData(&srate, context);
-	if (result != ENS_OK)
-		return result;
-
-	WavegenInit(srate, 0);
-	LoadConfig();
-
-	espeak_VOICE *current_voice_selected = espeak_GetCurrentVoice();
-	memset(current_voice_selected, 0, sizeof(espeak_VOICE));
-	SetVoiceStack(NULL, "");
-	SynthesizeInit();
-	InitNamedata();
-
-	VoiceReset(0);
-
-	for (param = 0; param < N_SPEECH_PARAM; param++)
-		param_stack[0].parameter[param] = saved_parameters[param] = param_defaults[param];
-
-	SetParameter(espeakRATE, espeakRATE_NORMAL, 0);
-	SetParameter(espeakVOLUME, 100, 0);
-	SetParameter(espeakCAPITALS, option_capitals, 0);
-	SetParameter(espeakPUNCTUATION, option_punctuation, 0);
-	SetParameter(espeakWORDGAP, 0, 0);
-
-	option_phonemes = 0;
-	option_phoneme_events = 0;
-
-	// Seed random generator
-	espeak_srand(time(NULL));
-
-	return ENS_OK;
-}
-
-ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetPhonemeEvents(int enable, int ipa) {
-	option_phoneme_events = 0;
-	if (enable) {
-		option_phoneme_events |= espeakINITIALIZE_PHONEME_EVENTS;
-		if (ipa) {
-			option_phoneme_events |= espeakINITIALIZE_PHONEME_IPA;
-		}
-	}
-	return ENS_OK;
-}
-
-ESPEAK_NG_API int espeak_ng_GetSampleRate(void)
-{
-	return samplerate;
-}
-
-#pragma GCC visibility pop
 
 static espeak_ng_STATUS Synthesize(unsigned int unique_identifier, const void *text, int flags)
 {
@@ -640,7 +496,152 @@ void sync_espeak_SetPunctuationList(const wchar_t *punctlist)
 	}
 }
 
+}
+
 #pragma GCC visibility push(default)
+
+using namespace espeak;
+
+ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE output_mode, int buffer_length, const char *device)
+{
+	(void)device; // unused if  USE_LIBPCAUDIO is not defined
+
+	my_mode = output_mode;
+	out_samplerate = 0;
+
+#if USE_LIBPCAUDIO
+	if (((my_mode & ENOUTPUT_MODE_SPEAK_AUDIO) == ENOUTPUT_MODE_SPEAK_AUDIO) && (my_audio == NULL))
+		my_audio = create_audio_device_object(device, "eSpeak", "Text-to-Speech");
+#endif
+
+#if USE_ASYNC
+	if ((my_mode & ENOUTPUT_MODE_SYNCHRONOUS) == 0) fifo_init();
+#endif
+
+	// Don't allow buffer be smaller than safe minimum
+	if (buffer_length < min_buffer_length)
+		buffer_length = min_buffer_length;
+
+	// allocate 2 bytes per sample
+	// Always round up to the nearest sample and the nearest byte.
+	int millisamples = buffer_length * samplerate;
+	outbuf_size = (millisamples + 1000 - millisamples % 1000) / 500;
+	out_start = (unsigned char *)realloc(outbuf, outbuf_size);
+	if (out_start == NULL)
+		return espeak_ng_STATUS(ENOMEM);
+	else
+		outbuf = out_start;
+
+	// allocate space for event list.  Allow 200 events per second.
+	// Add a constant to allow for very small buffer_length
+	n_event_list = (buffer_length*200)/1000 + 20;
+	espeak_EVENT *new_event_list = (espeak_EVENT *)realloc(event_list, sizeof(espeak_EVENT) * n_event_list);
+	if (new_event_list == NULL)
+		return espeak_ng_STATUS(ENOMEM);
+	event_list = new_event_list;
+
+	return ENS_OK;
+}
+
+
+ESPEAK_NG_API void espeak_ng_InitializePath(const char *path)
+{
+	if (check_data_path(path, 1))
+		return;
+
+#if PLATFORM_WINDOWS
+	HKEY RegKey;
+	unsigned long size;
+	unsigned long var_type;
+	unsigned char buf[sizeof(path_home)-13];
+
+	if (check_data_path(getenv("ESPEAK_DATA_PATH"), 1))
+		return;
+
+	buf[0] = 0;
+	RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\eSpeak NG", 0, KEY_READ, &RegKey);
+	if (RegKey == NULL)
+		RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\WOW6432Node\\eSpeak NG", 0, KEY_READ, &RegKey);
+	size = sizeof(buf);
+	var_type = REG_SZ;
+	RegQueryValueExA(RegKey, "Path", 0, &var_type, buf, &size);
+
+	if (check_data_path(buf, 1))
+		return;
+#elif !defined(PLATFORM_DOS)
+	if (check_data_path(getenv("ESPEAK_DATA_PATH"), 1))
+		return;
+
+	if (check_data_path(getenv("HOME"), 0))
+		return;
+#endif
+
+	strcpy(path_home, PATH_ESPEAK_DATA);
+}
+
+ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *context)
+{
+	int param;
+	int srate = 22050; // default sample rate 22050 Hz
+
+	// It seems that the wctype functions don't work until the locale has been set
+	// to something other than the default "C".  Then, not only Latin1 but also the
+	// other characters give the correct results with iswalpha() etc.
+	if (setlocale(LC_CTYPE, "C.UTF-8") == NULL) {
+		if (setlocale(LC_CTYPE, "UTF-8") == NULL) {
+			if (setlocale(LC_CTYPE, "en_US.UTF-8") == NULL)
+				setlocale(LC_CTYPE, "");
+		}
+	}
+
+	espeak_ng_STATUS result = LoadPhData(&srate, context);
+	if (result != ENS_OK)
+		return result;
+
+	WavegenInit(srate, 0);
+	LoadConfig();
+
+	espeak_VOICE *current_voice_selected = espeak_GetCurrentVoice();
+	memset(current_voice_selected, 0, sizeof(espeak_VOICE));
+	SetVoiceStack(NULL, "");
+	SynthesizeInit();
+	InitNamedata();
+
+	VoiceReset(0);
+
+	for (param = 0; param < N_SPEECH_PARAM; param++)
+		param_stack[0].parameter[param] = saved_parameters[param] = param_defaults[param];
+
+	SetParameter(espeakRATE, espeakRATE_NORMAL, 0);
+	SetParameter(espeakVOLUME, 100, 0);
+	SetParameter(espeakCAPITALS, option_capitals, 0);
+	SetParameter(espeakPUNCTUATION, option_punctuation, 0);
+	SetParameter(espeakWORDGAP, 0, 0);
+
+	option_phonemes = 0;
+	option_phoneme_events = 0;
+
+	// Seed random generator
+	espeak_srand(time(NULL));
+
+	return ENS_OK;
+}
+
+ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetPhonemeEvents(int enable, int ipa) {
+	option_phoneme_events = 0;
+	if (enable) {
+		option_phoneme_events |= espeakINITIALIZE_PHONEME_EVENTS;
+		if (ipa) {
+			option_phoneme_events |= espeakINITIALIZE_PHONEME_IPA;
+		}
+	}
+	return ENS_OK;
+}
+
+ESPEAK_NG_API int espeak_ng_GetSampleRate(void)
+{
+	return samplerate;
+}
 
 ESPEAK_API void espeak_SetSynthCallback(t_espeak_callback *SynthCallback)
 {
@@ -948,9 +949,9 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Terminate(void)
 	return ENS_OK;
 }
 
-static const char version_string[] = PACKAGE_VERSION;
 ESPEAK_API const char *espeak_Info(const char **ptr)
 {
+	static const char version_string[] = PACKAGE_VERSION;
 	if (ptr != NULL)
 		*ptr = path_home;
 	return version_string;

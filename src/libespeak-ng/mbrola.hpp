@@ -26,6 +26,8 @@
 
 #include "synthesize.hpp"
 
+namespace espeak {
+
 typedef struct {
         int name;
         unsigned int next_phoneme;
@@ -51,3 +53,5 @@ int MbrolaFill(int length,
 
 void MbrolaReset(void);
 int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mbrola);
+
+}

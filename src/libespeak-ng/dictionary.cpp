@@ -43,6 +43,8 @@
 #include "synthesize.hpp"                    // for STRESS_IS_PRIMARY, phoneme...
 #include "translate.hpp"                     // for Translator, utf8_in, LANGU...
 
+namespace espeak {
+
 static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2]);
 static void DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points);
 
@@ -3002,4 +3004,6 @@ static void DollarRule(char *word[], char *word_start, int consumed, int group_l
 		*add_points = 23;
 	else
 		*failed = 1;
+}
+
 }

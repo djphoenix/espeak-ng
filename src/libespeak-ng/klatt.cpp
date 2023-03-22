@@ -42,6 +42,8 @@
 #include "sPlayer.hpp"
 #endif
 
+namespace espeak {
+
 extern unsigned char *out_ptr;
 extern unsigned char *out_end;
 static int nsamples;
@@ -1121,4 +1123,6 @@ void KlattInit(void)
 	kt_frame.AB = 0;
 	kt_frame.AVpdb = 0;
 	kt_frame.Gain0 = 62;
+}
+
 }

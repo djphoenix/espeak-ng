@@ -45,6 +45,8 @@
 #include "wavegen.hpp"              // for WcmdqInc, WcmdqFree, WcmdqStop
 #include "speech.hpp"               // for MAKE_MEM_UNDEFINED
 
+namespace espeak {
+
 static void SmoothSpect(void);
 
 // list of phonemes in a clause
@@ -1600,3 +1602,5 @@ ESPEAK_API void espeak_SetPhonemeCallback(int (*PhonemeCallback)(const char *))
 	phoneme_callback = PhonemeCallback;
 }
 #pragma GCC visibility pop
+
+}

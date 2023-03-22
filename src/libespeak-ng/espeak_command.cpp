@@ -29,6 +29,8 @@
 
 #if USE_ASYNC
 
+namespace espeak {
+
 static unsigned int my_current_text_id = 0;
 
 t_espeak_command *create_espeak_text(const void *text, size_t size, unsigned int position, espeak_POSITION_TYPE position_type, unsigned int end_position, unsigned int flags, void *user_data)
@@ -372,6 +374,8 @@ void process_espeak_command(t_espeak_command *the_command)
 		assert(0);
 		break;
 	}
+}
+
 }
 
 #endif

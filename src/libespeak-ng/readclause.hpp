@@ -21,6 +21,8 @@
 
 #include "translate.hpp"
 
+namespace espeak {
+
 typedef struct {
 	int type;
 	int parameter[N_SPEECH_PARAM];
@@ -40,3 +42,5 @@ int ReadClause(Translator *tr,
 		int n_buf,
 		int *tone_type,
 		char *voice_change);
+
+}

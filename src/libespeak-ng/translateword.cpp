@@ -44,6 +44,7 @@
 #include "ucd/ucd.h"              // for ucd_toupper
 #include "voice.hpp"                // for voice, voice_t
 
+namespace espeak {
 
 static void addPluralSuffixes(int flags, Translator *tr, char last_char, char *word_phonemes);
 static void ApplySpecialAttribute2(Translator *tr, char *phonemes, int dict_flags);
@@ -1198,4 +1199,6 @@ static int Unpronouncable2(Translator *tr, char *word)
 	if ((end_flags == 0) || (end_flags & SUFX_UNPRON))
 		return 1;
 	return 0;
+}
+
 }

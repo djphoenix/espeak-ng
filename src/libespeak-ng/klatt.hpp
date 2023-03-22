@@ -26,6 +26,8 @@
 #include "voice.hpp"                    // for voice_t
 #include "synthesize.hpp"              // for frame_t, WGEN_DATA
 
+namespace espeak {
+
 #define CASCADE_PARALLEL 1         /* Type of synthesis model */
 #define ALL_PARALLEL     2
 
@@ -173,3 +175,5 @@ void KlattInit(void);
 void KlattFini(void);
 void KlattReset(int control);
 int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice);
+
+}

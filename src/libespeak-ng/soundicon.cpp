@@ -41,6 +41,8 @@
 #include "speech.hpp"                   // for path_home, PATHSEP
 #include "synthesize.hpp"                   // for samplerate
 
+namespace espeak {
+
 int n_soundicon_tab = 0;
 SOUND_ICON soundicon_tab[N_SOUNDICON_TAB];
 
@@ -185,4 +187,6 @@ int LoadSoundFile2(const char *fname)
 	strcpy(soundicon_tab[n_soundicon_tab].filename, fname);
 	n_soundicon_tab++;
 	return n_soundicon_tab - 1;
+}
+
 }

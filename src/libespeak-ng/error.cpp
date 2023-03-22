@@ -29,6 +29,8 @@
 #include "error.hpp"
 #include "common.hpp"           // for strncpy0
 
+namespace espeak {
+
 espeak_ng_STATUS
 create_file_error_context(espeak_ng_ERROR_CONTEXT *context,
                           espeak_ng_STATUS status,
@@ -71,6 +73,10 @@ create_version_mismatch_error_context(espeak_ng_ERROR_CONTEXT *context,
 	}
 	return ENS_VERSION_MISMATCH;
 }
+
+}
+
+using namespace espeak;
 
 #pragma GCC visibility push(default)
 

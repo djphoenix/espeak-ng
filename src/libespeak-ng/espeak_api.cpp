@@ -32,6 +32,8 @@
 #include "synthesize.hpp"           // for espeakINITIALIZE_PHONEME_IPA
 #include "translate.hpp"            // for dictionary_name, option_phoneme_events
 
+namespace espeak {
+
 static espeak_ERROR status_to_espeak_error(espeak_ng_STATUS status)
 {
 	switch (status)
@@ -45,6 +47,10 @@ static espeak_ERROR status_to_espeak_error(espeak_ng_STATUS status)
 	default:                         return EE_INTERNAL_ERROR;
 	}
 }
+
+}
+
+using namespace espeak;
 
 #pragma GCC visibility push(default)
 

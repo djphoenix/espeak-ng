@@ -34,6 +34,8 @@ typedef struct espeak_ng_ERROR_CONTEXT_
 	int expected_version;
 } espeak_ng_ERROR_CONTEXT_;
 
+namespace espeak {
+
 espeak_ng_STATUS
 create_file_error_context(espeak_ng_ERROR_CONTEXT *context,
                           espeak_ng_STATUS status,
@@ -44,3 +46,5 @@ create_version_mismatch_error_context(espeak_ng_ERROR_CONTEXT *context,
                                       const char *path,
                                       int version,
                                       int expected_version);
+
+}

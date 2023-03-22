@@ -48,6 +48,8 @@
 #include "sintab.hpp"
 #include "speech.hpp"
 
+namespace espeak {
+
 static void SetSynth(int length, int modn, frame_t *fr1, frame_t *fr2, voice_t *v);
 
 static voice_t *wvoice = NULL;
@@ -1451,3 +1453,5 @@ espeak_ng_SetConstF0(int f0)
 }
 
 #pragma GCC visibility pop
+
+}

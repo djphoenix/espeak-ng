@@ -25,6 +25,8 @@
 
 #include "mnemonics.hpp"  // for MNEM_TAB, LookupMnem, LookupMnemName
 
+namespace espeak {
+
 int LookupMnem(const MNEM_TAB *table, const char *string)
 {
 	while (table->mnem[0] != 0) {
@@ -43,4 +45,6 @@ const char *LookupMnemName(const MNEM_TAB *table, const int value)
 		table++;
 	}
 	return ""; // not found
+}
+
 }

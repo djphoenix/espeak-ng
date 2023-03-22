@@ -25,6 +25,8 @@
 #include "synthesize.hpp"                // for PHONEME_DATA, PHONEME_LIST
 #include "translate.hpp"                 // for Translator
 
+namespace espeak {
+
 void InterpretPhoneme(Translator *tr,
 		int control,
 		PHONEME_LIST *plist,
@@ -51,3 +53,5 @@ int  SelectPhonemeTableName(const char *name);
 
 extern int n_tunes;
 extern TUNE *tunes;
+
+}

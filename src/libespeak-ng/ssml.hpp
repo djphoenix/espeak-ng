@@ -26,6 +26,8 @@
 
 #include <espeak-ng/speak_lib.h>
 
+namespace espeak {
+
 // stack for language and voice properties
 // frame 0 is for the defaults, before any ssml tags.
 typedef struct {
@@ -78,3 +80,5 @@ int ProcessSsmlTag(wchar_t *xml_buf,
 int ParseSsmlReference(char *ref,
                        int *c1,
                        int *c2);
+
+}

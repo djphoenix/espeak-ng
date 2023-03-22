@@ -22,5 +22,9 @@
 #include <espeak-ng/espeak_ng.h>
 #include "translate.hpp"
 
+namespace espeak {
+
 void LoadLanguageOptions(Translator *translator, int key, char *keyValue);
 void LoadConfig(void);
+
+}

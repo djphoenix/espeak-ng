@@ -20,6 +20,8 @@
 
 #include <espeak-ng/espeak_ng.h>
 
+namespace espeak {
+
 typedef enum {
 	ET_TEXT,
 	ET_MARK,
@@ -135,3 +137,5 @@ void sync_espeak_SetParameter(espeak_PARAMETER parameter, int value, int relativ
 espeak_ng_STATUS SetParameter(int parameter, int value, int relative);
 
 int sync_espeak_terminated_msg(unsigned int unique_identifier, void *user_data);
+
+}

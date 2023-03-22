@@ -22,6 +22,8 @@
 #include <endian.h>               // for BYTE_ORDER, BIG_ENDIAN
 #include <espeak-ng/espeak_ng.h>
 
+namespace espeak {
+
 #if defined(__has_feature)
 #  if __has_feature(memory_sanitizer)
 #    include <sanitizer/msan_interface.h>
@@ -76,3 +78,5 @@ void cancel_audio(void);
 
 extern const int param_defaults[N_SPEECH_PARAM];
 extern char path_home[N_PATH_HOME];    // this is the espeak-ng-data directory
+
+}

@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include "ieee80.hpp"
 
+using namespace espeak;
+
 int
 main(int argc, char **argv)
 {

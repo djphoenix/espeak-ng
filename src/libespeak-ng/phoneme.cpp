@@ -26,6 +26,8 @@
 
 #include "phoneme.hpp"
 
+namespace espeak {
+
 phoneme_feature_t phoneme_feature_from_string(const char *feature)
 {
 	if (!feature || strlen(feature) != 3)
@@ -232,4 +234,6 @@ phoneme_add_feature(PHONEME_TAB *phoneme,
 		return ENS_UNKNOWN_PHONEME_FEATURE;
 	}
 	return ENS_OK;
+}
+
 }

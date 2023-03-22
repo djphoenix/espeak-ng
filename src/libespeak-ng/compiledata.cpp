@@ -47,6 +47,8 @@
 #include "voice.hpp"                    // for LoadVoice, voice
 #include "wavegen.hpp"                  // for WavegenInit, WavegenSetVoice
 
+namespace espeak {
+
 static int CalculateSample(unsigned char c3, int c1);
 
 #define N_ITEM_STRING 256
@@ -2311,6 +2313,56 @@ static void CompilePhonemeFiles(CompileContext *ctx)
 	ctx->phoneme_tab2[ctx->n_phcodes+1].mnemonic = 0; // terminator
 }
 
+static const char *preset_tune_names[] = {
+	"s1", "c1", "q1", "e1", NULL
+};
+
+static const TUNE default_tune = {
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0 },
+	{ 0, 40, 24, 8, 0, 0, 0, 0 },
+	46, 57, PITCHfall, 16, 0, 0,
+	255, 78, 50, 255,
+	3, 5,
+	{ -7, -7, -7 }, { -7, -7, -7 },
+	PITCHfall, 64, 8,
+	PITCHfall, 70, 18, 24, 12,
+	PITCHfall, 70, 18, 24, 12, 0,
+	{ 0, 0, 0, 0, 0, 0, 0, 0 }, 0
+};
+
+#define N_TUNE_NAMES  100
+
+static const MNEM_TAB envelope_names[] = {
+	{ "fall", 0 },
+	{ "rise", 2 },
+	{ "fall-rise", 4 },
+	{ "fall-rise2", 6 },
+	{ "rise-fall",  8 },
+	{ "fall-rise3", 10 },
+	{ "fall-rise4", 12 },
+	{ "fall2", 14 },
+	{ "rise2", 16 },
+	{ "rise-fall-rise", 18 },
+	{ "", -1 }
+};
+
+static int LookupEnvelopeName(const char *name)
+{
+	return LookupMnem(envelope_names, name);
+}
+
+static int CalculateSample(unsigned char c3, int c1) {
+	int c2 = c3 << 24;
+	c2 = c2 >> 16; // sign extend
+
+	return (c1 & 0xff) + c2;
+}
+
+}
+
+using namespace espeak;
+
 #pragma GCC visibility push(default)
 
 espeak_ng_STATUS
@@ -2469,49 +2521,6 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	clean_context(ctx);
 	return (status != ENS_OK) ? status : res;
 }
-
-#pragma GCC visibility pop
-
-static const char *preset_tune_names[] = {
-	"s1", "c1", "q1", "e1", NULL
-};
-
-static const TUNE default_tune = {
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0 },
-	{ 0, 40, 24, 8, 0, 0, 0, 0 },
-	46, 57, PITCHfall, 16, 0, 0,
-	255, 78, 50, 255,
-	3, 5,
-	{ -7, -7, -7 }, { -7, -7, -7 },
-	PITCHfall, 64, 8,
-	PITCHfall, 70, 18, 24, 12,
-	PITCHfall, 70, 18, 24, 12, 0,
-	{ 0, 0, 0, 0, 0, 0, 0, 0 }, 0
-};
-
-#define N_TUNE_NAMES  100
-
-static const MNEM_TAB envelope_names[] = {
-	{ "fall", 0 },
-	{ "rise", 2 },
-	{ "fall-rise", 4 },
-	{ "fall-rise2", 6 },
-	{ "rise-fall",  8 },
-	{ "fall-rise3", 10 },
-	{ "fall-rise4", 12 },
-	{ "fall2", 14 },
-	{ "rise2", 16 },
-	{ "rise-fall-rise", 18 },
-	{ "", -1 }
-};
-
-static int LookupEnvelopeName(const char *name)
-{
-	return LookupMnem(envelope_names, name);
-}
-
-#pragma GCC visibility push(default)
 
 espeak_ng_STATUS espeak_ng_CompileIntonation(FILE *log, espeak_ng_ERROR_CONTEXT *context)
 {
@@ -2783,10 +2792,3 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 }
 
 #pragma GCC visibility pop
-
-static int CalculateSample(unsigned char c3, int c1) {
-	int c2 = c3 << 24;
-	c2 = c2 >> 16; // sign extend
-
-	return (c1 & 0xff) + c2;
-}

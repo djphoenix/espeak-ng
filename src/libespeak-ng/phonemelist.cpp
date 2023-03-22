@@ -38,6 +38,8 @@
 #include "phoneme.hpp"
 #include "speech.hpp"
 
+namespace espeak {
+
 static void SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_TAB *ph, Translator *tr);
 static void ReInterpretPhoneme(PHONEME_TAB *ph, PHONEME_TAB *ph2, PHONEME_LIST *plist3, Translator *tr, PHONEME_DATA *phdata, WORD_PH_DATA *worddata);
 
@@ -588,4 +590,6 @@ if (ph->type == phVOWEL) {
 			// re-interpret the changed phoneme
 			// But it doesn't obey a second ChangePhoneme()
 			InterpretPhoneme(tr, 0x100, plist3, phdata, worddata);
+}
+
 }

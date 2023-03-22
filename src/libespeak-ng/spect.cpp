@@ -36,6 +36,8 @@
 #include "synthesize.hpp"                // for KLATT_AV, KLATT_Kopen, N_KLATTP2
 #include "voice.hpp"                     // for N_PEAKS
 
+namespace espeak {
+
 static const int default_freq[N_PEAKS] =
 { 200, 500, 1200, 3000, 3500, 4000, 6900, 7800, 9000 };
 static const int default_width[N_PEAKS] =
@@ -397,3 +399,5 @@ espeak_ng_STATUS LoadSpectSeq(SpectSeq *spect, const char *filename)
 	return ENS_OK;
 }
 #pragma GCC visibility pop
+
+}

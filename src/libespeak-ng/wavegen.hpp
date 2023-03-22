@@ -22,6 +22,8 @@
 
 #include "voice.hpp"
 
+namespace espeak {
+
 typedef struct {
 	int freq;     // Hz<<16
 	int height;   // height<<15
@@ -63,3 +65,5 @@ int WcmdqFree(void);
 void WcmdqStop(void);
 int WcmdqUsed(void);
 void WcmdqInc(void);
+
+}

@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include "ieee80.hpp"
 
+namespace espeak {
+
 #ifndef INFINITY
 # define INFINITY 0.
 #endif
@@ -71,4 +73,6 @@ ieee_extended_to_double(const unsigned char *bytes)
 	if (sign) ret = -ret;
 
 	return ret;
+}
+
 }

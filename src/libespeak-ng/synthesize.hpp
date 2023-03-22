@@ -24,6 +24,8 @@
 #include <espeak-ng/espeak_ng.h>
 #include "phoneme.hpp"              // for PHONEME_TAB, N_PHONEME_TAB
 
+namespace espeak {
+
 #define espeakINITIALIZE_PHONEME_IPA 0x0002 // move this to speak_lib.h, after eSpeak version 1.46.02
 
 #define N_PHONEME_LIST 1000 // enough for source[N_TR_SOURCE] full of text, else it will truncate
@@ -458,3 +460,5 @@ int DoSample3(PHONEME_DATA *phdata, int length_mod, int amp);
 int DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_LIST *plist, int modulation);
 int PauseLength(int pause, int control);
 const char *WordToString(char buf[5], unsigned int word);
+
+}

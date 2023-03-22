@@ -37,6 +37,8 @@
 #include "speech.hpp"               // for path_home
 #include "synthesize.hpp"           // for Write4Bytes
 
+namespace espeak {
+
 static const char *_basename(const char *filename)
 {
 	const char *current = filename + strlen(filename);
@@ -45,9 +47,13 @@ static const char *_basename(const char *filename)
 	return current == filename ? current : current + 1;
 }
 
+}
+
 #pragma GCC visibility push(default)
 espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, espeak_ng_ERROR_CONTEXT *context)
 {
+	using namespace espeak;
+	
 	if (!log) log = stderr;
 
 	char *p;

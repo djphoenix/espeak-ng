@@ -22,6 +22,8 @@
 
 #include "translate.hpp"
 
+namespace espeak {
+
 void CalcLengths(Translator *tr);
 void SetLengthMods(Translator *tr, int value);
 
@@ -29,3 +31,5 @@ espeak_ng_STATUS SetParameter(int parameter,
 	int value,
 	int relative
 	);
+
+}

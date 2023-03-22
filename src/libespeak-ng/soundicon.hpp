@@ -20,6 +20,8 @@
 
 #pragma once
 
+namespace espeak {
+
 int LookupSoundicon(int c);
 int LoadSoundFile2(const char *fname);
 
@@ -34,3 +36,5 @@ typedef struct {
 
 extern int n_soundicon_tab;
 extern SOUND_ICON soundicon_tab[N_SOUNDICON_TAB];
+
+}

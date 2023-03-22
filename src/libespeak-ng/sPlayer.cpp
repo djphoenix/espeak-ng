@@ -2,6 +2,8 @@
 #include <espeak-ng/speak_lib.h>
 #include "sPlayer.hpp"
 
+namespace espeak {
+
 extern unsigned char *out_ptr;
 extern unsigned char *out_end;
 
@@ -146,4 +148,6 @@ int Wavegen_KlattSP(WGEN_DATA *wdata, voice_t *wvoice, int length, int resume, f
 	out_ptr=out_ptr+(sizeof(sample)*outLength);
 	if(out_ptr>=out_end) return 1;
 	return 0;
+}
+
 }

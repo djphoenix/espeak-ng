@@ -45,6 +45,8 @@
 #include "speech.hpp"               // for MAKE_MEM_UNDEFINED
 #include "translateword.hpp"
 
+namespace espeak {
+
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count);
 static void CombineFlag(Translator *tr, WORD_TAB *wtab, char *word, int *flags, unsigned char *p, char *word_phonemes);
 static void SwitchLanguage(char *word, char *word_phonemes);
@@ -1792,4 +1794,6 @@ void InitText(int control)
 
 	if ((control & espeakKEEP_NAMEDATA) == 0)
 		InitNamedata();
+}
+
 }

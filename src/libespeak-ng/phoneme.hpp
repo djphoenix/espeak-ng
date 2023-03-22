@@ -21,6 +21,8 @@
 
 #include <espeak-ng/espeak_ng.h>
 
+namespace espeak {
+
 // See docs/phonemes.md for the list of supported features.
 typedef enum {
 #	define FEATURE_T(a, b, c) ((a << 16) | (b << 8) | (c))
@@ -273,3 +275,5 @@ typedef struct {
 
 extern PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
 extern int phoneme_tab_number;
+
+}

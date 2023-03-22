@@ -42,6 +42,8 @@
 #include "translate.hpp"                // for Translator, LANGUAGE_OPTIONS
 #include "voice.hpp"                    // for ReadTonePoints, tone_points, voice
 
+namespace espeak {
+
 int n_tunes = 0;
 TUNE *tunes = NULL;
 
@@ -977,4 +979,6 @@ void InterpretPhoneme2(int phcode, PHONEME_DATA *phdata)
 	plist[2].sourceix = 1;
 
 	InterpretPhoneme(NULL, 0, &plist[1], phdata, NULL);
+}
+
 }

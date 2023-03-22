@@ -24,6 +24,8 @@
 #include "mnemonics.hpp"
 #include "translate.hpp"
 
+namespace espeak {
+
 #define N_PEAKS   9
 
 typedef struct {
@@ -192,3 +194,5 @@ int Read8Numbers(char *data_in, int data[8]);
 void ReadTonePoints(char *string, int *tone_pts);
 void VoiceReset(int control);
 void FreeVoiceList(void);
+
+}

@@ -40,6 +40,10 @@
 
 #include <espeak-ng/espeak_ng.h>
 
+struct timespec;
+
+namespace espeak {
+
 // Initialize the event component.
 // First function to be called.
 // the callback will be called when the event actually occurs.
@@ -58,6 +62,7 @@ espeak_ng_STATUS event_declare(espeak_EVENT *event);
 void event_terminate(void);
 
 // general functions
-struct timespec;
 void clock_gettime2(struct timespec *ts);
 void add_time_in_ms(struct timespec *ts, int time_in_ms);
+
+}

@@ -42,9 +42,13 @@
 #define PLAYBACK_MODE ENOUTPUT_MODE_SPEAK_AUDIO
 #endif
 
+namespace espeak {
 extern ESPEAK_NG_API void strncpy0(char *to, const char *from, int size);
 extern ESPEAK_NG_API int utf8_in(int *c, const char *buf);
 extern ESPEAK_NG_API int GetFileLength(const char *filename);
+}
+
+using namespace espeak;
 
 static const char *help_text =
     "\n" PROGRAM_NAME " [options] [\"<words>\"]\n\n"

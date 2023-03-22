@@ -40,6 +40,8 @@
 
 #if USE_ASYNC
 
+namespace espeak {
+
 // my_mutex: protects my_thread_is_talking,
 // my_stop_is_required, and the command fifo
 static pthread_mutex_t my_mutex;
@@ -236,7 +238,7 @@ static int sleep_until_start_request_or_inactivity(void)
 	while ((i <= MAX_INACTIVITY_CHECK) && !a_start_is_required) {
 		i++;
 
-		struct timespec ts;
+		timespec ts;
 
 		clock_gettime2(&ts);
 
@@ -475,6 +477,8 @@ void fifo_terminate(void)
 	pthread_cond_destroy(&my_cond_stop_is_acknowledged);
 
 	init(0); // purge fifo
+}
+
 }
 
 #endif
