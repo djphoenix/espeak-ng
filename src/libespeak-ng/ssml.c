@@ -276,7 +276,7 @@ static const char *VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espe
 	if ((strchr(v_id, '+') == NULL) && ((voice_select.gender == ENGENDER_UNKNOWN) || (voice_select.gender == base_voice->gender)) && (base_voice_variant_name[0] != 0)) {
 		// a voice variant has not been selected, use the original voice variant
 		char buf[80];
-		sprintf(buf, "%s+%s", v_id, base_voice_variant_name);
+		snprintf(buf, sizeof(buf), "%s+%s", v_id, base_voice_variant_name);
 		strncpy0(voice_name, buf, sizeof(voice_name));
 		return voice_name;
 	}
@@ -426,7 +426,7 @@ static void ProcessParamStack(char *outbuf, int *outix, int n_param_stack, PARAM
 			case espeakPITCH:
 			case espeakRANGE:
 			case espeakEMPHASIS:
-				sprintf(buf, "%c%d%c", CTRL_EMBEDDED, value, cmd_letter[param]);
+				snprintf(buf, sizeof(buf), "%c%d%c", CTRL_EMBEDDED, value, cmd_letter[param]);
 				break;
 			}
 
@@ -770,7 +770,7 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 				value = SAYAS_DIGITS + value3;
 		}
 
-		sprintf(buf, "%c%dY", CTRL_EMBEDDED, value);
+		snprintf(buf, sizeof(buf), "%c%dY", CTRL_EMBEDDED, value);
 		strcpy(&outbuf[*outix], buf);
 		*outix += strlen(buf);
 
@@ -814,7 +814,7 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 			}
 
 			if ((index = AddNameData(buf, 0)) >= 0) {
-				sprintf(buf, "%c%dM", CTRL_EMBEDDED, index);
+				snprintf(buf, sizeof(buf), "%c%dM", CTRL_EMBEDDED, index);
 				strcpy(&outbuf[*outix], buf);
 				*outix += strlen(buf);
 			}
@@ -829,12 +829,12 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 			if (uri_callback == NULL) {
 				if ((xmlbase != NULL) && (buf[0] != '/')) {
 					char fname[256];
-					sprintf(fname, "%s/%s", xmlbase, buf);
+					snprintf(fname, sizeof(fname), "%s/%s", xmlbase, buf);
 					index = LoadSoundFile2(fname);
 				} else
 					index = LoadSoundFile2(buf);
 				if (index >= 0) {
-					sprintf(buf, "%c%dI", CTRL_EMBEDDED, index);
+					snprintf(buf, sizeof(buf), "%c%dI", CTRL_EMBEDDED, index);
 					strcpy(&outbuf[*outix], buf);
 					*outix += strlen(buf);
 					sp->parameter[espeakSILENCE] = 1;
@@ -844,7 +844,7 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 					char *uri;
 					uri = &namedata[index];
 					if (uri_callback(1, uri, xmlbase) == 0) {
-						sprintf(buf, "%c%dU", CTRL_EMBEDDED, index);
+						snprintf(buf, sizeof(buf), "%c%dU", CTRL_EMBEDDED, index);
 						strcpy(&outbuf[*outix], buf);
 						*outix += strlen(buf);
 						sp->parameter[espeakSILENCE] = 1;

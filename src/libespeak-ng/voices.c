@@ -452,12 +452,12 @@ voice_t *LoadVoice(const char *vname, int control)
 			strcpy(voicename, ESPEAKNG_DEFAULT_VOICE);
 
 		char path_voices[sizeof(path_home)+12];
-		sprintf(path_voices, "%s%cvoices%c", path_home, PATHSEP, PATHSEP);
-		sprintf(buf, "%s%s", path_voices, voicename); // look in the main voices directory
+		snprintf(path_voices, sizeof(path_voices), "%s%cvoices%c", path_home, PATHSEP, PATHSEP);
+		snprintf(buf, sizeof(buf), "%s%s", path_voices, voicename); // look in the main voices directory
 
 		if (GetFileLength(buf) <= 0) {
-			sprintf(path_voices, "%s%clang%c", path_home, PATHSEP, PATHSEP);
-			sprintf(buf, "%s%s", path_voices, voicename); // look in the main languages directory
+			snprintf(path_voices, sizeof(path_voices), "%s%clang%c", path_home, PATHSEP, PATHSEP);
+			snprintf(buf, sizeof(buf), "%s%s", path_voices, voicename); // look in the main languages directory
 		}
 	}
 
@@ -497,7 +497,7 @@ voice_t *LoadVoice(const char *vname, int control)
 		// append the variant file name to the voice identifier
 		if ((p = strchr(voice_identifier, '+')) != NULL)
 			*p = 0;    // remove previous variant name
-		sprintf(buf, "+%s", &vname[3]);    // omit  !v/  from the variant filename
+		snprintf(buf, sizeof(buf), "+%s", &vname[3]);    // omit  !v/  from the variant filename
 		strcat(voice_identifier, buf);
 	}
 	VoiceReset(tone_only);
@@ -742,7 +742,7 @@ static char *ExtractVoiceVariantName(char *vname, int variant_num, int add_dir)
 
 	MAKE_MEM_UNDEFINED(&variant_name, sizeof(variant_name));
 	variant_name[0] = 0;
-	sprintf(variant_prefix, "!v%c", PATHSEP);
+	snprintf(variant_prefix, sizeof(variant_prefix), "!v%c", PATHSEP);
 	if (add_dir == 0)
 		variant_prefix[0] = 0;
 
@@ -756,16 +756,16 @@ static char *ExtractVoiceVariantName(char *vname, int variant_num, int add_dir)
 				variant_num = atoi(p); // variant number
 			else {
 				// voice variant name, not number
-				sprintf(variant_name, "%s%s", variant_prefix, p);
+				snprintf(variant_name, sizeof(variant_name), "%s%s", variant_prefix, p);
 			}
 		}
 	}
 
 	if (variant_num > 0) {
 		if (variant_num < 10)
-			sprintf(variant_name, "%sm%d", variant_prefix, variant_num); // male
+			snprintf(variant_name, sizeof(variant_name), "%sm%d", variant_prefix, variant_num); // male
 		else
-			sprintf(variant_name, "%sf%d", variant_prefix, variant_num-10); // female
+			snprintf(variant_name, sizeof(variant_name), "%sf%d", variant_prefix, variant_num-10); // female
 	}
 
 	return variant_name;
@@ -961,8 +961,8 @@ static int SetVoiceScores(espeak_VOICE *voice_select, espeak_VOICE **voices, int
 			lang_len = 2;
 		}
 
-		char buf[sizeof(path_home)+80];
-		sprintf(buf, "%s/voices/%s", path_home, language);
+		char buf[sizeof(path_home)+88];
+		snprintf(buf, sizeof(buf), "%s/voices/%s", path_home, language);
 		if (GetFileLength(buf) == -EISDIR) {
 			// A subdirectory name has been specified.  List all the voices in that subdirectory
 			language[lang_len++] = PATHSEP;
@@ -1019,7 +1019,7 @@ espeak_VOICE *SelectVoiceByName(espeak_VOICE **voices, const char *name2)
 
 	strncpy0(name, name2, sizeof(name));
 
-	sprintf(last_part, "%c%s", PATHSEP, name);
+	snprintf(last_part, sizeof(last_part), "%c%s", PATHSEP, name);
 	last_part_len = strlen(last_part);
 
 	for (ix = 0; voices[ix] != NULL; ix++) {
@@ -1096,7 +1096,7 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 
 			if ((voice_select2.gender == ENGENDER_UNKNOWN) && (voice_select2.age == 0) && (voice_select2.variant == 0)) {
 				if (variant_name[0] != 0) {
-					sprintf(voice_id, "%s+%s", vp->identifier, variant_name);
+					snprintf(voice_id, sizeof(voice_id), "%s+%s", vp->identifier, variant_name);
 					return voice_id;
 				}
 
@@ -1173,7 +1173,7 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 
 	if (vp->variant != 0) {
 		variant_name = ExtractVoiceVariantName(NULL, vp->variant, 0);
-		sprintf(voice_id, "%s+%s", vp->identifier, variant_name);
+		snprintf(voice_id, sizeof(voice_id), "%s+%s", vp->identifier, variant_name);
 		return voice_id;
 	}
 
@@ -1189,7 +1189,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 
 	#undef UNICODE // we need FindFirstFileA() which takes an 8-bit c-string
-	sprintf(fname, "%s\\*", path);
+	snprintf(fname, sizeof(fname), "%s\\*", path);
 	hFind = FindFirstFileA(fname, &FindFileData);
 	if (hFind == INVALID_HANDLE_VALUE)
 		return;
@@ -1201,7 +1201,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 		}
 
 		if (FindFileData.cFileName[0] != '.') {
-			sprintf(fname, "%s%c%s", path, PATHSEP, FindFileData.cFileName);
+			snprintf(fname, sizeof(fname), "%s%c%s", path, PATHSEP, FindFileData.cFileName);
 			if (AddToVoicesList(fname, len_path_voices, is_language_file) != 0) {
 				continue;
 			}
@@ -1224,7 +1224,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 		if (ent->d_name[0] == '.')
 			continue;
 
-			 sprintf(fname, "%s%c%s", path, PATHSEP, ent->d_name);
+			 snprintf(fname, sizeof(fname), "%s%c%s", path, PATHSEP, ent->d_name);
 			if (AddToVoicesList(fname, len_path_voices, is_language_file) != 0) {
 				continue;
 			}
@@ -1364,10 +1364,10 @@ ESPEAK_API const espeak_VOICE **espeak_ListVoices(espeak_VOICE *voice_spec)
 	// free previous voice list data
 	FreeVoiceList();
 
-	sprintf(path_voices, "%s%cvoices", path_home, PATHSEP);
+	snprintf(path_voices, sizeof(path_voices), "%s%cvoices", path_home, PATHSEP);
 	GetVoices(path_voices, strlen(path_voices)+1, 0);
 
-	sprintf(path_voices, "%s%clang", path_home, PATHSEP);
+	snprintf(path_voices, sizeof(path_voices), "%s%clang", path_home, PATHSEP);
 	GetVoices(path_voices, strlen(path_voices)+1, 1);
 
 	voices_list[n_voices_list] = NULL; // voices list terminator

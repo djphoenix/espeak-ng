@@ -174,7 +174,7 @@ static void DisplayVoices(FILE *f_out, char *language)
 			if (v->age == 0)
 				strcpy(age_buf, " --");
 			else
-				sprintf(age_buf, "%3d", v->age);
+				snprintf(age_buf, sizeof(age_buf), "%3d", v->age);
 
 			if (count == 0) {
 				for (j = 0; j < sizeof(buf); j++) {
@@ -286,7 +286,7 @@ static int SynthCallback(short *wav, int numsamples, espeak_EVENT *events)
 
 	if (f_wavfile == NULL) {
 		if (samples_split > 0) {
-			sprintf(fname, "%s_%.2d%s", wavefile, wavefile_count+1, filetype);
+			snprintf(fname, sizeof(fname), "%s_%.2d%s", wavefile, wavefile_count+1, filetype);
 			if (OpenWavFile(fname, samplerate) != 0)
 				return 1;
 		} else if (OpenWavFile(wavefile, samplerate) != 0)

@@ -103,7 +103,7 @@ static int mbr_cmd_fd, mbr_audio_fd, mbr_error_fd, mbr_proc_stat;
 static pid_t mbr_pid;
 static int mbr_samplerate;
 static float mbr_volume = 1.0;
-static char mbr_errorbuf[160];
+static char mbr_errorbuf[256];
 
 struct datablock {
 	struct datablock *next;

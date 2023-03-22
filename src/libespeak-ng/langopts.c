@@ -186,7 +186,7 @@ void LoadConfig(void) {
 	char c1;
 	char string[200];
 
-	sprintf(buf, "%s%c%s", path_home, PATHSEP, "config");
+    snprintf(buf, sizeof(buf), "%s%c%s", path_home, PATHSEP, "config");
 	if ((f = fopen(buf, "r")) == NULL)
 		return;
 

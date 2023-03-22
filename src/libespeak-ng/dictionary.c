@@ -211,7 +211,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	// Load a pronunciation data file into memory
 	// bytes 0-3:  offset to rules data
 	// bytes 4-7:  number of hash table entries
-	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
+	snprintf(fname, sizeof(fname), "%s%c%s_dict", path_home, PATHSEP, name);
 	size = GetFileLength(fname);
 
 	if (tr->data_dictlist != NULL) {
@@ -2790,7 +2790,7 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 				// only use replacement text if this is the original word, not if a prefix or suffix has been removed
 				word_replacement[0] = 0;
 				word_replacement[1] = ' ';
-				sprintf(&word_replacement[2], "%s ", ph_out); // replacement word, preceded by zerochar and space
+				snprintf(&word_replacement[2], sizeof(word_replacement)-2, "%s ", ph_out); // replacement word, preceded by zerochar and space
 
 				word1 = *wordptr;
 				*wordptr = &word_replacement[2];
