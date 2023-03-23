@@ -153,7 +153,7 @@ static const MNEM_TAB langopts_tab[] = {
     { "tunes",        V_TUNES },
     { "words",        V_WORDGAP },
 
-    { NULL, 0 }
+    { "", 0 }
 };
 
 static const MNEM_TAB keyword_tab[] = {
@@ -184,7 +184,7 @@ static const MNEM_TAB keyword_tab[] = {
 	{ "maintainer",   V_MAINTAINER },
     { "status",       V_STATUS },
 
-	{ NULL, 0 }
+	{ "", 0 }
 };
 
 const char *SelectVoice(espeak_VOICE *voice_select, int *found);

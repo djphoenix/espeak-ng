@@ -78,7 +78,7 @@ static int speak_missing_thousands;
 static int number_control;
 
 typedef struct {
-	const char *name;
+	const char name[8];
 	int accent_flags;    // bit 0, say before the letter name
 } ACCENTS;
 

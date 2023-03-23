@@ -89,7 +89,7 @@ static const ALPHABET alphabets[] = {
 	{ "_ja",    0x3040,          0x3040, 0x30ff, 0, AL_NOT_CODE },
 	{ "_zh",    0x3100,          0x3100, 0x9fff, 0, AL_NOT_CODE },
 	{ "_ko",    0xa700,          0xa700, 0xd7ff, L('k', 'o'), AL_NOT_CODE | AL_WORDS },
-	{ NULL, 0, 0, 0, 0, 0 }
+	{ "", 0, 0, 0, 0, 0 }
 };
 
 const ALPHABET *AlphabetFromChar(int c)
@@ -97,7 +97,7 @@ const ALPHABET *AlphabetFromChar(int c)
 	// Find the alphabet from a character.
 	const ALPHABET *alphabet = alphabets;
 
-	while (alphabet->name != NULL) {
+	while (alphabet->name[0] != 0) {
 		if (c <= alphabet->range_max) {
 			if (c >= alphabet->range_min)
 				return alphabet;

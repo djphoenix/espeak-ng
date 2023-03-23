@@ -57,7 +57,7 @@ typedef struct {
 } NAMETAB;
 
 typedef struct {
-	const char *mnem;
+	const char mnem[64];
 	int type;
 	int data;
 } keywtab_t;
@@ -102,7 +102,7 @@ static const keywtab_t k_conditions[] = {
 	{ "KlattSynth",  tTEST, 0xf02 },
 	{ "MbrolaSynth", tTEST, 0xf03 },
 
-	{ NULL, 0, 0 }
+	{ "", 0, 0 }
 };
 
 static const keywtab_t k_properties[] = {
@@ -140,7 +140,7 @@ static const keywtab_t k_properties[] = {
 	{ "isSecondVowel",      0, CONDITION_IS_OTHER | isSecondVowel },
 	{ "isTranslationGiven", 0, CONDITION_IS_OTHER | isTranslationGiven },
 
-	{ NULL, 0, 0 }
+	{ "", 0, 0 }
 };
 
 enum {
@@ -196,7 +196,7 @@ enum {
 	kTUNE_SPLIT,
 };
 
-static const unsigned char utf8_bom[] = { 0xef, 0xbb, 0xbf, 0 };
+#define utf8_bom { (char)0xef, (char)0xbb, (char)0xbf, 0 }
 
 static const keywtab_t k_intonation[] = {
 	{ "tune",       0, kTUNE },
@@ -211,7 +211,7 @@ static const keywtab_t k_intonation[] = {
 	{ "nucleus",    0, kTUNE_NUCLEUS1 },
 	{ "split",      0, kTUNE_SPLIT },
 
-	{ NULL, 0, -1 }
+	{ "", 0, -1 }
 };
 
 static const keywtab_t keywords[] = {
@@ -224,7 +224,7 @@ static const keywtab_t keywords[] = {
 	// keywords
 	{ "phonemetable",         tSTATEMENT, kPHONEMETABLE },
 	{ "include",              tSTATEMENT, kINCLUDE },
-	{ (const char *)utf8_bom, tSTATEMENT, kUTF8_BOM },
+	{ utf8_bom, 			  tSTATEMENT, kUTF8_BOM },
 
 	{ "phoneme",        tSTATEMENT, kPHONEMESTART },
 	{ "procedure",      tSTATEMENT, kPROCEDURE },
@@ -305,10 +305,10 @@ static const keywtab_t keywords[] = {
 	{ "colr=",  tTRANSITION, 12 },
 	{ "amp=",   tTRANSITION, 13 },  // set rms of 1st frame as fraction of rms of 2nd frame  (1/30ths)
 
-	{ NULL, 0, -1 }
+	{ "", 0, -1 }
 };
 
-static const keywtab_t *keyword_tabs[] = {
+static const keywtab_t *const keyword_tabs[] = {
 	keywords, k_conditions, k_properties, k_intonation
 };
 
@@ -536,7 +536,7 @@ static const MNEM_TAB reserved_phonemes[] = {
 	{ "#o",     phonVOWELTYPES+4 },
 	{ "#u",     phonVOWELTYPES+5 },
 
-	{ NULL, 0 }
+	{ "", 0 }
 };
 
 static void ReservePhCodes(CompileContext *ctx)
@@ -546,7 +546,7 @@ static void ReservePhCodes(CompileContext *ctx)
 	const MNEM_TAB *p;
 
 	p = reserved_phonemes;
-	while (p->mnem != NULL) {
+	while (p->mnem[0] != 0) {
 		ctx->phoneme_tab2[p->value].mnemonic = StringToWord(p->mnem);
 		ctx->phoneme_tab2[p->value].code = p->value;
 		if (ctx->n_phcodes <= p->value)
@@ -718,7 +718,7 @@ static int NextItem(CompileContext *ctx, int type)
 
 	if ((type >= tKEYWORD) && (type <= tINTONATION)) {
 		pk = keyword_tabs[type-tKEYWORD];
-		while (pk->mnem != NULL) {
+		while (pk->mnem[0] != 0) {
 			if (strcmp(ctx->item_string, pk->mnem) == 0) {
 				ctx->item_type = pk->type;
 				return pk->data;
@@ -2503,7 +2503,7 @@ static const MNEM_TAB envelope_names[] = {
 	{ "fall2", 14 },
 	{ "rise2", 16 },
 	{ "rise-fall-rise", 18 },
-	{ NULL, -1 }
+	{ "", -1 }
 };
 
 static int LookupEnvelopeName(const char *name)

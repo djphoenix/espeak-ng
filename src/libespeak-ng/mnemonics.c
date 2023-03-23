@@ -27,7 +27,7 @@
 
 int LookupMnem(const MNEM_TAB *table, const char *string)
 {
-	while (table->mnem != NULL) {
+	while (table->mnem[0] != 0) {
 		if (string && strcmp(string, table->mnem) == 0)
 			return table->value;
 		table++;
@@ -37,7 +37,7 @@ int LookupMnem(const MNEM_TAB *table, const char *string)
 
 const char *LookupMnemName(const MNEM_TAB *table, const int value)
 {
-	while (table->mnem != NULL) {
+	while (table->mnem[0] != 0) {
 		if (table->value == value)
 			return table->mnem;
 		table++;

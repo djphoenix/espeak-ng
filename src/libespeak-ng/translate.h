@@ -269,7 +269,7 @@ typedef struct {
 } WORD_TAB;
 
 typedef struct {
-	const char *name;
+	const char name[12];
 	int offset;
 	unsigned short range_min, range_max;
 	int language;

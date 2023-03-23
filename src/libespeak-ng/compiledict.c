@@ -63,7 +63,7 @@ static const MNEM_TAB mnem_rules[] = {
 	{ "p_alt6", 0x26 },
 	{ "p_alt",  0x21 },
 
-	{ NULL, -1 }
+	{ "", -1 }
 };
 
 static const MNEM_TAB mnem_flags[] = {
@@ -138,7 +138,7 @@ static const MNEM_TAB mnem_flags[] = {
 	{ "$textmode",    200 },
 	{ "$phonememode", 201 },
 
-	{ NULL, -1 }
+	{ "", -1 }
 };
 
 #define LEN_GROUP_NAME  12
@@ -931,7 +931,7 @@ static void copy_rule_string(CompileContext *ctx, char *string, int *state_out)
 				case '$':
 					value = 0;
 					mr = mnem_rules;
-					while (mr->mnem != NULL) {
+					while (mr->mnem[0] != 0) {
 						len = strlen(mr->mnem);
 						if (strncmp(p, mr->mnem, len) == 0) {
 							value = mr->value;

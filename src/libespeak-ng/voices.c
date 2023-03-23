@@ -54,11 +54,10 @@
 
 static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
 
-
 static const MNEM_TAB genders[] = {
 	{ "male", ENGENDER_MALE },
 	{ "female", ENGENDER_FEMALE },
-	{ NULL, ENGENDER_MALE }
+	{ "", ENGENDER_MALE }
 };
 
 int tone_points[12] = { 600, 170, 1200, 135, 2000, 110, 3000, 110, -1, 0 };

@@ -84,7 +84,7 @@ static const MNEM_TAB ssmltags[] = {
 	{ "em",     HTML_NOSPACE },
 	{ "code",   HTML_NOSPACE },
 
-	{ NULL, 0 }
+	{ "", 0 }
 };
 
 static int (*uri_callback)(int, const char *, const char *) = NULL;
@@ -108,7 +108,7 @@ static int attrlookup(const wchar_t *string1, const MNEM_TAB *mtab)
 {
 	int ix;
 
-	for (ix = 0; mtab[ix].mnem != NULL; ix++) {
+	for (ix = 0; mtab[ix].mnem[0] != 0; ix++) {
 		if (attrcmp(string1, mtab[ix].mnem) == 0)
 			return mtab[ix].value;
 	}
@@ -332,7 +332,7 @@ static int GetVoiceAttributes(wchar_t *pw, int tag_type, SSML_STACK *ssml_sp, SS
 		{ "male", ENGENDER_MALE },
 		{ "female", ENGENDER_FEMALE },
 		{ "neutral", ENGENDER_NEUTRAL },
-		{ NULL, ENGENDER_UNKNOWN }
+		{ "", ENGENDER_UNKNOWN }
 	};
 
 	if (tag_type & SSML_CLOSE) {
@@ -478,7 +478,7 @@ static int ReplaceKeyName(char *outbuf, int index, int *outix)
 		{ "tab ",          0xe009 },
 		{ "underscore ",   0xe05f },
 		{ "double-quote ", '"' },
-		{ NULL,            0 }
+		{ "",            0 }
 	};
 
 	int letter;
@@ -508,7 +508,7 @@ static void SetProsodyParameter(int param_type, const wchar_t *attr1, PARAM_STAC
 		{ "medium",  100 },
 		{ "loud",    150 },
 		{ "x-loud",  230 },
-		{ NULL,       -1 }
+		{ "",       -1 }
 	};
 
 	static const MNEM_TAB mnem_rate[] = {
@@ -518,7 +518,7 @@ static void SetProsodyParameter(int param_type, const wchar_t *attr1, PARAM_STAC
 		{ "medium",  100 },
 		{ "fast",    125 },
 		{ "x-fast",  160 },
-		{ NULL,       -1 }
+		{ "",       -1 }
 	};
 
 	static const MNEM_TAB mnem_pitch[] = {
@@ -528,7 +528,7 @@ static void SetProsodyParameter(int param_type, const wchar_t *attr1, PARAM_STAC
 		{ "medium",  100 },
 		{ "high",    110 },
 		{ "x-high",  120 },
-		{ NULL,       -1 }
+		{ "",       -1 }
 	};
 
 	static const MNEM_TAB mnem_range[] = {
@@ -538,7 +538,7 @@ static void SetProsodyParameter(int param_type, const wchar_t *attr1, PARAM_STAC
 		{ "medium",  100 },
 		{ "high",    140 },
 		{ "x-high",  180 },
-		{ NULL,       -1 }
+		{ "",       -1 }
 	};
 
 	static const MNEM_TAB * const mnem_tabs[5] = {
@@ -605,14 +605,14 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 
 	static const MNEM_TAB mnem_phoneme_alphabet[] = {
 		{ "espeak", 1 },
-		{ NULL,    -1 }
+		{ "",    -1 }
 	};
 
 	static const MNEM_TAB mnem_punct[] = {
 		{ "none", 1 },
 		{ "all",  2 },
 		{ "some", 3 },
-		{ NULL,  -1 }
+		{ "",  -1 }
 	};
 
 	static const MNEM_TAB mnem_capitals[] = {
@@ -620,7 +620,7 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 		{ "icon",      1 },
 		{ "spelling",  2 },
 		{ "pitch",    20 },  // this is the amount by which to raise the pitch
-		{ NULL,       -1 }
+		{ "",       -1 }
 	};
 
 	static const MNEM_TAB mnem_interpret_as[] = {
@@ -629,12 +629,12 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 		{ "tts:key",    SAYAS_KEY },
 		{ "tts:digits", SAYAS_DIGITS },
 		{ "telephone",  SAYAS_DIGITS1 },
-		{ NULL,         -1 }
+		{ "",         -1 }
 	};
 
 	static const MNEM_TAB mnem_sayas_format[] = {
 		{ "glyphs", 1 },
-		{ NULL,    -1 }
+		{ "",    -1 }
 	};
 
 	static const MNEM_TAB mnem_break[] = {
@@ -644,7 +644,7 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 		{ "medium",   3 },
 		{ "strong",   4 },
 		{ "x-strong", 5 },
-		{ NULL,      -1 }
+		{ "",      -1 }
 	};
 
 	static const MNEM_TAB mnem_emphasis[] = {
@@ -653,7 +653,7 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 		{ "moderate", 3 },
 		{ "strong",   4 },
 		{ "x-strong", 5 },
-		{ NULL,      -1 }
+		{ "",      -1 }
 	};
 
 	static const char * const prosody_attr[5] = {
@@ -992,7 +992,7 @@ static const MNEM_TAB xml_entity_mnemonics[] = {
 	{ "quot", '"' },
 	{ "nbsp", ' ' },
 	{ "apos", '\'' },
-	{ NULL,   -1 }
+	{ "",   -1 }
 };
 
 int ParseSsmlReference(char *ref, int *c1, int *c2) {

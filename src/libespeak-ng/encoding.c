@@ -146,7 +146,7 @@ static const MNEM_TAB mnem_encoding[] = {
 	{ "l8",               ESPEAKNG_ENCODING_ISO_8859_14 },
 	{ "l10",              ESPEAKNG_ENCODING_ISO_8859_16 },
 	{ "us",               ESPEAKNG_ENCODING_US_ASCII },
-	{ NULL,               ESPEAKNG_ENCODING_UNKNOWN }
+	{ "",                 ESPEAKNG_ENCODING_UNKNOWN }
 };
 
 #pragma GCC visibility push(default)

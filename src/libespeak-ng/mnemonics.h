@@ -27,7 +27,7 @@ extern "C"
 #endif
 
 typedef struct {
-	const char *mnem;
+	const char mnem[64];
 	int value;
 } MNEM_TAB;
 int LookupMnem(const MNEM_TAB *table, const char *string);
