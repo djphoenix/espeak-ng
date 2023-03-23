@@ -46,6 +46,20 @@ extern unsigned char *out_ptr;
 extern unsigned char *out_end;
 static int nsamples;
 static int sample_count;
+static int time_count;
+static long skew;
+
+static double parwave_noise;
+static double parwave_voice;
+static double parwave_vlast;
+static double parwave_glotlast;
+static double parwave_sourc;
+
+static double impulsive_source_vwave;
+static double natural_source_vwave;
+
+static double nlast;
+static frame_t prev_fr;
 
 #define getrandom(min, max) espeak_rand((min), (max))
 
@@ -164,7 +178,6 @@ static double antiresonator(resonator_ptr r, double input)
 
 static void flutter(klatt_frame_ptr frame)
 {
-	static int time_count;
 	double delta_f0;
 	double fla, flb, flc, fld, fle;
 
@@ -243,11 +256,6 @@ static int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 	double aspiration;
 	double casc_next_in;
 	double par_glotout;
-	static double noise;
-	static double voice;
-	static double vlast;
-	static double glotlast;
-	static double sourc;
 	int ix;
 
 	flutter(frame); // add f0 flutter
@@ -256,16 +264,16 @@ static int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 
 	for (kt_globals.ns = 0; kt_globals.ns < kt_globals.nspfr; kt_globals.ns++) {
 		// Get low-passed random number for aspiration and frication noise
-		noise = gen_noise(noise);
+		parwave_noise = gen_noise(parwave_noise);
 
 		// Amplitude modulate noise (reduce noise amplitude during
 		// second half of glottal period) if voicing simultaneously present.
 
 		if (kt_globals.nper > kt_globals.nmod)
-			noise *= (double)0.5;
+			parwave_noise *= (double)0.5;
 
 		// Compute frication noise
-		frics = kt_globals.amp_frica * noise;
+		frics = kt_globals.amp_frica * parwave_noise;
 
 		// Compute voicing waveform. Run glottal source simulation at 4
 		// times normal sample rate to minimize quantization noise in
@@ -275,16 +283,16 @@ static int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 			switch (kt_globals.glsource)
 			{
 			case IMPULSIVE:
-				voice = impulsive_source();
+				parwave_voice = impulsive_source();
 				break;
 			case NATURAL:
-				voice = natural_source();
+				parwave_voice = natural_source();
 				break;
 			case SAMPLED:
-				voice = sampled_source(0);
+				parwave_voice = sampled_source(0);
 				break;
 			case SAMPLED2:
-				voice = sampled_source(1);
+				parwave_voice = sampled_source(1);
 				break;
 			}
 
@@ -297,7 +305,7 @@ static int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 			// Low-pass filter voicing waveform before downsampling from 4*samrate
 			// to samrate samples/sec.  Resonator f=.09*samrate, bw=.06*samrate
 
-			voice = resonator(&(kt_globals.rsn[RLP]), voice);
+			parwave_voice = resonator(&(kt_globals.rsn[RLP]), parwave_voice);
 
 			// Increment counter that keeps track of 4*samrate samples per sec
 			kt_globals.nper++;
@@ -306,28 +314,28 @@ static int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 		if(kt_globals.glsource==5) {
 			double v=(kt_globals.nper/(double)kt_globals.T0);
 			v=(v*2)-1;
-			voice=v*6000;
+			parwave_voice=v*6000;
 		}
 
 		// Tilt spectrum of voicing source down by soft low-pass filtering, amount
 		// of tilt determined by TLTdb
 
-		voice = (voice * kt_globals.onemd) + (vlast * kt_globals.decay);
-		vlast = voice;
+		parwave_voice = (parwave_voice * kt_globals.onemd) + (parwave_vlast * kt_globals.decay);
+		parwave_vlast = parwave_voice;
 
 		// Add breathiness during glottal open phase. Amount of breathiness
 		// determined by parameter Aturb Use nrand rather than noise because
 		// noise is low-passed.
 
 		if (kt_globals.nper < kt_globals.nopen)
-			voice += kt_globals.amp_breth * kt_globals.nrand;
+			parwave_voice += kt_globals.amp_breth * kt_globals.nrand;
 
 		// Set amplitude of voicing
-		glotout = kt_globals.amp_voice * voice;
-		par_glotout = kt_globals.par_amp_voice * voice;
+		glotout = kt_globals.amp_voice * parwave_voice;
+		par_glotout = kt_globals.par_amp_voice * parwave_voice;
 
 		// Compute aspiration amplitude and add to voicing source
-		aspiration = kt_globals.amp_aspir * noise;
+		aspiration = kt_globals.amp_aspir * parwave_noise;
 		glotout += aspiration;
 
 		par_glotout += aspiration;
@@ -350,23 +358,23 @@ static int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 		}
 
 		// Excite parallel F1 and FNP by voicing waveform
-		sourc = par_glotout; // Source is voicing plus aspiration
+		parwave_sourc = par_glotout; // Source is voicing plus aspiration
 
 		// Standard parallel vocal tract Formants F6,F5,F4,F3,F2,
 		// outputs added with alternating sign. Sound source for other
 		// parallel resonators is frication plus first difference of
 		// voicing waveform.
 
-		out += resonator(&(kt_globals.rsn[R1p]), sourc);
-		out += resonator(&(kt_globals.rsn[Rnpp]), sourc);
+		out += resonator(&(kt_globals.rsn[R1p]), parwave_sourc);
+		out += resonator(&(kt_globals.rsn[Rnpp]), parwave_sourc);
 
-		sourc = frics + par_glotout - glotlast;
-		glotlast = par_glotout;
+		parwave_sourc = frics + par_glotout - parwave_glotlast;
+		parwave_glotlast = par_glotout;
 
 		for (ix = R2p; ix <= R6p; ix++)
-			out = resonator(&(kt_globals.rsn[ix]), sourc) - out;
+			out = resonator(&(kt_globals.rsn[ix]), parwave_sourc) - out;
 
-		outbypas = kt_globals.amp_bypas * sourc;
+		outbypas = kt_globals.amp_bypas * parwave_sourc;
 
 		out = outbypas - out;
 
@@ -550,14 +558,13 @@ static void frame_init(klatt_frame_ptr frame)
 static double impulsive_source(void)
 {
 	static const double doublet[] = { 0.0, 13000000.0, -13000000.0 };
-	static double vwave;
 
 	if (kt_globals.nper < 3)
-		vwave = doublet[kt_globals.nper];
+		impulsive_source_vwave = doublet[kt_globals.nper];
 	else
-		vwave = 0.0;
+		impulsive_source_vwave = 0.0;
 
-	return resonator(&(kt_globals.rsn[RGL]), vwave);
+	return resonator(&(kt_globals.rsn[RGL]), impulsive_source_vwave);
 }
 
 /*
@@ -570,16 +577,15 @@ static double impulsive_source(void)
 static double natural_source(void)
 {
 	double lgtemp;
-	static double vwave;
 
 	if (kt_globals.nper < kt_globals.nopen) {
 		kt_globals.pulse_shape_a -= kt_globals.pulse_shape_b;
-		vwave += kt_globals.pulse_shape_a;
-		lgtemp = vwave * 0.028;
+		natural_source_vwave += kt_globals.pulse_shape_a;
+		lgtemp = natural_source_vwave * 0.028;
 
 		return lgtemp;
 	}
-	vwave = 0.0;
+	natural_source_vwave = 0.0;
 	return 0.0;
 }
 
@@ -619,7 +625,6 @@ static void pitch_synch_par_reset(klatt_frame_ptr frame)
 {
 	long temp;
 	double temp1;
-	static long skew;
 	static const short B0[224] = {
 		1200, 1142, 1088, 1038, 991, 948, 907, 869, 833, 799, 768, 738, 710, 683, 658,
 		 634,  612,  590,  570, 551, 533, 515, 499, 483, 468, 454, 440, 427, 415, 403,
@@ -802,7 +807,6 @@ static void setzeroabc(long int f, long int bw, resonator_ptr rp)
 static double gen_noise(double noise)
 {
 	long temp;
-	static double nlast;
 
 	temp = (long)getrandom(-8191, 8191);
 	kt_globals.nrand = (long)temp;
@@ -961,7 +965,6 @@ static void SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *wvoi
 	int qix;
 	int cmd;
 	frame_t *fr3;
-	static frame_t prev_fr;
 
 	if (wvoice != NULL) {
 		if ((wvoice->klattv[0] > 0) && (wvoice->klattv[0] <= 5 )) {

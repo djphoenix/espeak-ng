@@ -62,6 +62,12 @@ static MBROLA_TAB *mbrola_tab = NULL;
 static int mbrola_control = 0;
 static int mbr_name_prefix = 0;
 
+static char output[50];
+static int phix;
+static int embedded_ix;
+static int word_count;
+static int n_samples;
+
 espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, int *srate)
 {
 	// Load a phoneme name translation table from espeak-ng-data/mbrola
@@ -251,7 +257,6 @@ static char *WritePitch(int env, int pitch1, int pitch2, int split, int final)
 	int y[4];
 	int env_split;
 	char buf[50];
-	static char output[50];
 
 	MAKE_MEM_UNDEFINED(&output, sizeof(output));
 
@@ -351,10 +356,6 @@ int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mb
 	char *ptr;
 	char mbr_buf[120];
 	char phbuf[5];
-
-	static int phix;
-	static int embedded_ix;
-	static int word_count;
 
 	if (!resume) {
 		phix = 1;
@@ -553,7 +554,6 @@ int MbrolaFill(int length, bool resume, int amplitude)
 {
 	// Read audio data from Mbrola (length is in millisecs)
 
-	static int n_samples;
 	int req_samples, result;
 	int ix;
 	short value16;

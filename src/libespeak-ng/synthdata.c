@@ -62,6 +62,7 @@ PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
 int phoneme_tab_number = 0;
 
 int seq_len_adjust;
+static frameref_t frames_buf[N_SEQ_FRAMES];
 
 static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
 {
@@ -207,7 +208,6 @@ frameref_t *LookupSpect(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,
 	SPECT_SEQ *seq, *seq2;
 	SPECT_SEQK *seqk, *seqk2;
 	frame_t *frame;
-	static frameref_t frames_buf[N_SEQ_FRAMES];
 
 	MAKE_MEM_UNDEFINED(&frames_buf, sizeof(frames_buf));
 

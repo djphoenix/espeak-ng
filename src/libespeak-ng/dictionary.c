@@ -56,6 +56,7 @@ typedef struct {
 
 int dictionary_skipwords;
 char dictionary_name[40];
+static char word_replacement[N_WORD_BYTES];
 
 // accented characters which indicate (in some languages) the start of a separate syllable
 static const unsigned short diereses_list[7] = { 0xe4, 0xeb, 0xef, 0xf6, 0xfc, 0xff, 0 };
@@ -2690,7 +2691,6 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 	int nbytes;
 	int len;
 	char word[N_WORD_BYTES];
-	static char word_replacement[N_WORD_BYTES];
 
 	MAKE_MEM_UNDEFINED(&word_replacement, sizeof(word_replacement));
 
@@ -2851,7 +2851,7 @@ int Lookup(Translator *tr, const char *word, char *ph_out)
 static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2])
 {
 	char buf[100];
-	static unsigned int flags[2];
+	unsigned int flags[2];
 	char *word1 = (char *)word;
 
 	flags[0] = flags[1] = 0;

@@ -88,6 +88,7 @@ static const MNEM_TAB ssmltags[] = {
 };
 
 static int (*uri_callback)(int, const char *, const char *) = NULL;
+static char voice_name[40];
 
 static int attrcmp(const wchar_t *string1, const char *string2)
 {
@@ -217,7 +218,6 @@ static const char *VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espe
 	const char *v_id;
 	int voice_found;
 	espeak_VOICE voice_select;
-	static char voice_name[40];
 	char language[40];
 
 	MAKE_MEM_UNDEFINED(&voice_name, sizeof(voice_name));

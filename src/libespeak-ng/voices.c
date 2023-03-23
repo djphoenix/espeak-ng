@@ -79,6 +79,15 @@ static const char variants_male[N_VOICE_VARIANTS] = { 1, 2, 3, 4, 5, 6, 0 };
 static const char variants_female[N_VOICE_VARIANTS] = { 11, 12, 13, 14, 0 };
 static const char *const variant_lists[3] = { variants_either, variants_male, variants_female };
 
+static espeak_VOICE **voices = NULL;
+
+static char voice_identifier[40]; // file name for  current_voice_selected
+static char voice_name[40];       // voice name for current_voice_selected
+static char voice_languages[100]; // list of languages and priorities for current_voice_selected
+static char variant_name[40];
+static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
+static char voice_id[50];
+
 static voice_t voicedata;
 voice_t *voice = &voicedata;
 
@@ -431,10 +440,6 @@ voice_t *LoadVoice(const char *vname, int control)
 	int pitch1;
 	int pitch2;
 
-	static char voice_identifier[40]; // file name for  current_voice_selected
-	static char voice_name[40];       // voice name for current_voice_selected
-	static char voice_languages[100]; // list of languages and priorities for current_voice_selected
-
 	if (!tone_only) {
 		MAKE_MEM_UNDEFINED(&voice_identifier, sizeof(voice_identifier));
 		MAKE_MEM_UNDEFINED(&voice_name, sizeof(voice_name));
@@ -736,7 +741,6 @@ static char *ExtractVoiceVariantName(char *vname, int variant_num, int add_dir)
 	// Remove any voice variant suffix (name or number) from a voice name
 	// Returns the voice variant name
 
-	static char variant_name[40];
 	char variant_prefix[5];
 
 	MAKE_MEM_UNDEFINED(&variant_name, sizeof(variant_name));
@@ -1065,8 +1069,6 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 	espeak_VOICE voice_select2;
 	espeak_VOICE *voices[N_VOICES_LIST]; // list of candidates
 	espeak_VOICE *voices2[N_VOICES_LIST+N_VOICE_VARIANTS];
-	static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
-	static char voice_id[50];
 
 	MAKE_MEM_UNDEFINED(&voice_variants, sizeof(voice_variants));
 	MAKE_MEM_UNDEFINED(&voice_id, sizeof(voice_id));
@@ -1358,7 +1360,6 @@ ESPEAK_API const espeak_VOICE **espeak_ListVoices(espeak_VOICE *voice_spec)
 	char path_voices[sizeof(path_home)+12];
 
 	espeak_VOICE *v;
-	static espeak_VOICE **voices = NULL;
 
 	// free previous voice list data
 	FreeVoiceList();

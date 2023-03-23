@@ -84,6 +84,10 @@ PARAM_STACK param_stack[N_PARAM_STACK];
 static int speech_parameters[N_SPEECH_PARAM]; // current values, from param_stack
 int saved_parameters[N_SPEECH_PARAM]; // Parameters saved on synthesis start
 
+#define N_XML_BUF2 20
+static char ungot_string[N_XML_BUF2+4];
+static int ungot_string_ix = -1;
+
 #define ESPEAKNG_CLAUSE_TYPE_PROPERTY_MASK 0xFFF0000000000000ull
 
 int clause_type_from_codepoint(uint32_t c)
@@ -498,10 +502,7 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 	int end_clause_index = 0;
 	wchar_t xml_buf[N_XML_BUF+1];
 
-	#define N_XML_BUF2 20
 	char xml_buf2[N_XML_BUF2+2]; // for &<name> and &<number> sequences
-	static char ungot_string[N_XML_BUF2+4];
-	static int ungot_string_ix = -1;
 
 	if (clear_skipping_text) {
 		skipping_text = false;

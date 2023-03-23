@@ -112,6 +112,19 @@ unsigned char *out_end;
 espeak_ng_OUTPUT_HOOKS* output_hooks = NULL;
 static int const_f0 = 0;
 
+static int Flutter_ix = 0;
+static int agc = 256;
+static int h_switch_sign = 0;
+static int cycle_count = 0;
+static int amplitude2 = 0; // adjusted for pitch
+static int maxh, maxh2;
+static int n_samples;
+static int PlayWave_n_samples;
+static int PlayWave_ix = 0;
+static voice_t v2;
+static bool resume = false;
+static int echo_complete = 0;
+
 // the queue of operations passed to wavegen from sythesize
 intptr_t wcmdq[N_WCMDQ][4];
 int wcmdq_head = 0;
@@ -542,7 +555,6 @@ static void AdvanceParameters(void)
 
 	int x;
 	int ix;
-	static int Flutter_ix = 0;
 
 	// advance the pitch
 	wdata.pitch_ix += wdata.pitch_inc;
@@ -697,16 +709,11 @@ static int Wavegen(int length, int modulation, bool resume, frame_t *fr1, frame_
 	int z, z1, z2;
 	int echo;
 	int ov;
-	static int maxh, maxh2;
 	int pk;
 	signed char c;
 	int sample;
 	int amp;
 	int modn_amp = 1, modn_period;
-	static int agc = 256;
-	static int h_switch_sign = 0;
-	static int cycle_count = 0;
-	static int amplitude2 = 0; // adjusted for pitch
 
 	// continue until the output buffer is full, or
 	// the required number of samples have been produced
@@ -905,8 +912,6 @@ static int Wavegen(int length, int modulation, bool resume, frame_t *fr1, frame_
 
 static int PlaySilence(int length, bool resume)
 {
-	static int n_samples;
-
 	nsamples = 0;
 	samplecount = 0;
 	wavephase = 0x7fffffff;
@@ -940,28 +945,26 @@ static int PlaySilence(int length, bool resume)
 
 static int PlayWave(int length, bool resume, unsigned char *data, int scale, int amp)
 {
-	static int n_samples;
-	static int ix = 0;
 	int value;
 	signed char c;
 
 	if (resume == false) {
-		n_samples = length;
-		ix = 0;
+		PlayWave_n_samples = length;
+		PlayWave_ix = 0;
 	}
 
 	nsamples = 0;
 	samplecount = 0;
 
-	while (n_samples-- > 0) {
+	while (PlayWave_n_samples-- > 0) {
 		if (scale == 0) {
 			// 16 bits data
-			c = data[ix+1];
-			value = data[ix] + (c * 256);
-			ix += 2;
+			c = data[PlayWave_ix+1];
+			value = data[PlayWave_ix] + (c * 256);
+			PlayWave_ix += 2;
 		} else {
 			// 8 bit data, shift by the specified scale factor
-			value = (signed char)data[ix++] * scale;
+			value = (signed char)data[PlayWave_ix++] * scale;
 		}
 		value *= (consonant_amp * general_amplitude); // reduce strength of consonant
 		value = value >> 10;
@@ -1068,8 +1071,6 @@ void SetEmbedded(int control, int value)
 
 void WavegenSetVoice(voice_t *v)
 {
-	static voice_t v2;
-
 	memcpy(&v2, v, sizeof(v2));
 	wvoice = &v2;
 
@@ -1262,8 +1263,6 @@ static int WavegenFill2(void)
 	int length;
 	int result;
 	int marker_type;
-	static bool resume = false;
-	static int echo_complete = 0;
 
 	while (out_ptr < out_end) {
 		if (WcmdqUsed() <= 0) {

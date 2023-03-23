@@ -106,6 +106,9 @@ unsigned int embedded_list[N_EMBEDDED_LIST];
 // the source text of a single clause (UTF8 bytes)
 static char source[N_TR_SOURCE+40]; // extra space for embedded command & voice change info at end
 
+static int ignore_next_n = 0;
+static char voice_change_name[40];
+
 int n_replace_phonemes;
 REPLACE_PHONEMES replace_phonemes[N_REPLACE_PHONEMES];
 
@@ -786,7 +789,6 @@ static int SubstituteChar(Translator *tr, unsigned int c, unsigned int next_in, 
 	unsigned int new_c, c2 = ' ', c_lower;
 	int upper_case = 0;
 
-	static int ignore_next_n = 0;
 	if (ignore_next_n > 0) {
 		ignore_next_n--;
 		return 8;
@@ -956,7 +958,6 @@ void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 
 	short charix[N_TR_SOURCE+4];
 	WORD_TAB words[N_CLAUSE_WORDS];
-	static char voice_change_name[40];
 	int word_count = 0; // index into words
 
 	char sbuf[N_TR_SOURCE];

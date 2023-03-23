@@ -50,6 +50,7 @@ static bool thread_inited = false;
 
 static t_espeak_callback *my_callback = NULL;
 static bool my_event_is_running = false;
+static unsigned int a_old_uid = 0;
 
 enum {
 	MIN_TIMEOUT_IN_MS = 10,
@@ -142,8 +143,6 @@ static espeak_EVENT *event_copy(espeak_EVENT *event)
 
 static void event_notify(espeak_EVENT *event)
 {
-	static unsigned int a_old_uid = 0;
-
 	espeak_EVENT events[2];
 	memcpy(&events[0], event, sizeof(espeak_EVENT));     // the event parameter in the callback function should be an array of eventd
 	memcpy(&events[1], event, sizeof(espeak_EVENT));

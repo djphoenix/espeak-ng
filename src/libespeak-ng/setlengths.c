@@ -139,6 +139,7 @@ static const unsigned char wav_factor_350[] = {
 };
 
 static int len_speeds[3] = { 130, 121, 118 };
+static int more_syllables = 0;
 
 void SetSpeed(int control)
 {
@@ -372,7 +373,6 @@ void CalcLengths(Translator *tr)
 	PHONEME_LIST *p;
 	PHONEME_LIST *p2;
 
-	static int more_syllables = 0;
 	bool pre_sonorant = false;
 	bool pre_voiced = false;
 	int last_pitch = 0;

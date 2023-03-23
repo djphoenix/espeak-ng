@@ -65,10 +65,21 @@ static int fmt_amplitude = 0;
 static int syllable_start;
 static int syllable_end;
 static int syllable_centre;
+static int wave_flag = 0;
 
 static voice_t *new_voice = NULL;
 
 static int (*phoneme_callback)(const char *) = NULL;
+
+#define N_FRAME_POOL N_WCMDQ
+static int frame_pool_ix = 0;
+static frame_t frame_pool[N_FRAME_POOL];
+
+static int ix;
+static int embedded_ix;
+static int word_count;
+static int sourceix = 0;
+static WORD_PH_DATA worddata;
 
 #define RMS_GLOTTAL1 35   // vowel before glottal stop
 #define RMS_START 28  // 28
@@ -382,16 +393,12 @@ static frame_t *AllocFrame(void)
 	// enough to use a round-robin without checks.
 	// Only needed for modifying spectra for blending to consonants
 
-	#define N_FRAME_POOL N_WCMDQ
-	static int ix = 0;
-	static frame_t frame_pool[N_FRAME_POOL];
+	frame_pool_ix++;
+	if (frame_pool_ix >= N_FRAME_POOL)
+		frame_pool_ix = 0;
 
-	ix++;
-	if (ix >= N_FRAME_POOL)
-		ix = 0;
-
-	MAKE_MEM_UNDEFINED(&frame_pool[ix], sizeof(frame_pool[ix]));
-	return &frame_pool[ix];
+	MAKE_MEM_UNDEFINED(&frame_pool[frame_pool_ix], sizeof(frame_pool[frame_pool_ix]));
+	return &frame_pool[frame_pool_ix];
 }
 
 static void set_frame_rms(frame_t *fr, int new_rms)
@@ -852,7 +859,6 @@ int DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_L
 	int length_sum;
 	int length_min;
 	int total_len = 0;
-	static int wave_flag = 0;
 	int wcmd_spect = WCMD_SPECT;
 	int frame_lengths[N_SEQ_FRAMES];
 
@@ -1120,9 +1126,6 @@ extern espeak_ng_OUTPUT_HOOKS* output_hooks;
 
 int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 {
-	static int ix;
-	static int embedded_ix;
-	static int word_count;
 	PHONEME_LIST *p;
 	bool released;
 	int stress;
@@ -1136,14 +1139,12 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 	int use_ipa = 0;
 	int vowelstart_prev;
 	char phoneme_name[16];
-	static int sourceix = 0;
 
 	PHONEME_DATA phdata;
 	PHONEME_DATA phdata_prev;
 	PHONEME_DATA phdata_next;
 	PHONEME_DATA phdata_tone;
 	FMT_PARAMS fmtp;
-	static WORD_PH_DATA worddata;
 
 	if (option_phoneme_events & espeakINITIALIZE_PHONEME_IPA)
 		use_ipa = 1;
