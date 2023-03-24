@@ -36,6 +36,7 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
+#include "context.hpp"
 #include "readclause.hpp"
 #include "common.hpp"               // for GetFileLength, strncpy0
 #include "dictionary.hpp"           // for LookupDictList, DecodePhonemes, Set...
@@ -52,23 +53,16 @@ namespace espeak {
 
 #define N_XML_BUF   500
 
-static void DecodeWithPhonemeMode(char *buf, size_t buf_sz, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]);
 static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc);
 
 static const char *xmlbase = ""; // base URL from <speak>
 
-static int namedata_ix = 0;
-static int n_namedata = 0;
-char *namedata = NULL;
-
 static int ungot_char2 = 0;
-espeak_ng_TEXT_DECODER *p_decoder = NULL;
 static int ungot_char;
 
 static bool ignore_text = false; // set during <sub> ... </sub>  to ignore text which has been replaced by an alias
 static bool audio_text = false; // set during <audio> ... </audio>
 static bool clear_skipping_text = false; // next clause should clear the skipping_text flag
-int count_characters = 0;
 static int sayas_mode;
 static int sayas_start;
 
@@ -79,12 +73,6 @@ static SSML_STACK ssml_stack[N_SSML_STACK];
 static espeak_VOICE base_voice;
 static char base_voice_variant_name[40] = { 0 };
 static char current_voice_id[40] = { 0 };
-
-static int n_param_stack;
-PARAM_STACK param_stack[N_PARAM_STACK];
-
-static int speech_parameters[N_SPEECH_PARAM]; // current values, from param_stack
-int saved_parameters[N_SPEECH_PARAM]; // Parameters saved on synthesis start
 
 #define N_XML_BUF2 20
 static char ungot_string[N_XML_BUF2+4];
@@ -146,7 +134,7 @@ static int IsRomanU(unsigned int c)
 	return 0;
 }
 
-int Eof(void)
+int context_t::Eof(void)
 {
 	if (ungot_char != 0)
 		return 0;
@@ -154,7 +142,7 @@ int Eof(void)
 	return text_decoder_eof(p_decoder);
 }
 
-static int GetC(void)
+int context_t::GetC(void)
 {
 	int c1;
 
@@ -187,7 +175,7 @@ const char *WordToString2(char buf[5], unsigned int word)
 	return buf;
 }
 
-static const char *LookupSpecial(Translator *tr, const char *string, char *text_out, size_t out_sz)
+const char *context_t::LookupSpecial(Translator *tr, const char *string, char *text_out, size_t out_sz)
 {
 	unsigned int flags[2];
 	char phonemes[55];
@@ -201,7 +189,7 @@ static const char *LookupSpecial(Translator *tr, const char *string, char *text_
 	return NULL;
 }
 
-static const char *LookupCharName(char buf[80], Translator *tr, int c, bool only)
+const char *context_t::LookupCharName(char buf[80], Translator *tr, int c, bool only)
 {
 	// Find the phoneme string (in ascii) to speak the name of character c
 	// Used for punctuation characters and symbols
@@ -267,7 +255,7 @@ static const char *LookupCharName(char buf[80], Translator *tr, int c, bool only
 	return buf;
 }
 
-static int AnnouncePunctuation(Translator *tr, int c1, int *c2_ptr, char *output, int *bufix, int end_clause)
+int context_t::AnnouncePunctuation(Translator *tr, int c1, int *c2_ptr, char *output, int *bufix, int end_clause)
 {
 	// announce punctuation names
 	// c1:  the punctuation character
@@ -370,7 +358,7 @@ static int AnnouncePunctuation(Translator *tr, int c1, int *c2_ptr, char *output
 	return short_pause;
 }
 
-int AddNameData(const char *name, int wide)
+int context_t::AddNameData(const char *name, int wide)
 {
 	// Add the name to the namedata and return its position
 	// (Used by the Windows SAPI wrapper)
@@ -469,7 +457,7 @@ static int CheckPhonemeMode(int option_phoneme_input, int phoneme_mode, int c1, 
     return phoneme_mode;
 }
 
-int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_buf, int *tone_type, char *voice_change)
+int context_t::ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_buf, int *tone_type, char *voice_change)
 {
 	/* Find the end of the current clause.
 	    Write the clause into  buf
@@ -960,7 +948,7 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 	return CLAUSE_EOF; // end of file
 }
 
-void InitNamedata(void)
+void context_t::InitNamedata(void)
 {
 	namedata_ix = 0;
 	if (namedata != NULL) {
@@ -970,7 +958,7 @@ void InitNamedata(void)
 	}
 }
 
-void InitText2(void)
+void context_t::InitText2(void)
 {
 	int param;
 
@@ -1009,7 +997,7 @@ static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc) {
 	}
 }
 
-static void DecodeWithPhonemeMode(char *buf, size_t buf_sz, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]) {
+void context_t::DecodeWithPhonemeMode(char *buf, size_t buf_sz, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]) {
 	char phonemes2[55];
 	if (tr2 == NULL) {
 		SetWordStress(tr, phonemes, flags, -1, 0);

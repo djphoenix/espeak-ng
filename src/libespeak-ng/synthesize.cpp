@@ -48,14 +48,6 @@
 
 namespace espeak {
 
-static void SmoothSpect(void);
-
-// list of phonemes in a clause
-int n_phoneme_list = 0;
-PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
-
-SPEED_FACTORS speed;
-
 static int last_pitch_cmd;
 static int last_amp_cmd;
 static frame_t  *last_frame;
@@ -107,7 +99,7 @@ void SynthesizeInit(void)
 	syllable_centre = -1;
 }
 
-static void EndAmplitude(void)
+void context_t::EndAmplitude(void)
 {
 	if (amp_length > 0) {
 		if (wcmdq[last_amp_cmd][1] == 0)
@@ -116,7 +108,7 @@ static void EndAmplitude(void)
 	}
 }
 
-static void EndPitch(int voice_break)
+void context_t::EndPitch(int voice_break)
 {
 	// possible end of pitch envelope, fill in the length
 	if ((pitch_length > 0) && (last_pitch_cmd >= 0)) {
@@ -134,7 +126,7 @@ static void EndPitch(int voice_break)
 	}
 }
 
-static void DoAmplitude(int amp, const unsigned char *amp_env)
+void context_t::DoAmplitude(int amp, const unsigned char *amp_env)
 {
 	intptr_t *q;
 
@@ -149,7 +141,7 @@ static void DoAmplitude(int amp, const unsigned char *amp_env)
 	WcmdqInc();
 }
 
-static void DoPhonemeAlignment(char* pho, int type)
+void context_t::DoPhonemeAlignment(char* pho, int type)
 {
 	wcmdq[wcmdq_tail][0] = WCMD_PHONEME_ALIGNMENT;
 	wcmdq[wcmdq_tail][1] = (intptr_t)pho;
@@ -157,7 +149,7 @@ static void DoPhonemeAlignment(char* pho, int type)
 	WcmdqInc();
 }
 
-static void DoPitch(const unsigned char *env, int pitch1, int pitch2)
+void context_t::DoPitch(const unsigned char *env, int pitch1, int pitch2)
 {
 	intptr_t *q;
 
@@ -183,7 +175,7 @@ static void DoPitch(const unsigned char *env, int pitch1, int pitch2)
 	WcmdqInc();
 }
 
-int PauseLength(int pause, int control)
+int context_t::PauseLength(int pause, int control)
 {
 	unsigned int len;
 
@@ -200,7 +192,7 @@ int PauseLength(int pause, int control)
 	return len;
 }
 
-static void DoPause(int length, int control)
+void context_t::DoPause(int length, int control)
 {
 	// length in nominal mS
 	// control = 1, less shortening at fast speeds
@@ -233,9 +225,7 @@ static void DoPause(int length, int control)
 	}
 }
 
-extern int seq_len_adjust; // temporary fix to advance the start point for playing the wav sample
-
-static int DoSample2(int index, int which, int std_length, int control, int length_mod, int amp)
+int context_t::DoSample2(int index, int which, int std_length, int control, int length_mod, int amp)
 {
 	int length;
 	int wav_length;
@@ -364,7 +354,7 @@ static int DoSample2(int index, int which, int std_length, int control, int leng
 	return length;
 }
 
-int DoSample3(PHONEME_DATA *phdata, int length_mod, int amp)
+int context_t::DoSample3(PHONEME_DATA *phdata, int length_mod, int amp)
 {
 	int amp2;
 	int len;
@@ -404,7 +394,7 @@ static frame_t *AllocFrame(void)
 	return &frame_pool[frame_pool_ix];
 }
 
-static void set_frame_rms(frame_t *fr, int new_rms)
+void context_t::set_frame_rms(frame_t *fr, int new_rms)
 {
 	// Each frame includes its RMS amplitude value, so to set a new
 	// RMS just adjust the formant amplitudes by the appropriate ratio
@@ -447,7 +437,7 @@ static void set_frame_rms(frame_t *fr, int new_rms)
 	}
 }
 
-static void formants_reduce_hf(frame_t *fr, int level)
+void context_t::formants_reduce_hf(frame_t *fr, int level)
 {
 	// change height of peaks 2 to 8, percentage
 	if (voice->klattv[0])
@@ -491,7 +481,7 @@ static frame_t *DuplicateLastFrame(frameref_t *seq, int n_frames, int length)
 	return fr;
 }
 
-static void AdjustFormants(frame_t *fr, int target, int min, int max, int f1_adj, int f3_adj, int hf_reduce, int flags)
+void context_t::AdjustFormants(frame_t *fr, int target, int min, int max, int f1_adj, int f3_adj, int hf_reduce, int flags)
 {
 	int x;
 
@@ -545,7 +535,7 @@ static int VowelCloseness(frame_t *fr)
 	return 0;
 }
 
-int FormantTransition2(frameref_t *seq, int *n_frames, unsigned int data1, unsigned int data2, PHONEME_TAB *other_ph, int which)
+int context_t::FormantTransition2(frameref_t *seq, int *n_frames, unsigned int data1, unsigned int data2, PHONEME_TAB *other_ph, int which)
 {
 	int len;
 	int rms;
@@ -668,7 +658,7 @@ int FormantTransition2(frameref_t *seq, int *n_frames, unsigned int data1, unsig
 	return 0;
 }
 
-static void SmoothSpect(void)
+void context_t::SmoothSpect(void)
 {
 	// Limit the rate of frequence change of formants, to reduce chirping
 
@@ -838,14 +828,14 @@ static void SmoothSpect(void)
 	syllable_start = syllable_end;
 }
 
-static void StartSyllable(void)
+void context_t::StartSyllable(void)
 {
 	// start of syllable, if not already started
 	if (syllable_end == syllable_start)
 		syllable_end = wcmdq_tail;
 }
 
-int DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_LIST *plist, int modulation)
+int context_t::DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_LIST *plist, int modulation)
 {
 	// which:  0 not a vowel, 1  start of vowel,   2 body and end of vowel
 	// length_mod: 256 = 100%
@@ -1023,7 +1013,7 @@ int DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_L
 	return total_len;
 }
 
-void DoMarker(int type, int char_posn, int length, int value)
+void context_t::DoMarker(int type, int char_posn, int length, int value)
 {
 	// This could be used to return an index to the word currently being spoken
 	// Type 1=word, 2=sentence, 3=named marker, 4=play audio, 5=end
@@ -1036,7 +1026,7 @@ void DoMarker(int type, int char_posn, int length, int value)
 	}
 }
 
-void DoPhonemeMarker(int type, int char_posn, int length, char *name)
+void context_t::DoPhonemeMarker(int type, int char_posn, int length, char *name)
 {
 	// This could be used to return an index to the word currently being spoken
 	// Type 7=phoneme
@@ -1050,7 +1040,7 @@ void DoPhonemeMarker(int type, int char_posn, int length, char *name)
 }
 
 #if USE_LIBSONIC
-void DoSonicSpeed(int value)
+void context_t::DoSonicSpeed(int value)
 {
 	// value, multiplier * 1024
 	wcmdq[wcmdq_tail][0] = WCMD_SONIC_SPEED;
@@ -1059,7 +1049,7 @@ void DoSonicSpeed(int value)
 }
 #endif
 
-espeak_ng_STATUS DoVoiceChange(voice_t *v)
+espeak_ng_STATUS context_t::DoVoiceChange(voice_t *v)
 {
 	// allocate memory for a copy of the voice data, and free it in wavegenfill()
 	voice_t *v2;
@@ -1072,7 +1062,7 @@ espeak_ng_STATUS DoVoiceChange(voice_t *v)
 	return ENS_OK;
 }
 
-void DoEmbedded(int *embix, int sourceix)
+void context_t::DoEmbedded(int *embix, int sourceix)
 {
 	// There were embedded commands in the text at this point
 	unsigned int word; // bit 7=last command for this word, bits 5,6 sign, bits 0-4 command
@@ -1125,9 +1115,7 @@ void DoEmbedded(int *embix, int sourceix)
 	} while ((word & 0x80) == 0);
 }
 
-extern espeak_ng_OUTPUT_HOOKS* output_hooks;
-
-int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
+int context_t::Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 {
 	PHONEME_LIST *p;
 	bool released;
@@ -1531,7 +1519,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 	return 0; // finished the phoneme list
 }
 
-int SpeakNextClause(int control)
+int context_t::SpeakNextClause(int control)
 {
 	// Speak text from memory (text_in)
 	// control 0: start

@@ -35,6 +35,7 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
+#include "context.hpp"
 #include "soundicon.hpp" 
 #include "common.hpp"                // for GetFileLength
 #include "error.hpp"                // for create_file_error_context
@@ -43,17 +44,13 @@
 
 namespace espeak {
 
-int n_soundicon_tab = 0;
-SOUND_ICON soundicon_tab[N_SOUNDICON_TAB];
-
-
-static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ERROR_CONTEXT *context)
+espeak_ng_STATUS context_t::LoadSoundFile(const char *fname, int index, espeak_ng_ERROR_CONTEXT *context)
 {
 	FILE *f;
 	unsigned char *p;
 	int length;
 	char fname_temp[100];
-	char fname2[sizeof(path_home)+13+40];
+	char fname2[N_PATH_HOME+13+40];
 
 	if (fname == NULL) {
 		// filename is already in the table
@@ -143,7 +140,7 @@ static espeak_ng_STATUS LoadSoundFile(const char *fname, int index, espeak_ng_ER
 	return ENS_OK;
 }
 
-int LookupSoundicon(int c)
+int context_t::LookupSoundicon(int c)
 {
 	// Find the sound icon number for a punctuation character and load the audio file if it's not yet loaded
 	int ix;
@@ -161,7 +158,7 @@ int LookupSoundicon(int c)
 	return -1;
 }
 
-int LoadSoundFile2(const char *fname)
+int context_t::LoadSoundFile2(const char *fname)
 {
 	// Load a sound file into the sound icon table and memory
 	// (if it's not already loaded)

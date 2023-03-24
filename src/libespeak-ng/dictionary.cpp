@@ -32,6 +32,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "common.hpp"                // for GetFileLength, strncpy0
 #include "dictionary.hpp"
 #include "numbers.hpp"                       // for LookupAccentedLetter, Look...
@@ -45,19 +46,13 @@
 
 namespace espeak {
 
-static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2]);
-static void DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points);
-
-typedef struct {
+struct MatchRecord {
 	int points;
 	const char *phonemes;
 	int end_type;
 	char *del_fwd;
-} MatchRecord;
+};
 
-
-int dictionary_skipwords;
-char dictionary_name[40];
 static char word_replacement[N_WORD_BYTES];
 
 #define N_PHON_OUT  500  // realloc increment
@@ -118,7 +113,7 @@ static int Reverse4Bytes(int word)
 #endif
 }
 
-static void InitGroups(Translator *tr)
+void context_t::InitGroups(Translator *tr)
 {
 	// Called after dictionary 1 is loaded, to set up table of entry points for translation rule chains
 	// for single-letters and two-letter combinations
@@ -200,7 +195,7 @@ static void InitGroups(Translator *tr)
 	}
 }
 
-int LoadDictionary(Translator *tr, const char *name, int no_error)
+int context_t::LoadDictionary(Translator *tr, const char *name, int no_error)
 {
 	int hash;
 	char *p;
@@ -208,7 +203,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	int length;
 	FILE *f;
 	int size;
-	char fname[sizeof(path_home)+20];
+	char fname[N_PATH_HOME+20];
 
 	if (dictionary_name != name)
 		strncpy(dictionary_name, name, 40); // currently loaded dictionary name
@@ -300,7 +295,7 @@ int HashDictionary(const char *string)
    outptr contains encoded phonemes, unrecognized phoneme stops the encoding
    bad_phoneme must point to char array of length 2 of more
  */
-const char *EncodePhonemes(const char *p, char *outptr, int *bad_phoneme)
+const char *context_t::EncodePhonemes(const char *p, char *outptr, int *bad_phoneme)
 {
 	int ix;
 	unsigned char c;
@@ -396,7 +391,7 @@ const char *EncodePhonemes(const char *p, char *outptr, int *bad_phoneme)
 	return p;
 }
 
-void DecodePhonemes(const char *inptr, char *outptr)
+void context_t::DecodePhonemes(const char *inptr, char *outptr)
 {
 	// Translate from internal phoneme codes into phoneme mnemonics
 	unsigned char phcode;
@@ -441,7 +436,7 @@ static const unsigned short ipa1[96] = {
 	0x70,  0x71,  0x72,  0x73,  0x74,  0x75,  0x76,  0x77,  0x78,  0x79,  0x7a,  0x7b,  0x7c,  0x7d,  0x303, 0x7f
 };
 
-char *WritePhMnemonic(char *phon_out, PHONEME_TAB *ph, PHONEME_LIST *plist, int use_ipa, int *flags)
+char *context_t::WritePhMnemonic(char *phon_out, PHONEME_TAB *ph, PHONEME_LIST *plist, int use_ipa, int *flags)
 {
 	int c;
 	int mnem;
@@ -526,7 +521,7 @@ char *WritePhMnemonic(char *phon_out, PHONEME_TAB *ph, PHONEME_LIST *plist, int 
 	return phon_out;
 }
 
-const char *GetTranslatedPhonemeString(int phoneme_mode)
+const char *context_t::GetTranslatedPhonemeString(int phoneme_mode)
 {
 	/* Called after a clause has been translated into phonemes, in order
 	   to display the clause in phoneme mnemonic form.
@@ -768,7 +763,7 @@ int IsVowel(Translator *tr, int letter)
 	return IsLetter(tr, letter, LETTERGP_VOWEL2);
 }
 
-int GetVowelStress(Translator *tr, unsigned char *phonemes, signed char *vowel_stress, int *vowel_count, int *stressed_syllable, int control)
+int context_t::GetVowelStress(Translator *tr, unsigned char *phonemes, signed char *vowel_stress, int *vowel_count, int *stressed_syllable, int control)
 {
 	// control = 1, set stress to 1 for forced unstressed vowels
 	unsigned char phcode;
@@ -885,7 +880,7 @@ const char stress_phonemes[] = {
 	phonSTRESS_P, phonSTRESS_P2, phonSTRESS_TONIC
 };
 
-void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags, int tonic, int control)
+void context_t::SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags, int tonic, int control)
 {
 	/* Guess stress pattern of word.  This is language specific
 
@@ -1407,7 +1402,7 @@ void SetWordStress(Translator *tr, char *output, unsigned int *dictionary_flags,
 	return;
 }
 
-void AppendPhonemes(Translator *tr, char *string, int size, const char *ph)
+void context_t::AppendPhonemes(Translator *tr, char *string, int size, const char *ph)
 {
 	/* Add new phoneme string "ph" to "string"
 	    Keeps count of the number of vowel phonemes in the word, and whether these
@@ -1447,7 +1442,7 @@ void AppendPhonemes(Translator *tr, char *string, int size, const char *ph)
 		strcat(string, ph);
 }
 
-static void MatchRule(Translator *tr, char *word[], char *word_start, int group_length, char *rule, MatchRecord *match_out, int word_flags, int dict_flags)
+void context_t::MatchRule(Translator *tr, char *word[], char *word_start, int group_length, char *rule, MatchRecord *match_out, int word_flags, int dict_flags)
 {
 	/* Checks a specified word against dictionary rules.
 	    Returns with phoneme code string, or NULL if no match found.
@@ -2043,7 +2038,7 @@ static void MatchRule(Translator *tr, char *word[], char *word_start, int group_
 	memcpy(match_out, &best, sizeof(MatchRecord));
 }
 
-int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, char *end_phonemes, int word_flags, unsigned int *dict_flags)
+int context_t::TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, char *end_phonemes, int word_flags, unsigned int *dict_flags)
 {
 	/* Translate a word bounded by space characters
 	   Append the result to 'phonemes' and any standard prefix/suffix in 'end_phonemes' */
@@ -2393,7 +2388,7 @@ int TransposeAlphabet(Translator *tr, char *text)
 
     end_flags:  indicates whether this is a retranslation after removing a suffix
  */
-static const char *LookupDict2(Translator *tr, const char *word, const char *word2,
+const char *context_t::LookupDict2(Translator *tr, const char *word, const char *word2,
                                char *phonetic, unsigned int *flags, int end_flags, WORD_TAB *wtab)
 {
 	char *p;
@@ -2683,7 +2678,7 @@ static const char *LookupDict2(Translator *tr, const char *word, const char *wor
 
    end_flags:  indicates if a suffix has been removed
  */
-int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *flags, int end_flags, WORD_TAB *wtab)
+int context_t::LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *flags, int end_flags, WORD_TAB *wtab)
 {
 	int length;
 	const char *found;
@@ -2816,9 +2811,7 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 	return 0;
 }
 
-extern char word_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
-
-int Lookup(Translator *tr, const char *word, char *ph_out)
+int context_t::Lookup(Translator *tr, const char *word, char *ph_out)
 {
 	// Look up in *_list, returns dictionary flags[0] and phonemes
 
@@ -2850,7 +2843,7 @@ int Lookup(Translator *tr, const char *word, char *ph_out)
 	return flags0;
 }
 
-static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2])
+int context_t::LookupFlags(Translator *tr, const char *word, unsigned int flags_out[2])
 {
 	char buf[100];
 	unsigned int flags[2];
@@ -2863,7 +2856,7 @@ static int LookupFlags(Translator *tr, const char *word, unsigned int flags_out[
 	return flags[0];
 }
 
-int RemoveEnding(Translator *tr, char *word, int end_type, char *word_copy)
+int context_t::RemoveEnding(Translator *tr, char *word, int end_type, char *word_copy)
 {
 	/* Removes a standard suffix from a word, once it has been indicated by the dictionary rules.
 	   end_type: bits 0-6  number of letters
@@ -2988,7 +2981,7 @@ int RemoveEnding(Translator *tr, char *word, int end_type, char *word_copy)
 	return end_flags;
 }
 
-static void DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points) {
+void context_t::DollarRule(char *word[], char *word_start, int consumed, int group_length, char *word_buf, Translator *tr, int command, int *failed, int *add_points) {
 	// $list or $p_alt
 	// make a copy of the word up to the post-match characters
 	int ix = *word - word_start + consumed + group_length + 1;

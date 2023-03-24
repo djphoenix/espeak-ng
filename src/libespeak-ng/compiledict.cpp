@@ -163,10 +163,8 @@ typedef enum
 	LINE_PARSER_END_OF_PRONUNCIATION = 5,
 } LINE_PARSER_STATES;
 
-typedef struct {
+struct CompileContext {
 	FILE *f_log;
-
-	char word_phonemes[N_WORD_PHONEMES];    // a word translated into phoneme codes
 
 	int linenum;
 	int error_count;
@@ -192,7 +190,7 @@ typedef struct {
 	char rule_phonemes[80];
 	char group_name[LEN_GROUP_NAME+1];
 	int group3_ix;
-} CompileContext;
+};
 
 static void clean_context(CompileContext *ctx) {
 	for (int i = 0; i < N_HASH_DICT; i++) {
@@ -393,7 +391,7 @@ char *DecodeRule(const char *group_chars, int group_length, char *rule, int cont
 	return output;
 }
 
-static int compile_line(CompileContext *ctx, char *linebuf, char *dict_line, int n_dict_line, int *hash)
+int context_t::compile_line(CompileContext *ctx, char *linebuf, char *dict_line, int n_dict_line, int *hash)
 {
 	// Compile a line in the language_list file
 	unsigned char c;
@@ -570,9 +568,9 @@ static int compile_line(CompileContext *ctx, char *linebuf, char *dict_line, int
 			// condition rules are not applied
 			TranslateWord(translator, phonetic, NULL, NULL);
 			text_not_phonemes = false;
-			strncpy0(encoded_ph, ctx->word_phonemes, N_WORD_BYTES-4);
+			strncpy0(encoded_ph, word_phonemes, N_WORD_BYTES-4);
 
-			if ((ctx->word_phonemes[0] == 0) && (ctx->error_need_dictionary < 3)) {
+			if ((word_phonemes[0] == 0) && (ctx->error_need_dictionary < 3)) {
 				// the dictionary was not loaded, we need a second attempt
 				ctx->error_need_dictionary++;
 				fprintf(ctx->f_log, "%5d: Need to compile dictionary again\n", ctx->linenum);
@@ -711,7 +709,7 @@ static void compile_dictlist_end(CompileContext *ctx, FILE *f_out)
 	}
 }
 
-static int compile_dictlist_file(CompileContext *ctx, const char *path, const char *filename)
+int context_t::compile_dictlist_file(CompileContext *ctx, const char *path, const char *filename)
 {
 	int length;
 	int hash;
@@ -719,7 +717,7 @@ static int compile_dictlist_file(CompileContext *ctx, const char *path, const ch
 	int count = 0;
 	FILE *f_in;
 	char buf[200];
-	char fname[sizeof(path_home)+45];
+	char fname[N_PATH_HOME+45];
 	char dict_line[256]; // length is uint8_t, so an entry can't take up more than 256 bytes
 
 	ctx->text_mode = false;
@@ -1021,7 +1019,7 @@ static void copy_rule_string(CompileContext *ctx, char *string, int *state_out)
 	*state_out = next_state[state];
 }
 
-static char *compile_rule(CompileContext *ctx, char *input)
+char *context_t::compile_rule(CompileContext *ctx, char *input)
 {
 	int ix;
 	unsigned char c;
@@ -1335,7 +1333,7 @@ static void free_rules(char **rules, int n_rules)
 	}
 }
 
-static espeak_ng_STATUS compile_dictrules(CompileContext *ctx, FILE *f_in, FILE *f_out)
+espeak_ng_STATUS context_t::compile_dictrules(CompileContext *ctx, FILE *f_in, FILE *f_out)
 {
 	char *prule;
 	unsigned char *p;
@@ -1544,9 +1542,9 @@ ESPEAK_NG_API espeak_ng_STATUS espeak::context_t::CompileDictionary(const char *
 	FILE *f_out;
 	int offset_rules = 0;
 	int value;
-	char fname_in[sizeof(path_home)+50];
-	char fname_out[sizeof(path_home)+45];
-	char path[sizeof(path_home)+40];       // path_dsource+20
+	char fname_in[N_PATH_HOME+50];
+	char fname_out[N_PATH_HOME+45];
+	char path[N_PATH_HOME+40];       // path_dsource+20
 
 	CompileContext *ctx = (CompileContext*)calloc(1, sizeof(CompileContext));
 

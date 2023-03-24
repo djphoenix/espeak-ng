@@ -24,7 +24,7 @@
 
 namespace espeak {
 
-typedef struct {
+struct wavegen_peaks_t {
 	int freq;     // Hz<<16
 	int height;   // height<<15
 	int left;     // Hz<<16
@@ -37,21 +37,21 @@ typedef struct {
 	double height_inc;
 	double left_inc;
 	double right_inc;
-} wavegen_peaks_t;
+};
 
 
 int GetAmplitude(void);
 void InitBreath(void);
-int PeaksToHarmspect(wavegen_peaks_t *peaks,
-		int pitch,
-		int *htab,
-		int control);
+// int PeaksToHarmspect(wavegen_peaks_t *peaks,
+// 		int pitch,
+// 		int *htab,
+// 		int control);
 
-void SetPitch2(voice_t *voice,
-		int pitch1,
-		int pitch2,
-		int *pitch_base,
-		int *pitch_range);
+// void SetPitch2(voice_t *voice,
+// 		int pitch1,
+// 		int pitch2,
+// 		int *pitch_base,
+// 		int *pitch_range);
 
 void WavegenInit(int rate,
 		int wavemult_fact);
@@ -61,7 +61,7 @@ void WavegenFini(void);
 
 int WavegenFill(void);
 void WavegenSetVoice(voice_t *v);
-int WcmdqFree(void);
+// int WcmdqFree(void);
 void WcmdqStop(void);
 int WcmdqUsed(void);
 void WcmdqInc(void);

@@ -34,6 +34,7 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
+#include "context.hpp"
 #include "klatt.hpp"
 #include "common.hpp"      // for espeak_rand
 #include "synthesize.hpp"  // for frame_t, WGEN_DATA, STEPSIZE, N_KLATTP, echo...
@@ -44,8 +45,6 @@
 
 namespace espeak {
 
-extern unsigned char *out_ptr;
-extern unsigned char *out_end;
 static int nsamples;
 static int sample_count;
 static int time_count;
@@ -76,7 +75,6 @@ static double gen_noise(double);
 static double DBtoLIN(long);
 static void frame_init(klatt_frame_ptr);
 static void setabc(long, long, resonator_ptr);
-static void SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *v, int control);
 static void setzeroabc(long, long, resonator_ptr);
 
 static klatt_frame_t kt_frame;
@@ -252,7 +250,7 @@ static double sampled_source(int source_num)
    Converts synthesis parameters to a waveform.
  */
 
-static int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
+int context_t::parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 {
 	double temp;
 	int value;
@@ -863,7 +861,7 @@ static double DBtoLIN(long dB)
 	return (double)(amptable[dB]) * 0.001;
 }
 
-int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice)
+int context_t::Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice)
 {
 #if USE_SPEECHPLAYER
 	if(wvoice->klattv[0] == 6)
@@ -960,7 +958,7 @@ int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA 
 	return 0;
 }
 
-static void SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *wvoice, int control)
+void context_t::SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *wvoice, int control)
 {
 	int ix;
 	double next;

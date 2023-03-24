@@ -31,6 +31,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "langopts.hpp"
 #include "mnemonics.hpp"                // for MNEM_TAB
 #include "translate.hpp"                // for Translator
@@ -42,9 +43,8 @@
 namespace espeak {
 
 static int CheckTranslator(Translator *tr, const MNEM_TAB *keyword_tab, int key);
-static int LookupTune(const char *name);
 
-void LoadLanguageOptions(Translator *translator, int key, char *keyValue ) {
+void context_t::LoadLanguageOptions(Translator *translator, int key, char *keyValue ) {
 if (CheckTranslator(translator, langopts_tab, key) != 0) {
 				return;
 			}
@@ -180,9 +180,9 @@ if (CheckTranslator(translator, langopts_tab, key) != 0) {
 	}
 }
 
-void LoadConfig(void) {
+void context_t::LoadConfig(void) {
 	// Load configuration file, if one exists
-	char buf[sizeof(path_home)+10];
+	char buf[N_PATH_HOME+10];
 	FILE *f;
 	int ix;
 	char c1;
@@ -212,7 +212,7 @@ void LoadConfig(void) {
 }
 
 
-static int LookupTune(const char *name) {
+int context_t::LookupTune(const char *name) {
 	int ix;
 
 	for (ix = 0; ix < n_tunes; ix++) {

@@ -348,7 +348,7 @@ enum {
 	tINTONATION,
 };
 
-typedef struct CompileContext {
+struct CompileContext {
 	PHONEME_TAB *phoneme_out;
 
 	int n_phcodes_list[N_PHONEME_TABS];
@@ -407,8 +407,8 @@ typedef struct CompileContext {
 
 	NAMETAB *manifest;
 	int n_manifest;
-	char phsrc[sizeof(path_home)+40]; // Source: path to the 'phonemes' source file.
-} CompileContext;
+	char phsrc[N_PATH_HOME+40]; // Source: path to the 'phonemes' source file.
+};
 
 static void clean_context(CompileContext *ctx) {
 	for (int i = 0; i < 256; i++) {
@@ -448,14 +448,14 @@ static void error_from_status(CompileContext *ctx, espeak_ng_STATUS status, cons
 		error(ctx, "%s.", message);
 }
 
-static espeak_ng_STATUS ReadPhondataManifest(CompileContext *ctx, espeak_ng_ERROR_CONTEXT *context)
+espeak_ng_STATUS context_t::ReadPhondataManifest(CompileContext *ctx, espeak_ng_ERROR_CONTEXT *context)
 {
 	// Read the phondata-manifest file
 	FILE *f;
 	int n_lines = 0;
 	char *p;
 	unsigned int value;
-	char buf[sizeof(path_home)+40];
+	char buf[N_PATH_HOME+40];
 	char name[120];
 
 	snprintf(buf, sizeof(buf), "%s%c%s", path_home, PATHSEP, "phondata-manifest");
@@ -897,7 +897,7 @@ static int CompileVowelTransition(CompileContext *ctx, int which)
 	return 0;
 }
 
-static espeak_ng_STATUS LoadSpect(CompileContext *ctx, const char *path, int control, int *addr)
+espeak_ng_STATUS context_t::LoadSpect(CompileContext *ctx, const char *path, int control, int *addr)
 {
 	SpectSeq *spectseq;
 	int peak;
@@ -913,7 +913,7 @@ static espeak_ng_STATUS LoadSpect(CompileContext *ctx, const char *path, int con
 	int klatt_flag = 0;
 	SpectFrame *fr;
 	frame_t *fr_out;
-	char filename[sizeof(path_home)+60];
+	char filename[N_PATH_HOME+60];
 
 	SPECT_SEQ seq_out;
 	SPECT_SEQK seqk_out;
@@ -1081,7 +1081,7 @@ static espeak_ng_STATUS LoadSpect(CompileContext *ctx, const char *path, int con
 	return ENS_OK;
 }
 
-static int LoadWavefile(CompileContext *ctx, FILE *f, const char *fname)
+int context_t::LoadWavefile(CompileContext *ctx, FILE *f, const char *fname)
 {
 	int displ;
 	unsigned char c1;
@@ -1261,7 +1261,7 @@ static int LoadEnvelope2(CompileContext *ctx, FILE *f)
 	return displ;
 }
 
-static espeak_ng_STATUS LoadDataFile(CompileContext *ctx, const char *path, int control, int *addr)
+espeak_ng_STATUS context_t::LoadDataFile(CompileContext *ctx, const char *path, int control, int *addr)
 {
 	// load spectrum sequence or sample data from a file.
 	// return index into spect or sample data area. bit 23=1 if a sample
@@ -1290,7 +1290,7 @@ static espeak_ng_STATUS LoadDataFile(CompileContext *ctx, const char *path, int 
 	}
 
 	if (*addr == 0) {
-		char buf[sizeof(path_home)+150];
+		char buf[N_PATH_HOME+150];
 		snprintf(buf, sizeof(buf), "%s/%s", ctx->phsrc, path);
 
 		FILE *f;
@@ -1350,7 +1350,7 @@ static espeak_ng_STATUS LoadDataFile(CompileContext *ctx, const char *path, int 
 	return ENS_OK;
 }
 
-static void CompileToneSpec(CompileContext *ctx)
+void context_t::CompileToneSpec(CompileContext *ctx)
 {
 	int pitch1 = 0;
 	int pitch2 = 0;
@@ -1390,7 +1390,7 @@ static void CompileToneSpec(CompileContext *ctx)
 
 
 
-static void CompileSound(CompileContext *ctx, int keyword, int isvowel)
+void context_t::CompileSound(CompileContext *ctx, int keyword, int isvowel)
 {
 	int addr = 0;
 	int value = 0;
@@ -1773,7 +1773,7 @@ static void DecThenCount(CompileContext *ctx)
 		ctx->then_count--;
 }
 
-static int CompilePhoneme(CompileContext *ctx, int compile_phoneme)
+int context_t::CompilePhoneme(CompileContext *ctx, int compile_phoneme)
 {
 	int endphoneme = 0;
 	int value;
@@ -2244,7 +2244,7 @@ static void StartPhonemeTable(CompileContext *ctx, const char *name)
 	ctx->n_phoneme_tabs++;
 }
 
-static void CompilePhonemeFiles(CompileContext *ctx)
+void context_t::CompilePhonemeFiles(CompileContext *ctx)
 {
 	FILE *f;
 	char buf[sizeof(ctx->phsrc)+sizeof(ctx->item_string)];
@@ -2396,8 +2396,8 @@ context_t::CompilePhonemeDataPath(
 {
 	if (!log) log = stderr;
 
-	char fname[sizeof(path_home)+58];
-	char phdst[sizeof(path_home)+40]; // Destination: path to the phondata/phontab/phonindex output files.
+	char fname[N_PATH_HOME+58];
+	char phdst[N_PATH_HOME+40]; // Destination: path to the phondata/phontab/phonindex output files.
 
 	CompileContext *ctx = (CompileContext*)calloc(1, sizeof(CompileContext));
 	if (!ctx) return espeak_ng_STATUS(ENOMEM);
@@ -2578,7 +2578,7 @@ espeak_ng_STATUS context_t::CompileIntonationPath(
 
 	char name[12];
 	char tune_names[N_TUNE_NAMES][12];
-	char buf[sizeof(path_home)+150];
+	char buf[N_PATH_HOME+150];
 
 	CompileContext *ctx = (CompileContext*)calloc(1, sizeof(CompileContext));
 	if (!ctx) return espeak_ng_STATUS(ENOMEM);

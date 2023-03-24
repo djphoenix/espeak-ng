@@ -31,6 +31,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "common.hpp"
 #include "setlengths.hpp"          // for SetLengthMods
 #include "translate.hpp"           // for Translator, LANGUAGE_OPTIONS, L, NUM...
@@ -208,7 +209,7 @@ static const unsigned short chars_ignore_zwnj_hyphen[] = {
 static const unsigned char utf8_ordinal[] = { 0xc2, 0xba, 0 }; // masculine ordinal character, UTF-8
 static const unsigned char utf8_null[] = { 0 }; // null string, UTF-8
 
-static Translator *NewTranslator(void)
+Translator *context_t::NewTranslator(void)
 {
 	Translator *tr;
 	int ix;
@@ -465,7 +466,7 @@ static void SetupTranslator(Translator *tr, const short *lengths, const unsigned
 		memcpy(tr->stress_amps, amps, sizeof(tr->stress_amps));
 }
 
-Translator *SelectTranslator(const char *name)
+Translator *context_t::SelectTranslator(const char *name)
 {
 	int name2 = 0;
 	Translator *tr;

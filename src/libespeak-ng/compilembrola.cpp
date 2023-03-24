@@ -78,7 +78,7 @@ espeak_ng_STATUS espeak::context_t::CompileMbrolaVoice(const char *filepath, FIL
 	char name1[40];
 	char name2[40];
 	char mbrola_voice[40];
-	char buf[sizeof(path_home)+30];
+	char buf[N_PATH_HOME+30];
 	int mbrola_ctrl = 20; // volume in 1/16 ths
 	MBROLA_TAB data[N_PHONEME_TAB];
 

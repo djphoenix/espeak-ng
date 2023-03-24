@@ -256,21 +256,21 @@ namespace espeak {
 //     match 1 pre 2 post 3 0   - empty phoneme string
 
 // used to mark words with the source[] buffer
-typedef struct {
+struct WORD_TAB {
 	unsigned int flags;
 	unsigned short start;
 	unsigned char pre_pause;
 	unsigned short sourceix;
 	unsigned char length;
-} WORD_TAB;
+};
 
-typedef struct {
+struct ALPHABET {
 	const char name[12];
 	int offset;
 	unsigned short range_min, range_max;
 	int language;
 	int flags;
-} ALPHABET;
+};
 
 // alphabet flags
 #define AL_DONT_NAME    0x01 // don't speak the alphabet name
@@ -537,7 +537,7 @@ typedef struct {
 	bool lowercase_sentence;	// when true, a period . causes a sentence stop even if next character is lowercase
 } LANGUAGE_OPTIONS;
 
-typedef struct {
+struct Translator {
 	LANGUAGE_OPTIONS langopts;
 	int translator_name;
 	int transpose_max;
@@ -604,46 +604,14 @@ typedef struct {
 	int prev_dict_flags[2];     // dictionary flags from previous word
 	int clause_terminator;
 
-} Translator;
+};
 
 #define OPTION_EMPHASIZE_ALLCAPS  0x100
 #define OPTION_EMPHASIZE_PENULTIMATE 0x200
-extern int option_tone_flags;
-extern int option_phonemes;
-extern int option_phoneme_events;
-extern int option_linelength;     // treat lines shorter than this as end-of-clause
-extern int option_capitals;
-extern int option_punctuation;
-extern int option_endpause;
-extern int option_ssml;
-extern int option_phoneme_input;   // allow [[phonemes]] in input text
-extern int option_sayas;
-extern int option_wordgap;
-
-extern int count_characters;
-extern int count_sentences;
-extern int skip_characters;
-extern int skip_words;
-extern int skip_sentences;
-extern bool skipping_text;
-extern int end_character_position;
-extern int clause_start_char;
-extern int clause_start_word;
-extern char *namedata;
-extern int pre_pause;
 
 #define N_MARKER_LENGTH 50   // max.length of a mark name
-extern char skip_marker[N_MARKER_LENGTH];
-
 #define N_PUNCTLIST  60
-extern wchar_t option_punctlist[N_PUNCTLIST];  // which punctuation characters to announce
-
-extern Translator *translator;
-extern Translator *translator2;
-extern Translator *translator3;
-extern char dictionary_name[40];
-extern espeak_ng_TEXT_DECODER *p_decoder;
-extern int dictionary_skipwords;
+#define N_EMBEDDED_LIST  250
 
 #define LEADING_2_BITS 0xC0 // 0b11000000
 #define UTF8_TAIL_BITS 0x80 // 0b10000000
@@ -652,21 +620,19 @@ int lookupwchar(const unsigned short *list, int c);
 char *strchr_w(const char *s, int c);
 void InitNamedata(void);
 void InitText(int flags);
-void InitText2(void);
+// void InitText2(void);
 const ALPHABET *AlphabetFromChar(int c);
 
 Translator *SelectTranslator(const char *name);
-int SetTranslator2(const char *name);
-int SetTranslator3(const char *name);
+// int SetTranslator2(const char *name);
+// int SetTranslator3(const char *name);
 void DeleteTranslator(Translator *tr);
 void ProcessLanguageOptions(LANGUAGE_OPTIONS *langopts);
 
-int TranslateWord(Translator *tr, char *word1, WORD_TAB *wtab, char *word_out);
+// int TranslateWord(Translator *tr, char *word1, WORD_TAB *wtab, char *word_out);
 void TranslateClause(Translator *tr, int *tone, char **voice_change);
 void TranslateClauseWithTerminator(Translator *tr, int *tone_out, char **voice_change, int *terminator_out);
 
 void SetVoiceStack(espeak_VOICE *v, const char *variant_name);
-
-extern FILE *f_trans; // for logging
 
 }

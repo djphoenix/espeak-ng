@@ -37,21 +37,18 @@ typedef struct {
         int control;
 } MBROLA_TAB;
 
-extern int mbrola_delay;
-extern char mbrola_name[20];
+// espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice,
+// 		const char *phtrans, 
+// 		int *srate);
 
-espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice,
-		const char *phtrans, 
-		int *srate);
-
-int MbrolaGenerate(PHONEME_LIST *phoneme_list,
-		int *n_ph, bool resume);
+// int MbrolaGenerate(PHONEME_LIST *phoneme_list,
+// 		int *n_ph, bool resume);
 
 int MbrolaFill(int length,
 		bool resume,
 		int amplitude);
 
 void MbrolaReset(void);
-int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mbrola);
+// int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mbrola);
 
 }

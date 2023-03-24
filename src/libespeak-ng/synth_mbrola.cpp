@@ -39,20 +39,13 @@
 #include "wavegen.hpp"
 
 
+#include "context.hpp"
 #include "common.hpp"
 #include "phoneme.hpp"
 #include "voice.hpp"
 #include "speech.hpp"
 #include "synthesize.hpp"
 #include "translate.hpp"
-
-namespace espeak {
-
-// included here so tests can find these even without OPT_MBROLA set
-int mbrola_delay;
-char mbrola_name[20];
-
-}
 
 #if USE_MBROLA
 
@@ -74,7 +67,7 @@ static int embedded_ix;
 static int word_count;
 static int n_samples;
 
-espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, int *srate)
+espeak_ng_STATUS context_t::LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, int *srate)
 {
 	// Load a phoneme name translation table from espeak-ng-data/mbrola
 
@@ -82,7 +75,7 @@ espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, 
 	int ix;
 	int *pw;
 	FILE *f_in;
-	char path[sizeof(path_home)+15];
+	char path[N_PATH_HOME+15];
 
 	mbrola_name[0] = 0;
 	mbrola_delay = 0;
@@ -168,7 +161,7 @@ espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, 
 	return ENS_OK;
 }
 
-static int GetMbrName(PHONEME_LIST *plist, PHONEME_TAB *ph, PHONEME_TAB *ph_prev, PHONEME_TAB *ph_next, int *name2, int *split, int *control)
+int context_t::GetMbrName(PHONEME_LIST *plist, PHONEME_TAB *ph, PHONEME_TAB *ph_prev, PHONEME_TAB *ph_next, int *name2, int *split, int *control)
 {
 	// Look up a phoneme in the mbrola phoneme name translation table
 	// It may give none, 1, or 2 mbrola phonemes
@@ -245,7 +238,7 @@ static int GetMbrName(PHONEME_LIST *plist, PHONEME_TAB *ph, PHONEME_TAB *ph_prev
 	return mnem;
 }
 
-static char *WritePitch(int env, int pitch1, int pitch2, int split, int final)
+char *context_t::WritePitch(int env, int pitch1, int pitch2, int split, int final)
 {
 	// final=1:  only give the final pitch value.
 	int x;
@@ -339,7 +332,7 @@ static char *WritePitch(int env, int pitch1, int pitch2, int split, int final)
 	return output;
 }
 
-int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mbrola)
+int context_t::MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mbrola)
 {
 	// Generate a mbrola pho file
 	unsigned int name;
@@ -538,7 +531,7 @@ int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mb
 	return 0;
 }
 
-int MbrolaGenerate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
+int context_t::MbrolaGenerate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 {
 	FILE *f_mbrola = NULL;
 
@@ -556,7 +549,7 @@ int MbrolaGenerate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 	return again;
 }
 
-int MbrolaFill(int length, bool resume, int amplitude)
+int context_t::MbrolaFill(int length, bool resume, int amplitude)
 {
 	// Read audio data from Mbrola (length is in millisecs)
 

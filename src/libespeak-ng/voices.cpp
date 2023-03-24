@@ -63,11 +63,8 @@ static const MNEM_TAB genders[] = {
 	{ "", ENGENDER_MALE }
 };
 
-int tone_points[12] = { 600, 170, 1200, 135, 2000, 110, 3000, 110, -1, 0 };
-
 // limit the rate of change for each formant number
 static const int formant_rate_22050[9] = { 240, 170, 170, 170, 170, 170, 170, 170, 170 }; // values for 22kHz sample rate
-int formant_rate[9]; // values adjusted for actual sample rate
 
 #define DEFAULT_LANGUAGE_PRIORITY  5
 #define N_VOICES_LIST  350
@@ -90,9 +87,6 @@ static char voice_languages[100]; // list of languages and priorities for curren
 static char variant_name[40];
 static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
 static char voice_id[50];
-
-static voice_t voicedata;
-voice_t *voice = &voicedata;
 
 static char *fgets_strip(char *buf, int size, FILE *f_in)
 {
@@ -257,7 +251,7 @@ static espeak_VOICE *ReadVoiceFile(FILE *f_in, const char *fname, int is_languag
 	return voice_data;
 }
 
-void VoiceReset(int tone_only)
+void context_t::VoiceReset(int tone_only)
 {
 	// Set voice to the default values
 
@@ -325,7 +319,7 @@ void VoiceReset(int tone_only)
 voice->width[0] = (voice->width[0] * 105)/100;
 }
 
-static void VoiceFormant(char *p)
+void context_t::VoiceFormant(char *p)
 {
 	// Set parameters for a formant
 	int ix;
@@ -359,7 +353,7 @@ static void VoiceFormant(char *p)
 		voice->width[0] = (voice->width[0] * 105)/100;
 }
 
-static void PhonemeReplacement(char *p)
+void context_t::PhonemeReplacement(char *p)
 {
 	int n;
 	int phon;
@@ -408,7 +402,7 @@ void ReadNumbers(char *p, int *flags, int maxValue,  const MNEM_TAB *keyword_tab
 	}
 }
 
-voice_t *LoadVoice(const char *vname, int control)
+voice_t *context_t::LoadVoice(const char *vname, int control)
 {
 	// control, bit 0  1= no_default
 	//          bit 1  1 = change tone only, not language
@@ -434,7 +428,7 @@ voice_t *LoadVoice(const char *vname, int control)
 	char new_dictionary[40];
 	char phonemes_name[40] = "";
 	const char *language_type;
-	char buf[sizeof(path_home)+30];
+	char buf[N_PATH_HOME+30];
 #if USE_MBROLA
 	char name1[40];
 	char name2[80];
@@ -458,7 +452,7 @@ voice_t *LoadVoice(const char *vname, int control)
 		if (voicename[0] == 0 && !(control & 8)/*compiling phonemes*/)
 			strcpy(voicename, ESPEAKNG_DEFAULT_VOICE);
 
-		char path_voices[sizeof(path_home)+12];
+		char path_voices[N_PATH_HOME+12];
 		snprintf(path_voices, sizeof(path_voices), "%s%cvoices%c", path_home, PATHSEP, PATHSEP);
 		snprintf(buf, sizeof(buf), "%s%s", path_voices, voicename); // look in the main voices directory
 
@@ -777,7 +771,7 @@ static char *ExtractVoiceVariantName(char *vname, int variant_num, int add_dir)
 	return variant_name;
 }
 
-voice_t *LoadVoiceVariant(const char *vname, int variant_num)
+voice_t *context_t::LoadVoiceVariant(const char *vname, int variant_num)
 {
 	// Load a voice file.
 	// Also apply a voice variant if specified by "variant", or by "+number" or "+name" in the "vname"
@@ -940,7 +934,7 @@ static int ScoreVoice(espeak_VOICE *voice_spec, const char *spec_language, int s
 	return score;
 }
 
-static int SetVoiceScores(espeak_VOICE *voice_select, espeak_VOICE **voices, int control)
+int context_t::SetVoiceScores(espeak_VOICE *voice_select, espeak_VOICE **voices, int control)
 {
 	// control: bit0=1  include mbrola voices
 	int ix;
@@ -967,7 +961,7 @@ static int SetVoiceScores(espeak_VOICE *voice_select, espeak_VOICE **voices, int
 			lang_len = 2;
 		}
 
-		char buf[sizeof(path_home)+88];
+		char buf[N_PATH_HOME+88];
 		snprintf(buf, sizeof(buf), "%s/voices/%s", path_home, language);
 		if (GetFileLength(buf) == -EISDIR) {
 			// A subdirectory name has been specified.  List all the voices in that subdirectory
@@ -1053,7 +1047,7 @@ espeak_VOICE *SelectVoiceByName(espeak_VOICE **voices, const char *name2)
 	return voices[match_name];
 }
 
-char const *SelectVoice(espeak_VOICE *voice_select, int *found)
+char const *context_t::SelectVoice(espeak_VOICE *voice_select, int *found)
 {
 	// Returns a path within espeak-voices, with a possible +variant suffix
 	// variant is an output-only parameter
@@ -1186,7 +1180,7 @@ char const *SelectVoice(espeak_VOICE *voice_select, int *found)
 
 static void GetVoices(const char *path, int len_path_voices, int is_language_file)
 {
-	char fname[sizeof(path_home)+100];
+	char fname[N_PATH_HOME+100];
 
 #if PLATFORM_WINDOWS
 	WIN32_FIND_DATAA FindFileData;
@@ -1403,7 +1397,7 @@ ESPEAK_API const espeak_VOICE **espeak_ListVoices(espeak_VOICE *voice_spec)
 
 const espeak_VOICE ** context_t::ListVoices(espeak_VOICE *voice_spec)
 {
-	char path_voices[sizeof(path_home)+12];
+	char path_voices[N_PATH_HOME+12];
 
 	espeak_VOICE *v;
 

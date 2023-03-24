@@ -33,6 +33,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "translate.hpp"
 #include "translateword.hpp"
 #include "common.hpp"               // for strncpy0
@@ -46,17 +47,9 @@
 
 namespace espeak {
 
-static void addPluralSuffixes(int flags, Translator *tr, char last_char, char *word_phonemes);
-static void ApplySpecialAttribute2(Translator *tr, char *phonemes, int dict_flags);
-static void ChangeWordStress(Translator *tr, char *word, int new_stress);
-static int CheckDottedAbbrev(char *word1);
 static int NonAsciiNumber(int letter);
-static char *SpeakIndividualLetters(Translator *tr, char *word, char *phonemes, int spell_word, const ALPHABET *current_alphabet, char word_phonemes[]);
-static int TranslateLetter(Translator *tr, char *word, char *phonemes, int control, const ALPHABET *current_alphabet);
-static int Unpronouncable(Translator *tr, char *word, int posn);
-static int Unpronouncable2(Translator *tr, char *word);
 
-int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out, bool *any_stressed_words, ALPHABET *current_alphabet, char word_phonemes[], size_t size_word_phonemes)
+int context_t::TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out, bool *any_stressed_words, ALPHABET *current_alphabet, char word_phonemes[], size_t size_word_phonemes)
 {
 	// word1 is terminated by space (0x20) character
 
@@ -672,7 +665,7 @@ int TranslateWord3(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_
 }
 
 
-void ApplySpecialAttribute2(Translator *tr, char *phonemes, int dict_flags)
+void context_t::ApplySpecialAttribute2(Translator *tr, char *phonemes, int dict_flags)
 {
 	// apply after the translation is complete
 	int len;
@@ -703,7 +696,7 @@ void ApplySpecialAttribute2(Translator *tr, char *phonemes, int dict_flags)
 }
 
 
-static void ChangeWordStress(Translator *tr, char *word, int new_stress)
+void context_t::ChangeWordStress(Translator *tr, char *word, int new_stress)
 {
 	int ix;
 	unsigned char *p;
@@ -747,7 +740,7 @@ static void ChangeWordStress(Translator *tr, char *word, int new_stress)
 	*word = 0;
 }
 
-static char *SpeakIndividualLetters(Translator *tr, char *word, char *phonemes, int spell_word, const ALPHABET *current_alphabet, char word_phonemes[])
+char *context_t::SpeakIndividualLetters(Translator *tr, char *word, char *phonemes, int spell_word, const ALPHABET *current_alphabet, char word_phonemes[])
 {
 	int posn = 0;
 	int capitals = 0;
@@ -784,7 +777,7 @@ static const int number_ranges[] = {
 };
 
 
-static int TranslateLetter(Translator *tr, char *word, char *phonemes, int control, const ALPHABET *current_alphabet)
+int context_t::TranslateLetter(Translator *tr, char *word, char *phonemes, int control, const ALPHABET *current_alphabet)
 {
 	// get pronunciation for an isolated letter
 	// return number of bytes used by the letter
@@ -1025,7 +1018,7 @@ static int TranslateLetter(Translator *tr, char *word, char *phonemes, int contr
 }
 
 // append plural suffixes depending on preceding letter
-static void addPluralSuffixes(int flags, Translator *tr, char last_char, char *word_phonemes)
+void context_t::addPluralSuffixes(int flags, Translator *tr, char last_char, char *word_phonemes)
 {
 	char word_zz[4] = { ' ', 'z', 'z', 0 };
 	char word_iz[4] = { ' ', 'i', 'z', 0 };
@@ -1044,7 +1037,7 @@ static void addPluralSuffixes(int flags, Translator *tr, char last_char, char *w
 	}
 }
 
-static int CheckDottedAbbrev(char *word1)
+int context_t::CheckDottedAbbrev(char *word1)
 {
 	int wc;
 	int count = 0;
@@ -1112,7 +1105,7 @@ static int NonAsciiNumber(int letter)
 	return -1;
 }
 
-static int Unpronouncable(Translator *tr, char *word, int posn)
+int context_t::Unpronouncable(Translator *tr, char *word, int posn)
 {
 	/* Determines whether a word in 'unpronouncable', i.e. whether it should
 	    be spoken as individual letters.
@@ -1185,7 +1178,7 @@ static int Unpronouncable(Translator *tr, char *word, int posn)
 	return 0;
 }
 
-static int Unpronouncable2(Translator *tr, char *word)
+int context_t::Unpronouncable2(Translator *tr, char *word)
 {
 	int c;
 	int end_flags;

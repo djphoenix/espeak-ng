@@ -29,6 +29,7 @@
 
 #include "compiledict.hpp"
 
+#include "context.hpp"
 #include "synthesize.hpp"           // for espeakINITIALIZE_PHONEME_IPA
 #include "translate.hpp"            // for dictionary_name, option_phoneme_events
 
@@ -82,7 +83,7 @@ ESPEAK_API int espeak_Initialize(espeak_AUDIO_OUTPUT output_type, int buf_length
 		break;
 	}
 
-	option_phoneme_events = (options & (espeakINITIALIZE_PHONEME_EVENTS | espeakINITIALIZE_PHONEME_IPA));
+	espeak_ng_SetPhonemeEvents((options & espeakINITIALIZE_PHONEME_EVENTS) != 0, (options & espeakINITIALIZE_PHONEME_IPA) != 0);
 
 	return espeak_ng_GetSampleRate();
 }
@@ -159,7 +160,7 @@ ESPEAK_API espeak_ERROR espeak_Terminate(void)
 ESPEAK_API void espeak_CompileDictionary(const char *path, FILE *log, int flags)
 {
 	espeak_ng_ERROR_CONTEXT context = NULL;
-	espeak_ng_STATUS result = espeak_ng_CompileDictionary(path, dictionary_name, log, flags, &context);
+	espeak_ng_STATUS result = espeak_ng_CompileDictionary(path, context_t::global().dictionary_name, log, flags, &context);
 	if (result != ENS_OK) {
 		espeak_ng_PrintStatusCodeMessage(result, stderr, context);
 		espeak_ng_ClearErrorContext(&context);

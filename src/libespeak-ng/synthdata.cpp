@@ -31,6 +31,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "synthdata.hpp"
 #include "common.hpp"                    // for GetFileLength
 #include "error.hpp"                    // for create_file_error_context, crea...
@@ -44,35 +45,23 @@
 
 namespace espeak {
 
-int n_tunes = 0;
-TUNE *tunes = NULL;
-
 const int version_phdata  = 0x014801;
 
-// copy the current phoneme table into here
-int n_phoneme_tab;
 static int current_phoneme_table;
-PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
 
 static unsigned short *phoneme_index = NULL;
 static char *phondata_ptr = NULL;
-unsigned char *wavefile_data = NULL;
 static unsigned char *phoneme_tab_data = NULL;
 
-static int n_phoneme_tables;
-PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
-int phoneme_tab_number = 0;
-
-int seq_len_adjust;
 static frameref_t frames_buf[N_SEQ_FRAMES];
 
-static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
+espeak_ng_STATUS context_t::ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
 {
 	if (!ptr) return espeak_ng_STATUS(EINVAL);
 
 	FILE *f_in;
 	int length;
-	char buf[sizeof(path_home)+40];
+	char buf[N_PATH_HOME+40];
 
 	snprintf(buf, sizeof(buf), "%s%c%s", path_home, PATHSEP, fname);
 	length = GetFileLength(buf);
@@ -102,7 +91,7 @@ static espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, esp
 	return ENS_OK;
 }
 
-espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
+espeak_ng_STATUS context_t::LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 {
 	int ix;
 	int version;
@@ -157,7 +146,7 @@ espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context)
 	return ENS_OK;
 }
 
-void FreePhData(void)
+void context_t::FreePhData(void)
 {
 	free(phoneme_tab_data);
 	free(phoneme_index);
@@ -170,7 +159,7 @@ void FreePhData(void)
 	current_phoneme_table = -1;
 }
 
-int PhonemeCode(unsigned int mnem)
+int context_t::PhonemeCode(unsigned int mnem)
 {
 	int ix;
 
@@ -183,7 +172,7 @@ int PhonemeCode(unsigned int mnem)
 	return 0;
 }
 
-int LookupPhonemeString(const char *string)
+int context_t::LookupPhonemeString(const char *string)
 {
 	int ix;
 	unsigned int mnem;
@@ -199,7 +188,7 @@ int LookupPhonemeString(const char *string)
 	return PhonemeCode(mnem);
 }
 
-frameref_t *LookupSpect(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  int *n_frames, PHONEME_LIST *plist)
+frameref_t *context_t::LookupSpect(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  int *n_frames, PHONEME_LIST *plist)
 {
 	int ix;
 	int nf;
@@ -331,7 +320,7 @@ const unsigned char *GetEnvelope(int index)
 	return (unsigned char *)&phondata_ptr[index];
 }
 
-static void SetUpPhonemeTable(int number)
+void context_t::SetUpPhonemeTable(int number)
 {
 	int ix;
 	int includes;
@@ -354,7 +343,7 @@ static void SetUpPhonemeTable(int number)
 	}
 }
 
-void SelectPhonemeTable(int number)
+void context_t::SelectPhonemeTable(int number)
 {
 	if (current_phoneme_table == number) return;
 	n_phoneme_tab = 0;
@@ -364,7 +353,7 @@ void SelectPhonemeTable(int number)
 	current_phoneme_table = number;
 }
 
-int LookupPhonemeTable(const char *name)
+int context_t::LookupPhonemeTable(const char *name)
 {
 	int ix;
 
@@ -380,7 +369,7 @@ int LookupPhonemeTable(const char *name)
 	return ix;
 }
 
-int SelectPhonemeTableName(const char *name)
+int context_t::SelectPhonemeTableName(const char *name)
 {
 	// Look up a phoneme set by name, and select it if it exists
 	// Returns the phoneme table number
@@ -399,7 +388,7 @@ static void InvalidInstn(PHONEME_TAB *ph, int instn)
 	fprintf(stderr, "Invalid instruction %.4x for phoneme '%s'\n", instn, WordToString(buf, ph->mnemonic));
 }
 
-static bool StressCondition(Translator *tr, PHONEME_LIST *plist, int condition, int control)
+bool context_t::StressCondition(Translator *tr, PHONEME_LIST *plist, int condition, int control)
 {
 	int stress_level;
 	PHONEME_LIST *pl;
@@ -457,7 +446,7 @@ static int CountVowelPosition(PHONEME_LIST *plist)
 	return count;
 }
 
-static bool InterpretCondition(Translator *tr, int control, PHONEME_LIST *plist, unsigned short *p_prog, WORD_PH_DATA *worddata)
+bool context_t::InterpretCondition(Translator *tr, int control, PHONEME_LIST *plist, unsigned short *p_prog, WORD_PH_DATA *worddata)
 {
 	unsigned int data;
 	int instn;
@@ -725,7 +714,7 @@ static int NumInstnWords(unsigned short *prog)
 	}
 }
 
-void InterpretPhoneme(Translator *tr, int control, PHONEME_LIST *plist, PHONEME_DATA *phdata, WORD_PH_DATA *worddata)
+void context_t::InterpretPhoneme(Translator *tr, int control, PHONEME_LIST *plist, PHONEME_DATA *phdata, WORD_PH_DATA *worddata)
 {
 	// control:
 	// bit 0:  PreVoicing
@@ -962,7 +951,7 @@ void InterpretPhoneme(Translator *tr, int control, PHONEME_LIST *plist, PHONEME_
 	}
 }
 
-void InterpretPhoneme2(int phcode, PHONEME_DATA *phdata)
+void context_t::InterpretPhoneme2(int phcode, PHONEME_DATA *phdata)
 {
 	// Examine the program of a single isolated phoneme
 	int ix;

@@ -27,19 +27,19 @@
 
 namespace espeak {
 
-void InterpretPhoneme(Translator *tr,
-		int control,
-		PHONEME_LIST *plist,
-		PHONEME_DATA *phdata,
-		WORD_PH_DATA *worddata);
+// void InterpretPhoneme(Translator *tr,
+// 		int control,
+// 		PHONEME_LIST *plist,
+// 		PHONEME_DATA *phdata,
+// 		WORD_PH_DATA *worddata);
 
-void InterpretPhoneme2(int phcode,
-		PHONEME_DATA *phdata);
+// void InterpretPhoneme2(int phcode,
+// 		PHONEME_DATA *phdata);
 
 void FreePhData(void);
 const unsigned char *GetEnvelope(int index);
 espeak_ng_STATUS LoadPhData(int *srate, espeak_ng_ERROR_CONTEXT *context);
-int LookupPhonemeString(const char *string);
+// int LookupPhonemeString(const char *string);
 int LookupPhonemeTable(const char *name);
 frameref_t *LookupSpect(PHONEME_TAB *this_ph,
 		int which,
@@ -47,11 +47,8 @@ frameref_t *LookupSpect(PHONEME_TAB *this_ph,
 		int *n_frames,
 		PHONEME_LIST *plist);
 
-int PhonemeCode(unsigned int mnem);
-void SelectPhonemeTable(int number);
+// int PhonemeCode(unsigned int mnem);
+// void SelectPhonemeTable(int number);
 int  SelectPhonemeTableName(const char *name);
-
-extern int n_tunes;
-extern TUNE *tunes;
 
 }

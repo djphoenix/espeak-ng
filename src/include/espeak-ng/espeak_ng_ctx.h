@@ -48,7 +48,9 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_InitializeOutput(
 ESPEAK_NG_API int              espeak_ng_ctx_GetSampleRate(espeak_ng_CONTEXT *ctx);
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetRandSeed(espeak_ng_CONTEXT *ctx, long seed);
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetParameter(espeak_ng_CONTEXT *ctx, espeak_PARAMETER parameter, int value, int relative);
+ESPEAK_NG_API int              espeak_ng_ctx_GetParameter(espeak_ng_CONTEXT *ctx, espeak_PARAMETER parameter, int current);
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetPhonemeEvents(espeak_ng_CONTEXT *ctx, int enable, int ipa);
+ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetPhonemeTrace(espeak_ng_CONTEXT *ctx, int phonememode, FILE *stream);
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetPunctuationList(espeak_ng_CONTEXT *ctx, const wchar_t *punctlist);
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetVoiceByName(espeak_ng_CONTEXT *ctx, const char *name);
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetVoiceByFile(espeak_ng_CONTEXT *ctx, const char *filename);

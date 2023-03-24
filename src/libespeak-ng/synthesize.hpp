@@ -71,7 +71,6 @@ namespace espeak {
 #define EMBED_F    13 // emphasis
 
 #define N_EMBEDDED_VALUES    15
-extern int embedded_value[N_EMBEDDED_VALUES];
 extern const int embedded_default[N_EMBEDDED_VALUES];
 
 #define N_KLATTP   10 // this affects the phoneme data file format
@@ -89,7 +88,7 @@ extern const int embedded_default[N_EMBEDDED_VALUES];
 #define KLATT_FricBP  8
 #define KLATT_Turb    9
 
-typedef struct { // 64 bytes
+struct frame_t { // 64 bytes
 	short frflags;
 	short ffreq[7];
 	unsigned char length;
@@ -103,7 +102,7 @@ typedef struct { // 64 bytes
 	unsigned char klatt_ap[7]; // Klatt parallel amplitude
 	unsigned char klatt_bp[7]; // Klatt parallel bandwidth  /2
 	unsigned char spare;       // pad to multiple of 4 bytes
-} frame_t; // with extra Klatt parameters for parallel resonators
+}; // with extra Klatt parameters for parallel resonators
 
 typedef struct { // 44 bytes
 	short frflags;
@@ -181,7 +180,7 @@ typedef struct {
 #define PHLIST_START_OF_SENTENCE 4
 #define PHLIST_START_OF_CLAUSE   8
 
-typedef struct {
+struct PHONEME_LIST {
 	// The first section is a copy of PHONEME_LIST2
 	unsigned short synthflags;
 	unsigned char phcode;
@@ -202,7 +201,7 @@ typedef struct {
 	unsigned char std_length;
 	unsigned int phontab_addr;
 	int sound_param;
-} PHONEME_LIST;
+};
 
 #define pd_FMT    0
 #define pd_WAV    1
@@ -231,7 +230,7 @@ typedef struct {
 	char ipa_string[18];
 } PHONEME_DATA;
 
-typedef struct {
+struct FMT_PARAMS {
 	int fmt_control;
 	int use_vowelin;
 	int fmt_addr;
@@ -244,7 +243,7 @@ typedef struct {
 	int transition0;
 	int transition1;
 	int std_length;
-} FMT_PARAMS;
+};
 
 typedef struct {
 	PHONEME_LIST prev_vowel;
@@ -378,16 +377,6 @@ typedef struct {
 	int spare2; // the struct length should be a multiple of 4 bytes
 } TUNE;
 
-
-
-// phoneme table
-extern PHONEME_TAB *phoneme_tab[N_PHONEME_TAB];
-
-// list of phonemes in a clause
-extern int n_phoneme_list;
-extern PHONEME_LIST phoneme_list[N_PHONEME_LIST+1];
-extern unsigned int embedded_list[];
-
 extern const unsigned char env_fall[128];
 
 // queue of commands for wavegen
@@ -411,25 +400,14 @@ extern const unsigned char env_fall[128];
 #define N_WCMDQ   170
 #define MIN_WCMDQ  25   // need this many free entries before adding new phoneme
 
-extern intptr_t wcmdq[N_WCMDQ][4];
-extern int wcmdq_head;
-extern int wcmdq_tail;
-
 void MarkerEvent(int type, unsigned int char_position, int value, int value2, unsigned char *out_ptr);
 
-extern unsigned char *wavefile_data;
-extern int samplerate;
-
 #define N_ECHO_BUF 5500   // max of 250mS at 22050 Hz
-extern int echo_head;
-extern int echo_tail;
-extern int echo_amp;
-extern short echo_buf[N_ECHO_BUF];
 
 void SynthesizeInit(void);
 int  Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume);
-int  SpeakNextClause(int control);
-void SetSpeed(int control);
+// int  SpeakNextClause(int control);
+// void SetSpeed(int control);
 void SetEmbedded(int control, int value);
 int FormantTransition2(frameref_t *seq, int *n_frames, unsigned int data1, unsigned int data2, PHONEME_TAB *other_ph, int which);
 
@@ -443,21 +421,15 @@ void DoSonicSpeed(int value);
 #define PITCHfall   0  // standard pitch envelopes
 #define PITCHrise   2
 #define N_ENVELOPE_DATA   20
+
 extern const unsigned char *const envelope_data[N_ENVELOPE_DATA];
-
-extern int formant_rate[];         // max rate of change of each formant
-extern SPEED_FACTORS speed;
-
-extern unsigned char *out_ptr;
-extern unsigned char *out_end;
-extern espeak_EVENT *event_list;
 extern const int version_phdata;
 
 void DoEmbedded(int *embix, int sourceix);
 void DoMarker(int type, int char_posn, int length, int value);
 void DoPhonemeMarker(int type, int char_posn, int length, char *name);
 int DoSample3(PHONEME_DATA *phdata, int length_mod, int amp);
-int DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_LIST *plist, int modulation);
+// int DoSpect2(PHONEME_TAB *this_ph, int which, FMT_PARAMS *fmt_params,  PHONEME_LIST *plist, int modulation);
 int PauseLength(int pause, int control);
 const char *WordToString(char buf[5], unsigned int word);
 

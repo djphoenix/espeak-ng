@@ -74,6 +74,9 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetRandSeed(espeak_ng_CONTEXT *ctx,
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetParameter(espeak_ng_CONTEXT *ctx, espeak_PARAMETER parameter, int value, int relative) {
     return ctx->SetParameter(parameter, value, relative);
 }
+ESPEAK_NG_API int espeak_ng_ctx_GetParameter(espeak_ng_CONTEXT *ctx, espeak_PARAMETER parameter, int current) {
+    return ctx->GetParameter(parameter, current);
+}
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_SetPhonemeEvents(espeak_ng_CONTEXT *ctx, int enable, int ipa) {
     return ctx->SetPhonemeEvents(enable, ipa);
 }

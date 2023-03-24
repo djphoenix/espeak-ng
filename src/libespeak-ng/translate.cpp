@@ -32,6 +32,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "translate.hpp"
 #include "common.hpp"
 #include "dictionary.hpp"           // for TranslateRules, LookupDictList, Cha...
@@ -48,71 +49,28 @@
 namespace espeak {
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count);
-static void CombineFlag(Translator *tr, WORD_TAB *wtab, char *word, int *flags, unsigned char *p, char *word_phonemes);
-static void SwitchLanguage(char *word, char *word_phonemes);
 
-Translator *translator = NULL; // the main translator
-Translator *translator2 = NULL; // secondary translator for certain words
 static char translator2_language[20] = { 0 };
-Translator *translator3 = NULL; // tertiary translator for certain words
 static char translator3_language[20] = { 0 };
 
-FILE *f_trans = NULL; // phoneme output text
-int option_tone_flags = 0; // bit 8=emphasize allcaps, bit 9=emphasize penultimate stress
-int option_phonemes = 0;
-int option_phoneme_events = 0;
-int option_endpause = 0; // suppress pause after end of text
-int option_capitals = 0;
-int option_punctuation = 0;
-int option_sayas = 0;
-static int option_sayas2 = 0; // used in translate_clause()
-static int option_emphasis = 0; // 0=normal, 1=normal, 2=weak, 3=moderate, 4=strong
-int option_ssml = 0;
-int option_phoneme_input = 0; // allow [[phonemes]] in input
-int option_wordgap = 0;
-
 static int count_sayas_digits;
-int skip_sentences;
-int skip_words;
-int skip_characters;
-char skip_marker[N_MARKER_LENGTH];
-bool skipping_text; // waiting until word count, sentence count, or named marker is reached
-int end_character_position;
-int count_sentences;
 static int count_words;
-int clause_start_char;
-int clause_start_word;
 static bool new_sentence;
 static int word_emphasis = 0; // set if emphasis level 3 or 4
 static int embedded_flag = 0; // there are embedded commands to be applied to the next phoneme, used in TranslateWord2()
 
 static int max_clause_pause = 0;
 static bool any_stressed_words;
-int pre_pause;
 static ALPHABET *current_alphabet;
 
-char word_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
-int n_ph_list2;
-PHONEME_LIST2 ph_list2[N_PHONEME_LIST]; // first stage of text->phonemes
-
-wchar_t option_punctlist[N_PUNCTLIST] = { 0 };
-
-// these are overridden by defaults set in the "speak" file
-int option_linelength = 0;
-
-#define N_EMBEDDED_LIST  250
 static int embedded_ix;
 static int embedded_read;
-unsigned int embedded_list[N_EMBEDDED_LIST];
 
 // the source text of a single clause (UTF8 bytes)
 static char source[N_TR_SOURCE+40]; // extra space for embedded command & voice change info at end
 
 static int ignore_next_n = 0;
 static char voice_change_name[40];
-
-int n_replace_phonemes;
-REPLACE_PHONEMES replace_phonemes[N_REPLACE_PHONEMES];
 
 // other characters which break a word, but don't produce a pause
 static const unsigned short breaks[] = { '_', 0 };
@@ -146,7 +104,7 @@ char *strchr_w(const char *s, int c)
 	return strchr((char *)s, c); // (char *) is needed for Borland compiler
 }
 
-int TranslateWord(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out)
+int context_t::TranslateWord(Translator *tr, char *word_start, WORD_TAB *wtab, char *word_out)
 {
 	char words_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
 	char *phonemes = words_phonemes;
@@ -225,7 +183,7 @@ static void SetPlist2(PHONEME_LIST2 *p, unsigned char phcode)
 	embedded_flag = 0;
 }
 
-static int CountSyllables(unsigned char *phonemes)
+int context_t::CountSyllables(unsigned char *phonemes)
 {
 	int count = 0;
 	int phon;
@@ -236,7 +194,7 @@ static int CountSyllables(unsigned char *phonemes)
 	return count;
 }
 
-static void Word_EmbeddedCmd(void)
+void context_t::Word_EmbeddedCmd(void)
 {
 	// Process embedded commands for emphasis, sayas, and break
 	int embedded_cmd;
@@ -265,7 +223,7 @@ static void Word_EmbeddedCmd(void)
 	} while (((embedded_cmd & 0x80) == 0) && (embedded_read < embedded_ix));
 }
 
-static int SetAlternateTranslator(const char *new_language, Translator **translator, char translator_language[20])
+int context_t::SetAlternateTranslator(const char *new_language, Translator **translator, char translator_language[20])
 {
 	// Set alternate translator to a second language
 	int new_phoneme_tab;
@@ -294,17 +252,17 @@ static int SetAlternateTranslator(const char *new_language, Translator **transla
 	return new_phoneme_tab;
 }
 
-int SetTranslator2(const char *new_language)
+int context_t::SetTranslator2(const char *new_language)
 {
 	return SetAlternateTranslator(new_language, &translator2, translator2_language);
 }
 
-int SetTranslator3(const char *new_language)
+int context_t::SetTranslator3(const char *new_language)
 {
 	return SetAlternateTranslator(new_language, &translator3, translator3_language);
 }
 
-static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pause)
+int context_t::TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pause)
 {
 	int flags = 0;
 	int stress;
@@ -683,7 +641,7 @@ static int TranslateWord2(Translator *tr, char *word, WORD_TAB *wtab, int pre_pa
 	return flags;
 }
 
-static int EmbeddedCommand(unsigned int *source_index_out)
+int context_t::EmbeddedCommand(unsigned int *source_index_out)
 {
 	// An embedded command to change the pitch, volume, etc.
 	// returns number of commands added to embedded_list
@@ -786,7 +744,7 @@ static const char *FindReplacementChars(Translator *tr, const char **pfrom, unsi
 }
 
 // handle .replace rule in xx_rules file
-static int SubstituteChar(Translator *tr, unsigned int c, unsigned int next_in, const char *next, int *insert, int *wordflags)
+int context_t::SubstituteChar(Translator *tr, unsigned int c, unsigned int next_in, const char *next, int *insert, int *wordflags)
 {
 	unsigned int new_c, c2 = ' ', c_lower;
 	int upper_case = 0;
@@ -833,7 +791,7 @@ static int SubstituteChar(Translator *tr, unsigned int c, unsigned int next_in, 
 	return new_c;
 }
 
-static int TranslateChar(Translator *tr, char *ptr, int prev_in, unsigned int c, unsigned int next_in, int *insert, int *wordflags)
+int context_t::TranslateChar(Translator *tr, char *ptr, int prev_in, unsigned int c, unsigned int next_in, int *insert, int *wordflags)
 {
 	// To allow language specific examination and replacement of characters
 
@@ -923,7 +881,7 @@ static int UpperCaseInWord(Translator *tr, char *word, int c)
 	return 0;
 }
 
-void TranslateClause(Translator *tr, int *tone_out, char **voice_change)
+void context_t::TranslateClause(Translator *tr, int *tone_out, char **voice_change)
 {
 	int ix;
 	int c;
@@ -1686,7 +1644,7 @@ static int CalcWordLength(int source_index, int charix_top, short int *charix, W
 	return k;
 	}
 
-static void CombineFlag(Translator *tr, WORD_TAB *wtab, char *word, int *flags, unsigned char *p, char *word_phonemes) {
+void context_t::CombineFlag(Translator *tr, WORD_TAB *wtab, char *word, int *flags, unsigned char *p, char *word_phonemes) {
 	// combine a preposition with the following word
 
 
@@ -1749,7 +1707,7 @@ static void CombineFlag(Translator *tr, WORD_TAB *wtab, char *word, int *flags, 
 	}
 }
 
-static void SwitchLanguage(char *word, char *word_phonemes) {
+void context_t::SwitchLanguage(char *word, char *word_phonemes) {
 	char lang_name[12];
 	int ix;
 
@@ -1772,7 +1730,7 @@ static void SwitchLanguage(char *word, char *word_phonemes) {
 	}
 }
 
-void InitText(int control)
+void context_t::InitText(int control)
 {
 	count_sentences = 0;
 	count_words = 0;

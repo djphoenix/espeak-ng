@@ -29,6 +29,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "phonemelist.hpp"
 #include "phoneme.hpp"     // for PHONEME_TAB, phVOWEL, REPLACE_PHONEMES, phPAUSE
 #include "synthdata.hpp"   // for InterpretPhoneme, SelectPhonemeTable
@@ -40,17 +41,11 @@
 
 namespace espeak {
 
-static void SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_TAB *ph, Translator *tr);
-static void ReInterpretPhoneme(PHONEME_TAB *ph, PHONEME_TAB *ph2, PHONEME_LIST *plist3, Translator *tr, PHONEME_DATA *phdata, WORD_PH_DATA *worddata);
-
 static const unsigned char pause_phonemes[8] = {
 	0, phonPAUSE_VSHORT, phonPAUSE_SHORT, phonPAUSE, phonPAUSE_LONG, phonGLOTTALSTOP, phonPAUSE_LONG, phonPAUSE_LONG
 };
 
-extern int n_ph_list2;
-extern PHONEME_LIST2 ph_list2[N_PHONEME_LIST]; // first stage of text->phonemes
-
-static int SubstitutePhonemes(PHONEME_LIST *plist_out)
+int context_t::SubstitutePhonemes(PHONEME_LIST *plist_out)
 {
 	// Copy the phonemes list and perform any substitutions that are required for the
 	// current voice
@@ -119,7 +114,7 @@ static int SubstitutePhonemes(PHONEME_LIST *plist_out)
 	return n_plist_out;
 }
 
-void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
+void context_t::MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 {
 	int ix = 0;
 	int j;
@@ -500,7 +495,7 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 	SelectPhonemeTable(tr->phoneme_tab_ix);
 }
 
-static void SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_TAB *ph, Translator *tr) {
+void context_t::SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_TAB *ph, Translator *tr) {
 		// set consonant clusters to all voiced or all unvoiced
 		// Regressive
 		int type;
@@ -579,7 +574,7 @@ static void SetRegressiveVoicing(int regression, PHONEME_LIST2 *plist2, PHONEME_
 		}
 	}
 
-static void ReInterpretPhoneme(PHONEME_TAB *ph, PHONEME_TAB *ph2, PHONEME_LIST *plist3, Translator *tr, PHONEME_DATA *phdata, WORD_PH_DATA *worddata) {
+void context_t::ReInterpretPhoneme(PHONEME_TAB *ph, PHONEME_TAB *ph2, PHONEME_LIST *plist3, Translator *tr, PHONEME_DATA *phdata, WORD_PH_DATA *worddata) {
 if (ph->type == phVOWEL) {
 				plist3->synthflags |= SFLAG_SYLLABLE;
 				if (ph2->type != phVOWEL)

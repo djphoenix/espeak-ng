@@ -24,8 +24,8 @@
 
 namespace espeak {
 
-void LookupAccentedLetter(Translator *tr, unsigned int letter, char *ph_buf);
-void LookupLetter(Translator *tr, unsigned int letter, int next_byte, char *ph_buf1, int control);
+// void LookupAccentedLetter(Translator *tr, unsigned int letter, char *ph_buf);
+// void LookupLetter(Translator *tr, unsigned int letter, int next_byte, char *ph_buf1, int control);
 int IsSuperscript(int letter);
 void SetSpellingStress(Translator *tr, char *phonemes, int control, int n_chars);
 int TranslateRoman(Translator *tr, char *word, char *ph_out, WORD_TAB *wtab);

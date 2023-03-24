@@ -22,7 +22,7 @@
 
 namespace espeak {
 
-int LookupSoundicon(int c);
+// int LookupSoundicon(int c);
 int LoadSoundFile2(const char *fname);
 
 typedef struct {
@@ -33,8 +33,5 @@ typedef struct {
 } SOUND_ICON;
 
 #define N_SOUNDICON_TAB  80   // total entries for dynamic loading of audio files
-
-extern int n_soundicon_tab;
-extern SOUND_ICON soundicon_tab[N_SOUNDICON_TAB];
 
 }

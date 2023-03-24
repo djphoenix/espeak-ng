@@ -50,6 +50,7 @@
 
 #include "context.hpp"
 #include "speech.hpp"
+#include "setlengths.hpp"
 #include "common.hpp"               // for GetFileLength
 #include "dictionary.hpp"           // for GetTranslatedPhonemeString, strncpy0
 #include "espeak_command.hpp"       // for delete_espeak_command, SetParameter
@@ -70,7 +71,6 @@ static unsigned char *outbuf = NULL;
 static int outbuf_size = 0;
 static unsigned char *out_start;
 
-espeak_EVENT *event_list = NULL;
 static int event_list_ix = 0;
 static int n_event_list;
 static long count_samples;
@@ -87,9 +87,6 @@ static const int min_buffer_length = 60; // minimum buffer length in ms
 static espeak_ng_STATUS err = ENS_OK;
 
 static t_espeak_callback *synth_callback = NULL;
-
-char path_home[N_PATH_HOME]; // this is the espeak-ng-data directory
-extern int saved_parameters[N_SPEECH_PARAM]; // Parameters saved on synthesis start
 
 void cancel_audio(void)
 {
@@ -247,18 +244,18 @@ int sync_espeak_terminated_msg(uint32_t unique_identifier, void *user_data)
 
 #endif
 
-static int check_data_path(const char *path, int allow_directory)
+int context_t::check_data_path(const char *path, int allow_directory)
 {
 	if (!path) return 0;
 
-	snprintf(path_home, sizeof(path_home), "%s/espeak-ng-data", path);
+	snprintf(path_home, N_PATH_HOME, "%s/espeak-ng-data", path);
 	if (GetFileLength(path_home) == -EISDIR)
 		return 1;
 
 	if (!allow_directory)
 		return 0;
 
-	snprintf(path_home, sizeof(path_home), "%s", path);
+	snprintf(path_home, N_PATH_HOME, "%s", path);
 	return GetFileLength(path_home) == -EISDIR;
 }
 
@@ -280,7 +277,7 @@ const int param_defaults[N_SPEECH_PARAM] = {
 	0,   // voice type
 };
 
-static espeak_ng_STATUS Synthesize(unsigned int unique_identifier, const void *text, int flags)
+espeak_ng_STATUS context_t::Synthesize(unsigned int unique_identifier, const void *text, int flags)
 {
 	// Fill the buffer with output sound
 	int length;
@@ -361,7 +358,7 @@ static espeak_ng_STATUS Synthesize(unsigned int unique_identifier, const void *t
 	}
 }
 
-void MarkerEvent(int type, unsigned int char_position, int value, int value2, unsigned char *out_ptr)
+void context_t::MarkerEvent(int type, unsigned int char_position, int value, int value2, unsigned char *out_ptr)
 {
 	// type: 1=word, 2=sentence, 3=named mark, 4=play audio, 5=end, 7=phoneme
 	espeak_EVENT *ep;
@@ -396,7 +393,7 @@ void MarkerEvent(int type, unsigned int char_position, int value, int value2, un
 		ep->id.number = value;
 }
 
-espeak_ng_STATUS sync_espeak_Synth(unsigned int unique_identifier, const void *text,
+espeak_ng_STATUS context_t::sync_espeak_Synth(unsigned int unique_identifier, const void *text,
                                    unsigned int position, espeak_POSITION_TYPE position_type,
                                    unsigned int end_position, unsigned int flags, void *user_data)
 {
@@ -439,7 +436,7 @@ espeak_ng_STATUS sync_espeak_Synth(unsigned int unique_identifier, const void *t
 	return aStatus;
 }
 
-espeak_ng_STATUS sync_espeak_Synth_Mark(unsigned int unique_identifier, const void *text,
+espeak_ng_STATUS context_t::sync_espeak_Synth_Mark(unsigned int unique_identifier, const void *text,
                                         const char *index_mark, unsigned int end_position,
                                         unsigned int flags, void *user_data)
 {
@@ -458,7 +455,7 @@ espeak_ng_STATUS sync_espeak_Synth_Mark(unsigned int unique_identifier, const vo
 	return Synthesize(unique_identifier, text, flags | espeakSSML);
 }
 
-espeak_ng_STATUS sync_espeak_Key(const char *key)
+espeak_ng_STATUS context_t::sync_espeak_Key(const char *key)
 {
 	// symbolic name, symbolicname_character  - is there a system resource of symbolic names per language?
 	int letter;
@@ -473,7 +470,7 @@ espeak_ng_STATUS sync_espeak_Key(const char *key)
 	return Synthesize(0, key, 0); // speak key as a text string
 }
 
-espeak_ng_STATUS sync_espeak_Char(wchar_t character)
+espeak_ng_STATUS context_t::sync_espeak_Char(wchar_t character)
 {
 	// is there a system resource of character names per language?
 	char buf[80];
@@ -484,7 +481,7 @@ espeak_ng_STATUS sync_espeak_Char(wchar_t character)
 	return Synthesize(0, buf, espeakSSML);
 }
 
-void sync_espeak_SetPunctuationList(const wchar_t *punctlist)
+void context_t::sync_espeak_SetPunctuationList(const wchar_t *punctlist)
 {
 	// Set the list of punctuation which are spoken for "some".
 	my_unique_identifier = 0;
@@ -563,7 +560,7 @@ ESPEAK_NG_API void context_t::InitializePath(const char *path)
 	HKEY RegKey;
 	unsigned long size;
 	unsigned long var_type;
-	unsigned char buf[sizeof(path_home)-13];
+	unsigned char buf[N_PATH_HOME-13];
 
 	if (check_data_path(getenv("ESPEAK_DATA_PATH"), 1))
 		return;
@@ -629,11 +626,11 @@ espeak_ng_STATUS context_t::Initialize()
 	for (param = 0; param < N_SPEECH_PARAM; param++)
 		param_stack[0].parameter[param] = saved_parameters[param] = param_defaults[param];
 
-	::SetParameter(espeakRATE, espeakRATE_NORMAL, 0);
-	::SetParameter(espeakVOLUME, 100, 0);
-	::SetParameter(espeakCAPITALS, option_capitals, 0);
-	::SetParameter(espeakPUNCTUATION, option_punctuation, 0);
-	::SetParameter(espeakWORDGAP, 0, 0);
+	_SetParameter(espeakRATE, espeakRATE_NORMAL, 0);
+	_SetParameter(espeakVOLUME, 100, 0);
+	_SetParameter(espeakCAPITALS, option_capitals, 0);
+	_SetParameter(espeakPUNCTUATION, option_punctuation, 0);
+	_SetParameter(espeakWORDGAP, 0, 0);
 
 	option_phonemes = 0;
 	option_phoneme_events = 0;
@@ -850,6 +847,11 @@ espeak_ng_STATUS context_t::SpeakCharacter(wchar_t character)
 
 ESPEAK_API int espeak_GetParameter(espeak_PARAMETER parameter, int current)
 {
+	return context_t::global().GetParameter(parameter, current);
+}
+
+int context_t::GetParameter(espeak_PARAMETER parameter, int current)
+{
 	// current: 0=default value, 1=current value
 	if (current)
 		return param_stack[0].parameter[parameter];
@@ -865,7 +867,7 @@ espeak_ng_STATUS context_t::SetParameter(espeak_PARAMETER parameter, int value, 
 {
 #if USE_ASYNC
 	if (my_mode & ENOUTPUT_MODE_SYNCHRONOUS)
-		return ::SetParameter(parameter, value, relative);
+		return _SetParameter(parameter, value, relative);
 
 	t_espeak_command *c = create_espeak_parameter(parameter, value, relative);
 
@@ -874,7 +876,7 @@ espeak_ng_STATUS context_t::SetParameter(espeak_PARAMETER parameter, int value, 
 		delete_espeak_command(c);
 	return status;
 #else
-	return ::SetParameter(parameter, value, relative);
+	return _SetParameter(parameter, value, relative);
 #endif
 }
 
@@ -918,11 +920,15 @@ ESPEAK_API void espeak_SetPhonemeTrace(int phonememode, FILE *stream)
 
 	   stream   output stream for the phoneme symbols (and trace).  If stream=NULL then it uses stdout.
 	*/
+	context_t::global().SetPhonemeTrace(phonememode, stream);
+}
 
+espeak_ng_STATUS context_t::SetPhonemeTrace(int phonememode, FILE *stream) {
 	option_phonemes = phonememode;
 	f_trans = stream;
 	if (stream == NULL)
 		f_trans = stderr;
+	return ENS_OK;
 }
 
 ESPEAK_API const char *espeak_TextToPhonemes(const void **textptr, int textmode, int phonememode)
@@ -969,7 +975,7 @@ espeak_ng_STATUS context_t::Cancel(void)
 	embedded_value[EMBED_T] = 0; // reset echo for pronunciation announcements
 
 	for (int i = 0; i < N_SPEECH_PARAM; i++)
-		::SetParameter(i, saved_parameters[i], 0);
+		_SetParameter(i, saved_parameters[i], 0);
 
 	return ENS_OK;
 }
@@ -1047,7 +1053,7 @@ ESPEAK_API const char *espeak_Info(const char **ptr)
 {
 	static const char version_string[] = PACKAGE_VERSION;
 	if (ptr != NULL)
-		*ptr = path_home;
+		*ptr = context_t::global().path_home;
 	return version_string;
 }
 

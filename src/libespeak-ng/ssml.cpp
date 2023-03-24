@@ -210,7 +210,7 @@ static int attr_prosody_value(int param_type, const wchar_t *pw, int *value_out)
 	return sign;   // -1, 0, or 1
 }
 
-static const char *VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espeak_VOICE *base_voice, char base_voice_variant_name[40])
+const char *context_t::VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, espeak_VOICE *base_voice, char base_voice_variant_name[40])
 {
 	// Use the voice properties from the SSML stack to choose a voice, and switch
 	// to that voice if it's not the current voice
@@ -321,7 +321,7 @@ static const wchar_t *GetSsmlAttribute(wchar_t *pw, const char *name)
 }
 
 
-static int GetVoiceAttributes(wchar_t *pw, int tag_type, SSML_STACK *ssml_sp, SSML_STACK *ssml_stack, int n_ssml_stack, char current_voice_id[40], espeak_VOICE *base_voice, char *base_voice_variant_name)
+int context_t::GetVoiceAttributes(wchar_t *pw, int tag_type, SSML_STACK *ssml_sp, SSML_STACK *ssml_stack, int n_ssml_stack, char current_voice_id[40], espeak_VOICE *base_voice, char *base_voice_variant_name)
 {
 	// Determines whether voice attribute are specified in this tag, and if so, whether this means
 	// a voice change.
@@ -392,7 +392,7 @@ static int GetVoiceAttributes(wchar_t *pw, int tag_type, SSML_STACK *ssml_sp, SS
 	return 0;
 }
 
-static void ProcessParamStack(char *outbuf, int *outix, int n_param_stack, PARAM_STACK *param_stack, int *speech_parameters)
+void context_t::ProcessParamStack(char *outbuf, int *outix, int n_param_stack, PARAM_STACK *param_stack, int *speech_parameters)
 {
 	// Set the speech parameters from the parameter stack
 	int param;
@@ -455,7 +455,7 @@ static PARAM_STACK *PushParamStack(int tag_type, int *n_param_stack, PARAM_STACK
 	return sp;
 }
 
-static void PopParamStack(int tag_type, char *outbuf, int *outix, int *n_param_stack, PARAM_STACK *param_stack, int *speech_parameters)
+void context_t::PopParamStack(int tag_type, char *outbuf, int *outix, int *n_param_stack, PARAM_STACK *param_stack, int *speech_parameters)
 {
 	// unwind the stack up to and including the previous tag of this type
 	int ix;
@@ -566,7 +566,7 @@ static void SetProsodyParameter(int param_type, const wchar_t *attr1, PARAM_STAC
 	}
 }
 
-int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, const char *xmlbase, bool *audio_text, char *current_voice_id, espeak_VOICE *base_voice, char *base_voice_variant_name, bool *ignore_text, bool *clear_skipping_text, int *sayas_mode, int *sayas_start, SSML_STACK *ssml_stack, int *n_ssml_stack, int *n_param_stack, int *speech_parameters)
+int context_t::ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, const char *xmlbase, bool *audio_text, char *current_voice_id, espeak_VOICE *base_voice, char *base_voice_variant_name, bool *ignore_text, bool *clear_skipping_text, int *sayas_mode, int *sayas_start, SSML_STACK *ssml_stack, int *n_ssml_stack, int *n_param_stack, int *speech_parameters)
 {
 	// xml_buf is the tag and attributes with a zero terminator in place of the original '>'
 	// returns a clause terminator value.

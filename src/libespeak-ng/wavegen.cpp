@@ -51,8 +51,6 @@
 
 namespace espeak {
 
-static void SetSynth(int length, int modn, frame_t *fr1, frame_t *fr2, voice_t *v);
-
 static voice_t *wvoice = NULL;
 
 static int option_harmonic1 = 10;
@@ -61,20 +59,11 @@ static int flutter_amp = 64;
 static int general_amplitude = 60;
 static int consonant_amp = 26;
 
-int embedded_value[N_EMBEDDED_VALUES];
-
 static int PHASE_INC_FACTOR;
-int samplerate = 0; // this is set by Wavegeninit()
 
 static wavegen_peaks_t peaks[N_PEAKS];
 static int peak_harmonic[N_PEAKS];
 static int peak_height[N_PEAKS];
-
-int echo_head;
-int echo_tail;
-int echo_amp = 0;
-short echo_buf[N_ECHO_BUF];
-static int echo_length = 0; // period (in sample\) to ensure completion of echo at the end of speech, set in WavegenSetEcho()
 
 static int voicing;
 static RESONATOR rbreath[N_PEAKS];
@@ -109,10 +98,6 @@ static int hf_factor;
 static double minus_pi_t;
 static double two_pi_t;
 
-unsigned char *out_ptr;
-unsigned char *out_end;
-
-espeak_ng_OUTPUT_HOOKS* output_hooks = NULL;
 static int const_f0 = 0;
 
 static int Flutter_ix = 0;
@@ -127,11 +112,6 @@ static int PlayWave_ix = 0;
 static voice_t v2;
 static bool resume = false;
 static int echo_complete = 0;
-
-// the queue of operations passed to wavegen from sythesize
-intptr_t wcmdq[N_WCMDQ][4];
-int wcmdq_head = 0;
-int wcmdq_tail = 0;
 
 // pitch,speed,
 const int embedded_default[N_EMBEDDED_VALUES]    = { 0,     50, espeakRATE_NORMAL, 100, 50,  0,  0, 0, espeakRATE_NORMAL, 0, 0, 0, 0, 0, 0 };
@@ -250,7 +230,7 @@ static const unsigned char pitch_adjust_tab[MAX_PITCH_VALUE+1] = {
 	242, 246, 249, 252, 254, 255
 };
 
-void WcmdqStop(void)
+void context_t::WcmdqStop(void)
 {
 	wcmdq_head = 0;
 	wcmdq_tail = 0;
@@ -268,7 +248,7 @@ void WcmdqStop(void)
 #endif
 }
 
-int WcmdqFree(void)
+int context_t::WcmdqFree(void)
 {
 	int i;
 	i = wcmdq_head - wcmdq_tail;
@@ -276,18 +256,18 @@ int WcmdqFree(void)
 	return i;
 }
 
-int WcmdqUsed(void)
+int context_t::WcmdqUsed(void)
 {
 	return N_WCMDQ - WcmdqFree();
 }
 
-void WcmdqInc(void)
+void context_t::WcmdqInc(void)
 {
 	wcmdq_tail++;
 	if (wcmdq_tail >= N_WCMDQ) wcmdq_tail = 0;
 }
 
-static void WcmdqIncHead(void)
+void context_t::WcmdqIncHead(void)
 {
 	MAKE_MEM_UNDEFINED(&wcmdq[wcmdq_head], sizeof(wcmdq[wcmdq_head]));
 	wcmdq_head++;
@@ -338,7 +318,7 @@ static const unsigned char pk_shape2[PEAKSHAPEW+1] = {
 
 static const unsigned char *pk_shape;
 
-void WavegenInit(int rate, int wavemult_fact)
+void context_t::WavegenInit(int rate, int wavemult_fact)
 {
 	int ix;
 	double x;
@@ -390,7 +370,7 @@ void WavegenFini(void)
 #endif
 }
 
-int GetAmplitude(void)
+int context_t::GetAmplitude(void)
 {
 	int amp;
 
@@ -402,7 +382,7 @@ int GetAmplitude(void)
 	return general_amplitude;
 }
 
-static void WavegenSetEcho(void)
+void context_t::WavegenSetEcho(void)
 {
 	if (wvoice == NULL)
 		return;
@@ -445,7 +425,7 @@ static void WavegenSetEcho(void)
 	general_amplitude = ((general_amplitude * (500-amp))/500);
 }
 
-int PeaksToHarmspect(wavegen_peaks_t *peaks, int pitch, int *htab, int control)
+int context_t::PeaksToHarmspect(wavegen_peaks_t *peaks, int pitch, int *htab, int control)
 {
 	if (wvoice == NULL)
 		return 1;
@@ -647,7 +627,7 @@ static void setresonator(RESONATOR *rp, int freq, int bwidth, int init)
 	rp->a = 1.0 - rp->b - rp->c;
 }
 
-void InitBreath(void)
+void context_t::InitBreath(void)
 {
 	int ix;
 
@@ -696,7 +676,7 @@ static int ApplyBreath(void)
 	return value;
 }
 
-static int Wavegen(int length, int modulation, bool resume, frame_t *fr1, frame_t *fr2, voice_t *wvoice)
+int context_t::Wavegen(int length, int modulation, bool resume, frame_t *fr1, frame_t *fr2, voice_t *wvoice)
 {
 	if (resume == false)
 		SetSynth(length, modulation, fr1, fr2, wvoice);
@@ -913,7 +893,7 @@ static int Wavegen(int length, int modulation, bool resume, frame_t *fr1, frame_
 	}
 }
 
-static int PlaySilence(int length, bool resume)
+int context_t::PlaySilence(int length, bool resume)
 {
 	nsamples = 0;
 	samplecount = 0;
@@ -946,7 +926,7 @@ static int PlaySilence(int length, bool resume)
 	return 0;
 }
 
-static int PlayWave(int length, bool resume, unsigned char *data, int scale, int amp)
+int context_t::PlayWave(int length, bool resume, unsigned char *data, int scale, int amp)
 {
 	int value;
 	signed char c;
@@ -1007,7 +987,7 @@ static int SetWithRange0(int value, int max)
 	return value;
 }
 
-static void SetPitchFormants(void)
+void context_t::SetPitchFormants(void)
 {
 	if (wvoice == NULL)
 		return;
@@ -1033,7 +1013,7 @@ static void SetPitchFormants(void)
 	wvoice->height[1] = (wvoice->height2[1] * (256 - factor))/256;
 }
 
-void SetEmbedded(int control, int value)
+void context_t::SetEmbedded(int control, int value)
 {
 	// there was an embedded command in the text at this point
 	int sign = 0;
@@ -1072,7 +1052,7 @@ void SetEmbedded(int control, int value)
 	}
 }
 
-void WavegenSetVoice(voice_t *v)
+void context_t::WavegenSetVoice(voice_t *v)
 {
 	memcpy(&v2, v, sizeof(v2));
 	wvoice = &v2;
@@ -1109,7 +1089,7 @@ static void SetAmplitude(int length, unsigned char *amp_env, int value)
 	amplitude_env = amp_env;
 }
 
-void SetPitch2(voice_t *voice, int pitch1, int pitch2, int *pitch_base, int *pitch_range)
+void context_t::SetPitch2(voice_t *voice, int pitch1, int pitch2, int *pitch_base, int *pitch_range)
 {
 	int base;
 	int range;
@@ -1138,7 +1118,7 @@ void SetPitch2(voice_t *voice, int pitch1, int pitch2, int *pitch_base, int *pit
 	*pitch_range = base + (pitch2 * range)/2 - *pitch_base;
 }
 
-static void SetPitch(int length, unsigned char *env, int pitch1, int pitch2)
+void context_t::SetPitch(int length, unsigned char *env, int pitch1, int pitch2)
 {
 	if (wvoice == NULL)
 		return;
@@ -1161,7 +1141,7 @@ static void SetPitch(int length, unsigned char *env, int pitch1, int pitch2)
 	flutter_amp = wvoice->flutter;
 }
 
-static void SetSynth(int length, int modn, frame_t *fr1, frame_t *fr2, voice_t *v)
+void context_t::SetSynth(int length, int modn, frame_t *fr1, frame_t *fr2, voice_t *v)
 {
 	if (wvoice == NULL || v == NULL)
 		return;
@@ -1257,7 +1237,7 @@ void Write4Bytes(FILE *f, int value)
 	}
 }
 
-static int WavegenFill2(void)
+int context_t::WavegenFill2(void)
 {
 	// Pick up next wavegen commands from the queue
 	// return: 0  output buffer has been filled
@@ -1410,7 +1390,7 @@ static int SpeedUp(short *outbuf, int length_in, int length_out, int end_of_text
 #endif
 
 // Call WavegenFill2, and then speed up the output samples.
-int WavegenFill(void)
+int context_t::WavegenFill(void)
 {
 	int finished;
 #if USE_LIBSONIC

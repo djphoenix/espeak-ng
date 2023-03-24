@@ -77,6 +77,5 @@ namespace espeak {
 void cancel_audio(void);
 
 extern const int param_defaults[N_SPEECH_PARAM];
-extern char path_home[N_PATH_HOME];    // this is the espeak-ng-data directory
 
 }

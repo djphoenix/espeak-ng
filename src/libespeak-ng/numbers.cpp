@@ -33,6 +33,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "numbers.hpp"
 #include "common.hpp"
 #include "dictionary.hpp"  // for Lookup, TranslateRules, EncodePhonemes, Look...
@@ -395,7 +396,7 @@ static const unsigned short letter_accents_250[] = {
 	LIGATURE('t', 's', M_CURL),
 };
 
-static int LookupLetter2(Translator *tr, unsigned int letter, char *ph_buf)
+int context_t::LookupLetter2(Translator *tr, unsigned int letter, char *ph_buf)
 {
 	int len;
 	char single_letter[10];
@@ -414,7 +415,7 @@ static int LookupLetter2(Translator *tr, unsigned int letter, char *ph_buf)
 	return ph_buf[0];
 }
 
-void LookupAccentedLetter(Translator *tr, unsigned int letter, char *ph_buf)
+void context_t::LookupAccentedLetter(Translator *tr, unsigned int letter, char *ph_buf)
 {
 	// lookup the character in the accents table
 	int accent_data = 0;
@@ -481,7 +482,7 @@ void LookupAccentedLetter(Translator *tr, unsigned int letter, char *ph_buf)
 	}
 }
 
-void LookupLetter(Translator *tr, unsigned int letter, int next_byte, char *ph_buf1, int control)
+void context_t::LookupLetter(Translator *tr, unsigned int letter, int next_byte, char *ph_buf1, int control)
 {
 	// control, bit 0:  not the first letter of a word
 
@@ -691,7 +692,7 @@ void SetSpellingStress(Translator *tr, char *phonemes, int control, int n_chars)
 
 // Numbers
 
-static int CheckDotOrdinal(Translator *tr, char *word, char *word_end, WORD_TAB *wtab, int roman)
+int context_t::CheckDotOrdinal(Translator *tr, char *word, char *word_end, WORD_TAB *wtab, int roman)
 {
 	int ordinal = 0;
 	int c2;
@@ -754,7 +755,7 @@ static int hu_number_e(const char *word, int thousandplex, int value)
 	return 0;
 }
 
-int TranslateRoman(Translator *tr, char *word, char *ph_out, WORD_TAB *wtab)
+int context_t::TranslateRoman(Translator *tr, char *word, char *ph_out, WORD_TAB *wtab)
 {
 	int c;
 	char *p;
@@ -870,7 +871,7 @@ int TranslateRoman(Translator *tr, char *word, char *ph_out, WORD_TAB *wtab)
 	return 1;
 }
 
-static const char *M_Variant(int value)
+const char * context_t::M_Variant(int value)
 {
 	// returns M, or perhaps MA or MB for some cases
 
@@ -915,7 +916,7 @@ static const char *M_Variant(int value)
 	return "0M";
 }
 
-static int LookupThousands(Translator *tr, int value, int thousandplex, int thousands_exact, char *ph_out)
+int context_t::LookupThousands(Translator *tr, int value, int thousandplex, int thousands_exact, char *ph_out)
 {
 	// thousands_exact:  bit 0  no hundreds,tens,or units,  bit 1  ordinal numberr
 	int found;
@@ -1004,7 +1005,7 @@ static int LookupThousands(Translator *tr, int value, int thousandplex, int thou
 	return found_value;
 }
 
-static int LookupNum2(Translator *tr, int value, int thousandplex, const int control, char *ph_out)
+int context_t::LookupNum2(Translator *tr, int value, int thousandplex, const int control, char *ph_out)
 {
 	// Lookup a 2 digit number
 	// control bit 0: ordinal number
@@ -1248,7 +1249,7 @@ static int LookupNum2(Translator *tr, int value, int thousandplex, const int con
 	return used_and;
 }
 
-static int LookupNum3(Translator *tr, int value, char *ph_out, bool suppress_null, int thousandplex, int control)
+int context_t::LookupNum3(Translator *tr, int value, char *ph_out, bool suppress_null, int thousandplex, int control)
 {
 	// Translate a 3 digit number
 	//  control  bit 0,  previous thousands
@@ -1465,7 +1466,7 @@ static bool CheckThousandsGroup(char *word, int group_len)
 	return true;
 }
 
-static int TranslateNumber_1(Translator *tr, char *word, char *ph_out, unsigned int *flags, WORD_TAB *wtab, int control)
+int context_t::TranslateNumber_1(Translator *tr, char *word, char *ph_out, unsigned int *flags, WORD_TAB *wtab, int control)
 {
 	//  Number translation with various options
 	// the "word" may be up to 4 digits
@@ -1813,7 +1814,7 @@ static int TranslateNumber_1(Translator *tr, char *word, char *ph_out, unsigned 
 	return 1;
 }
 
-int TranslateNumber(Translator *tr, char *word1, char *ph_out, unsigned int *flags, WORD_TAB *wtab, int control)
+int context_t::TranslateNumber(Translator *tr, char *word1, char *ph_out, unsigned int *flags, WORD_TAB *wtab, int control)
 {
 	if ((option_sayas == SAYAS_DIGITS1) || (wtab[0].flags & FLAG_INDIVIDUAL_DIGITS))
 		return 0; // speak digits individually

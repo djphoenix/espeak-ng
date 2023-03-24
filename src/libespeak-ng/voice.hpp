@@ -28,7 +28,7 @@ namespace espeak {
 
 #define N_PEAKS   9
 
-typedef struct {
+struct voice_t {
 	char v_name[40];
 	char language_name[20];
 
@@ -73,10 +73,7 @@ typedef struct {
 	#define N_TONE_ADJUST  1000
 	unsigned char tone_adjust[N_TONE_ADJUST];   //  8Hz steps * 1000 = 8kHz
 
-} voice_t;
-
-extern voice_t *voice;
-extern int tone_points[12];
+};
 
 typedef enum {
 	V_NAME = 1,
@@ -183,10 +180,10 @@ static const MNEM_TAB keyword_tab[] = {
 	{ "", 0 }
 };
 
-const char *SelectVoice(espeak_VOICE *voice_select, int *found);
+// const char *SelectVoice(espeak_VOICE *voice_select, int *found);
 espeak_VOICE *SelectVoiceByName(espeak_VOICE **voices, const char *name);
-voice_t *LoadVoice(const char *voice_name, int control);
-voice_t *LoadVoiceVariant(const char *voice_name, int variant);
+// voice_t *LoadVoice(const char *voice_name, int control);
+// voice_t *LoadVoiceVariant(const char *voice_name, int variant);
 espeak_ng_STATUS DoVoiceChange(voice_t *v);
 void WavegenSetVoice(voice_t *v);
 void ReadNumbers(char *p, int *flags, int maxValue,  const MNEM_TAB *keyword_tab, int key);

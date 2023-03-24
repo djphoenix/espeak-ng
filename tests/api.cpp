@@ -26,6 +26,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "speech.hpp"
 #include "phoneme.hpp"
 #include "voice.hpp"
@@ -41,14 +42,14 @@ test_espeak_terminate_without_initialize()
 {
 	printf("testing espeak_Terminate without espeak_Initialize\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -56,19 +57,19 @@ test_espeak_initialize()
 {
 	printf("testing espeak_Initialize\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 // endregion
@@ -79,32 +80,32 @@ test_espeak_synth()
 {
 	printf("testing espeak_Synth\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -112,14 +113,14 @@ test_espeak_synth_no_voices(const char *path)
 {
 	printf("testing espeak_Synth in path with no voices\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, path, espeakINITIALIZE_DONT_EXIT) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	int res = espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL);
@@ -128,17 +129,17 @@ test_espeak_synth_no_voices(const char *path)
 #else
 	TEST_ASSERT(res == EE_NOT_FOUND);
 #endif
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 // endregion
@@ -149,32 +150,32 @@ test_espeak_ng_synthesize()
 {
 	printf("testing espeak_ng_Synthesize\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_ng_Synthesize(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == ENS_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -182,14 +183,14 @@ test_espeak_ng_synthesize_no_voices(const char *path)
 {
 	printf("testing espeak_ng_Synthesize in path with no voices\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, path, espeakINITIALIZE_DONT_EXIT) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	int res = espeak_ng_Synthesize(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL);
@@ -198,17 +199,17 @@ test_espeak_ng_synthesize_no_voices(const char *path)
 #else
 	TEST_ASSERT(res == ENS_VOICE_NOT_FOUND);
 #endif
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_ng_Synchronize() == ENS_OK);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 // endregion
@@ -219,36 +220,36 @@ test_espeak_set_voice_by_name_null_voice()
 {
 	printf("testing espeak_SetVoiceByName(NULL)\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_SetVoiceByName("") == EE_NOT_FOUND);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -256,36 +257,36 @@ test_espeak_set_voice_by_name_blank_voice()
 {
 	printf("testing espeak_SetVoiceByName(\"\")\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_SetVoiceByName("") == EE_NOT_FOUND);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -293,37 +294,37 @@ test_espeak_set_voice_by_name_valid_voice()
 {
 	printf("testing espeak_SetVoiceByName(\"de\")\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_SetVoiceByName("de") == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "de") == 0);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "de") == 0);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "de") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "de") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "de") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "de") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -331,36 +332,36 @@ test_espeak_set_voice_by_name_invalid_voice()
 {
 	printf("testing espeak_SetVoiceByName(\"zzz\")\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_SetVoiceByName("zzz") == EE_NOT_FOUND);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -368,37 +369,37 @@ test_espeak_set_voice_by_name_language_variant_intonation_parameter()
 {
 	printf("testing espeak_SetVoiceByName(\"!v/Annie\") (language variant; intonation)\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_SetVoiceByName("!v/Annie") == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 // endregion
@@ -409,40 +410,40 @@ test_espeak_set_voice_by_properties_empty()
 {
 	printf("testing espeak_SetVoiceByProperties: (none)\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	espeak_VOICE properties;
 	memset(&properties, 0, sizeof(properties));
 
 	TEST_ASSERT(espeak_SetVoiceByProperties(&properties) == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -450,41 +451,41 @@ test_espeak_set_voice_by_properties_blank_language()
 {
 	printf("testing espeak_SetVoiceByProperties: languages=\"\"\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	espeak_VOICE properties;
 	memset(&properties, 0, sizeof(properties));
 	properties.languages = "";
 
 	TEST_ASSERT(espeak_SetVoiceByProperties(&properties) == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -492,41 +493,41 @@ test_espeak_set_voice_by_properties_with_valid_language()
 {
 	printf("testing espeak_SetVoiceByProperties: languages=\"mk\" (valid)\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	espeak_VOICE properties;
 	memset(&properties, 0, sizeof(properties));
 	properties.languages = "mk";
 
 	TEST_ASSERT(espeak_SetVoiceByProperties(&properties) == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "mk") == 0);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "mk") == 0);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "mk") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "mk") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "mk") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "mk") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static void
@@ -534,40 +535,40 @@ test_espeak_set_voice_by_properties_with_invalid_language()
 {
 	printf("testing espeak_SetVoiceByProperties: languages=\"zzz\" (invalid)\n");
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	TEST_ASSERT(espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, NULL, 0) == 22050);
-	TEST_ASSERT(event_list != NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list != NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	espeak_VOICE properties;
 	memset(&properties, 0, sizeof(properties));
 	properties.languages = "zzz";
 
 	TEST_ASSERT(espeak_SetVoiceByProperties(&properties) == EE_NOT_FOUND);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	const char *test = "One two three.";
 	TEST_ASSERT(espeak_Synth(test, strlen(test)+1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL) == EE_OK);
 #if !USE_ASYNC
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 #endif
 
 	TEST_ASSERT(espeak_Synchronize() == EE_OK);
-	TEST_ASSERT(translator != NULL);
-	TEST_ASSERT(strcmp(translator->dictionary_name, "en") == 0);
-	TEST_ASSERT(p_decoder != NULL);
+	TEST_ASSERT(context_t::global().translator != NULL);
+	TEST_ASSERT(strcmp(context_t::global().translator->dictionary_name, "en") == 0);
+	TEST_ASSERT(context_t::global().p_decoder != NULL);
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 static int
@@ -591,9 +592,9 @@ static void
 test_espeak_ng_phoneme_events(int enabled, int ipa) {
 	printf("testing espeak_ng_SetPhonemeEvents(enabled=%d, ipa=%d)\n", enabled, ipa);
 
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 
 	espeak_ng_InitializePath(NULL);
 	espeak_ng_ERROR_CONTEXT context = NULL;
@@ -619,9 +620,9 @@ test_espeak_ng_phoneme_events(int enabled, int ipa) {
 	}
 
 	TEST_ASSERT(espeak_Terminate() == EE_OK);
-	TEST_ASSERT(event_list == NULL);
-	TEST_ASSERT(translator == NULL);
-	TEST_ASSERT(p_decoder == NULL);
+	TEST_ASSERT(context_t::global().event_list == NULL);
+	TEST_ASSERT(context_t::global().translator == NULL);
+	TEST_ASSERT(context_t::global().p_decoder == NULL);
 }
 
 // endregion

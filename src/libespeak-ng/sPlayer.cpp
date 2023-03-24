@@ -1,11 +1,10 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
+
+#include "context.hpp"
 #include "sPlayer.hpp"
 
 namespace espeak {
-
-extern unsigned char *out_ptr;
-extern unsigned char *out_end;
 
 static speechPlayer_handle_t speechPlayerHandle=NULL;
 static const unsigned int minFadeLength=110;
@@ -44,7 +43,7 @@ static void mixWaveFile(WGEN_DATA *wdata, unsigned int maxNumSamples, sample* sa
 	}
 }
 
-static bool isKlattFrameFollowing(void) {
+bool context_t::isKlattFrameFollowing(void) {
 	// eSpeak implements its command queue with a circular buffer.
 	// Thus to walk it, we start from the head, walking to the tail, which may wrap around to the beginning of the buffer as it is circular.
 	for(int i=(wcmdq_head+1)%N_WCMDQ;i!=wcmdq_tail;i=(i+1)%N_WCMDQ) {
@@ -110,7 +109,7 @@ void KlattResetSP(void) {
 	KlattInitSP();
 }
 
-int Wavegen_KlattSP(WGEN_DATA *wdata, voice_t *wvoice, int length, int resume, frame_t *fr1, frame_t *fr2){
+int context_t::Wavegen_KlattSP(WGEN_DATA *wdata, voice_t *wvoice, int length, int resume, frame_t *fr1, frame_t *fr2){
 	if(!resume) {
 		speechPlayer_frame_t spFrame1={0};
 		fillSpeechPlayerFrame(wdata, wvoice, fr1,&spFrame1);

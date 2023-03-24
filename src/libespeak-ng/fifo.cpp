@@ -33,6 +33,7 @@
 
 #include <espeak-ng/espeak_ng.h>
 
+#include "context.hpp"
 #include "speech.hpp"
 #include "espeak_command.hpp"
 #include "fifo.hpp"
@@ -59,11 +60,8 @@ static bool my_start_is_required = false;
 static pthread_cond_t my_cond_stop_is_acknowledged;
 static bool my_stop_is_acknowledged = false;
 
-static void *say_thread(void *);
-
 static espeak_ng_STATUS push(t_espeak_command *the_command);
 static t_espeak_command *pop(void);
-static void init(int process_parameters);
 static int node_counter = 0;
 static bool thread_inited = false;
 
@@ -81,11 +79,11 @@ enum {
 	MAX_INACTIVITY_CHECK = 2
 };
 
-void fifo_init(void)
+void context_t::fifo_init(void)
 {
 	// security
 	pthread_mutex_init(&my_mutex, (const pthread_mutexattr_t *)NULL);
-	init(0);
+	_fifo_init(0);
 
 	int a_status;
 	a_status = pthread_cond_init(&my_cond_command_is_running, NULL);
@@ -100,8 +98,8 @@ void fifo_init(void)
 	    || pthread_attr_setdetachstate(&a_attrib, PTHREAD_CREATE_JOINABLE)
 	    || pthread_create(&my_thread,
 	                      &a_attrib,
-	                      say_thread,
-	                      (void *)NULL)) {
+	                      [](void *self)->void*{ reinterpret_cast<context_t*>(self)->say_thread(); return nullptr; },
+	                      this)) {
 		assert(0);
 	}
 	thread_inited = true;
@@ -302,10 +300,8 @@ static espeak_ng_STATUS close_stream(void)
 	return status;
 }
 
-static void *say_thread(void *p)
+void context_t::say_thread()
 {
-	(void)p; // unused
-
 	int a_status;
 
 	// announce that thread is started
@@ -370,7 +366,7 @@ static void *say_thread(void *p)
 		if (my_stop_is_required || my_terminate_is_required) {
 			// no mutex required since the stop command is synchronous
 			// and waiting for my_cond_stop_is_acknowledged
-			init(1);
+			_fifo_init(1);
 
 			a_status = pthread_mutex_lock(&my_mutex);
 			assert(-1 != a_status);
@@ -386,8 +382,6 @@ static void *say_thread(void *p)
 		// and wait for the next start
 	}
 	(void)a_status;
-
-	return NULL;
 }
 
 int fifo_is_command_enabled(void)
@@ -447,7 +441,7 @@ static t_espeak_command *pop(void)
 	return the_command;
 }
 
-static void init(int process_parameters)
+void context_t::_fifo_init(int process_parameters)
 {
 	t_espeak_command *c = NULL;
 	c = pop();
@@ -460,7 +454,7 @@ static void init(int process_parameters)
 	node_counter = 0;
 }
 
-void fifo_terminate(void)
+void context_t::fifo_terminate(void)
 {
 	if (!thread_inited) return;
 
@@ -476,7 +470,7 @@ void fifo_terminate(void)
 	pthread_cond_destroy(&my_cond_start_is_required);
 	pthread_cond_destroy(&my_cond_stop_is_acknowledged);
 
-	init(0); // purge fifo
+	_fifo_init(0); // purge fifo
 }
 
 }

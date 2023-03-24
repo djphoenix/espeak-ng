@@ -25,6 +25,8 @@
 
 #include <espeak-ng/espeak_ng.h>
 
+#include "context.hpp"
+#include "setlengths.hpp"
 #include "espeak_command.hpp"
 
 #if USE_ASYNC
@@ -303,7 +305,7 @@ int delete_espeak_command(t_espeak_command *the_command)
 	return a_status;
 }
 
-void process_espeak_command(t_espeak_command *the_command)
+void context_t::process_espeak_command(t_espeak_command *the_command)
 {
 	if (the_command == NULL)
 		return;
@@ -349,7 +351,7 @@ void process_espeak_command(t_espeak_command *the_command)
 	case ET_PARAMETER:
 	{
 		t_espeak_parameter *data = &(the_command->u.my_param);
-		SetParameter(data->parameter, data->value, data->relative);
+		_SetParameter(data->parameter, data->value, data->relative);
 	}
 		break;
 	case ET_PUNCTUATION_LIST:

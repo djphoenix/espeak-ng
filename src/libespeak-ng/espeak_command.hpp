@@ -84,7 +84,7 @@ typedef enum {
 	CS_PROCESSED  // processed
 } t_command_state;
 
-typedef struct {
+struct t_espeak_command {
 	t_espeak_type type;
 	t_command_state state;
 
@@ -99,7 +99,7 @@ typedef struct {
 		espeak_VOICE my_voice_spec;
 		t_espeak_terminated_msg my_terminated_msg;
 	} u;
-} t_espeak_command;
+};
 
 
 t_espeak_command *create_espeak_text(const void *text, size_t size, unsigned int position, espeak_POSITION_TYPE position_type, unsigned int end_position, unsigned int flags, void *user_data);
@@ -120,21 +120,20 @@ t_espeak_command *create_espeak_voice_name(const char *name);
 
 t_espeak_command *create_espeak_voice_spec(espeak_VOICE *voice_spec);
 
-void process_espeak_command(t_espeak_command *the_command);
+// void process_espeak_command(t_espeak_command *the_command);
 
 int delete_espeak_command(t_espeak_command *the_command);
 
-espeak_ng_STATUS sync_espeak_Synth(unsigned int unique_identifier, const void *text,
-                                   unsigned int position, espeak_POSITION_TYPE position_type,
-                                   unsigned int end_position, unsigned int flags, void *user_data);
-espeak_ng_STATUS sync_espeak_Synth_Mark(unsigned int unique_identifier, const void *text,
-                                        const char *index_mark, unsigned int end_position,
-                                        unsigned int flags, void *user_data);
-espeak_ng_STATUS sync_espeak_Key(const char *key);
-espeak_ng_STATUS sync_espeak_Char(wchar_t character);
+// espeak_ng_STATUS sync_espeak_Synth(unsigned int unique_identifier, const void *text,
+//                                    unsigned int position, espeak_POSITION_TYPE position_type,
+//                                    unsigned int end_position, unsigned int flags, void *user_data);
+// espeak_ng_STATUS sync_espeak_Synth_Mark(unsigned int unique_identifier, const void *text,
+//                                         const char *index_mark, unsigned int end_position,
+//                                         unsigned int flags, void *user_data);
+// espeak_ng_STATUS sync_espeak_Key(const char *key);
+// espeak_ng_STATUS sync_espeak_Char(wchar_t character);
 void sync_espeak_SetPunctuationList(const wchar_t *punctlist);
 void sync_espeak_SetParameter(espeak_PARAMETER parameter, int value, int relative);
-espeak_ng_STATUS SetParameter(int parameter, int value, int relative);
 
 int sync_espeak_terminated_msg(unsigned int unique_identifier, void *user_data);
 

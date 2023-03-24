@@ -28,6 +28,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "readclause.hpp"
 #include "setlengths.hpp"
 #include "synthdata.hpp"
@@ -44,8 +45,6 @@ namespace espeak {
 static void SetSpeedFactors(voice_t *voice, int x, int speeds[3]);
 static void SetSpeedMods(SPEED_FACTORS *speed, int voiceSpeedF1, int wpm, int x);
 static void SetSpeedMultiplier(int *x, int *wpm);
-
-extern int saved_parameters[];
 
 // convert from words-per-minute to internal speed factor
 // Use this to calibrate speed for wpm 80-450 (espeakRATE_MINIMUM - espeakRATE_MAXIMUM)
@@ -144,7 +143,7 @@ static const unsigned char wav_factor_350[] = {
 static int len_speeds[3] = { 130, 121, 118 };
 static int more_syllables = 0;
 
-void SetSpeed(int control)
+void context_t::SetSpeed(int control)
 {
 	int x;
 	int wpm;
@@ -291,7 +290,7 @@ static void SetSpeedMods(SPEED_FACTORS *speed, int voiceSpeedF1, int wpm, int x)
 	}
 }
 
-espeak_ng_STATUS SetParameter(int parameter, int value, int relative)
+espeak_ng_STATUS context_t::_SetParameter(int parameter, int value, int relative)
 {
 	// parameter: reset-all, amp, pitch, speed, linelength, expression, capitals, number grouping
 	// relative 0=absolute  1=relative
@@ -347,7 +346,7 @@ espeak_ng_STATUS SetParameter(int parameter, int value, int relative)
 	return ENS_OK;
 }
 
-static void DoEmbedded2(int *embix)
+void context_t::DoEmbedded2(int *embix)
 {
 	// There were embedded commands in the text at this point
 
@@ -364,7 +363,7 @@ static void DoEmbedded2(int *embix)
 	} while ((word & 0x80) == 0);
 }
 
-void CalcLengths(Translator *tr)
+void context_t::CalcLengths(Translator *tr)
 {
 	int ix;
 	int ix2;

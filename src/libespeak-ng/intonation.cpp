@@ -28,6 +28,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "intonation.hpp"
 #include "phoneme.hpp"     // for PHONEME_TAB, PhonemeCode2, phonPAUSE, phPAUSE
 #include "synthdata.hpp"   // for PhonemeCode
@@ -45,14 +46,14 @@ namespace espeak {
 #define SYL_EMPHASIS    2
 #define SYL_END_CLAUSE   4
 
-typedef struct {
+struct SYLLABLE {
 	char stress;
 	char env;
 	char flags; // bit 0=pitch rising, bit1=emnphasized, bit2=end of clause
 	char nextph_type;
 	unsigned char pitch1;
 	unsigned char pitch2;
-} SYLLABLE;
+};
 
 static int tone_pitch_env; // used to return pitch envelope
 static int number_pre;
@@ -660,7 +661,7 @@ static void SetPitchGradient(SYLLABLE *syllable_tab, int start_ix, int end_ix, i
 }
 
 // Calculate pitch values for the vowels in this tone group
-static int calc_pitches2(SYLLABLE *syllable_tab, int start, int end,  int tune_number)
+int context_t::calc_pitches2(SYLLABLE *syllable_tab, int start, int end,  int tune_number)
 {
 	int ix;
 	TUNE *tune;
@@ -707,7 +708,7 @@ static int calc_pitches2(SYLLABLE *syllable_tab, int start, int end,  int tune_n
 }
 
 // Calculate pitch values for the vowels in this tone group
-static int calc_pitches(SYLLABLE *syllable_tab, int control, int start, int end,  int tune_number)
+int context_t::calc_pitches(SYLLABLE *syllable_tab, int control, int start, int end,  int tune_number)
 {
 	int ix;
 	const TONE_HEAD *th;
@@ -765,7 +766,7 @@ static int calc_pitches(SYLLABLE *syllable_tab, int control, int start, int end,
 	return tone_pitch_env;
 }
 
-static void CalcPitches_Tone(Translator *tr)
+void context_t::CalcPitches_Tone(Translator *tr)
 {
 	PHONEME_LIST *p;
 	int ix;
@@ -912,7 +913,7 @@ static void CalcPitches_Tone(Translator *tr)
 	}
 }
 
-void CalcPitches(Translator *tr, int clause_type)
+void context_t::CalcPitches(Translator *tr, int clause_type)
 {
 	// clause_type: 0=. 1=, 2=?, 3=! 4=none
 

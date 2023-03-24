@@ -60,7 +60,7 @@ typedef struct {
 	short klt_bp;
 } peak_t;
 
-typedef struct {
+struct SpectFrame {
 	int keyframe;
 	short amp_adjust;
 	float length_adjust;
@@ -79,9 +79,9 @@ typedef struct {
 
 	formant_t formants[N_PEAKS]; // this is just the estimate given by Praat
 	peak_t peaks[N_PEAKS];
-} SpectFrame;
+};
 
-double GetFrameRms(SpectFrame *frame, int amp);
+// double GetFrameRms(SpectFrame *frame, int amp);
 
 typedef struct {
 	int numframes;

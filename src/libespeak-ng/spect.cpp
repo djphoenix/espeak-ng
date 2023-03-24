@@ -30,6 +30,7 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
+#include "context.hpp"
 #include "spect.hpp"
 #include "ieee80.hpp"                    // for ConvertFromIeeeExtended
 #include "wavegen.hpp"                   // for wavegen_peaks_t, PeaksToHarmspect
@@ -204,7 +205,7 @@ static espeak_ng_STATUS LoadFrame(SpectFrame *frame, FILE *stream, int file_form
 	return ENS_OK;
 }
 
-double GetFrameRms(SpectFrame *frame, int seq_amplitude)
+double context_t::GetFrameRms(SpectFrame *frame, int seq_amplitude)
 {
 	int h;
 	float total = 0;
