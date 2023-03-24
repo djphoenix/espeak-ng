@@ -32,6 +32,7 @@
 #include <espeak-ng/espeak_ng.h>
 #include <espeak-ng/speak_lib.h>
 
+#include "context.hpp"
 #include "wavegen.hpp"
 #include "common.hpp"                   // for espeak_rand
 #include "synthesize.hpp"               // for WGEN_DATA, RESONATOR, frame_t
@@ -1441,12 +1442,24 @@ int WavegenFill(void)
 ESPEAK_NG_API espeak_ng_STATUS
 espeak_ng_SetOutputHooks(espeak_ng_OUTPUT_HOOKS* hooks)
 {
+	return context_t::global().SetOutputHooks(hooks);
+}
+
+espeak_ng_STATUS
+context_t::SetOutputHooks(espeak_ng_OUTPUT_HOOKS* hooks)
+{
 	output_hooks = hooks;
 	return ENS_OK;
 }
 
 ESPEAK_NG_API espeak_ng_STATUS
 espeak_ng_SetConstF0(int f0)
+{
+	return context_t::global().SetConstF0(f0);
+}
+
+espeak_ng_STATUS
+context_t::SetConstF0(int f0)
 {
 	const_f0 = f0;
 	return ENS_OK;

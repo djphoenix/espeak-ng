@@ -35,6 +35,7 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
+#include "context.hpp"
 #include "common.hpp"
 #include "translate.hpp"
 
@@ -347,6 +348,11 @@ void espeak_srand(long seed) {
 #pragma GCC visibility push(default)
 ESPEAK_NG_API espeak_ng_STATUS
 espeak_ng_SetRandSeed(long seed) {
+	return espeak::context_t::global().SetRandSeed(seed);
+}
+
+espeak_ng_STATUS espeak::context_t::SetRandSeed(long seed) {
+	// TODO
 	espeak::espeak_srand(seed);
 	return ENS_OK;
 }

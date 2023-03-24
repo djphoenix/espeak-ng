@@ -11,6 +11,8 @@ add_library(espeak-ng
   error.cpp
   ieee80.cpp
 
+  context.cpp
+
   compiledata.cpp
   compiledict.cpp
 

@@ -48,6 +48,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "speech.hpp"
 #include "common.hpp"               // for GetFileLength
 #include "dictionary.hpp"           // for GetTranslatedPhonemeString, strncpy0
@@ -504,6 +505,11 @@ using namespace espeak;
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE output_mode, int buffer_length, const char *device)
 {
+	return context_t::global().InitializeOutput(output_mode, buffer_length, device);
+}
+
+espeak_ng_STATUS context_t::InitializeOutput(espeak_ng_OUTPUT_MODE output_mode, int buffer_length, const char *device)
+{
 	(void)device; // unused if  USE_LIBPCAUDIO is not defined
 
 	my_mode = output_mode;
@@ -543,8 +549,12 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_InitializeOutput(espeak_ng_OUTPUT_MODE 
 	return ENS_OK;
 }
 
-
 ESPEAK_NG_API void espeak_ng_InitializePath(const char *path)
+{
+	context_t::global().InitializePath(path);
+}
+
+ESPEAK_NG_API void context_t::InitializePath(const char *path)
 {
 	if (check_data_path(path, 1))
 		return;
@@ -581,6 +591,13 @@ ESPEAK_NG_API void espeak_ng_InitializePath(const char *path)
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *context)
 {
+	espeak_ng_STATUS st = context_t::global().Initialize();
+	if (st != ENS_OK && context) *context = context_t::global().GetError();
+	return st;
+}
+
+espeak_ng_STATUS context_t::Initialize()
+{
 	int param;
 	int srate = 22050; // default sample rate 22050 Hz
 
@@ -594,7 +611,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *con
 		}
 	}
 
-	espeak_ng_STATUS result = LoadPhData(&srate, context);
+	espeak_ng_STATUS result = LoadPhData(&srate, &error_context);
 	if (result != ENS_OK)
 		return result;
 
@@ -612,11 +629,11 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *con
 	for (param = 0; param < N_SPEECH_PARAM; param++)
 		param_stack[0].parameter[param] = saved_parameters[param] = param_defaults[param];
 
-	SetParameter(espeakRATE, espeakRATE_NORMAL, 0);
-	SetParameter(espeakVOLUME, 100, 0);
-	SetParameter(espeakCAPITALS, option_capitals, 0);
-	SetParameter(espeakPUNCTUATION, option_punctuation, 0);
-	SetParameter(espeakWORDGAP, 0, 0);
+	::SetParameter(espeakRATE, espeakRATE_NORMAL, 0);
+	::SetParameter(espeakVOLUME, 100, 0);
+	::SetParameter(espeakCAPITALS, option_capitals, 0);
+	::SetParameter(espeakPUNCTUATION, option_punctuation, 0);
+	::SetParameter(espeakWORDGAP, 0, 0);
 
 	option_phonemes = 0;
 	option_phoneme_events = 0;
@@ -628,6 +645,10 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Initialize(espeak_ng_ERROR_CONTEXT *con
 }
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetPhonemeEvents(int enable, int ipa) {
+	return context_t::global().SetPhonemeEvents(enable, ipa);
+}
+
+espeak_ng_STATUS context_t::SetPhonemeEvents(int enable, int ipa) {
 	option_phoneme_events = 0;
 	if (enable) {
 		option_phoneme_events |= espeakINITIALIZE_PHONEME_EVENTS;
@@ -640,15 +661,26 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetPhonemeEvents(int enable, int ipa) {
 
 ESPEAK_NG_API int espeak_ng_GetSampleRate(void)
 {
+	return context_t::global().GetSampleRate();
+}
+
+int context_t::GetSampleRate(void) const
+{
 	return samplerate;
 }
 
 ESPEAK_API void espeak_SetSynthCallback(t_espeak_callback *SynthCallback)
 {
+	context_t::global().SetSynthCallback(SynthCallback);
+}
+
+espeak_ng_STATUS context_t::SetSynthCallback(t_espeak_callback *SynthCallback)
+{
 	synth_callback = SynthCallback;
 #if USE_ASYNC
 	event_set_callback(synth_callback);
 #endif
+	return ENS_OK;
 }
 
 ESPEAK_NG_API espeak_ng_STATUS
@@ -657,6 +689,16 @@ espeak_ng_Synthesize(const void *text, size_t size,
                      espeak_POSITION_TYPE position_type,
                      unsigned int end_position, unsigned int flags,
                      unsigned int *unique_identifier, void *user_data)
+{
+	return context_t::global().Synthesize(text, size, position, position_type, end_position, flags, unique_identifier, user_data);
+}
+
+espeak_ng_STATUS
+context_t::Synthesize(const void *text, size_t size,
+                      unsigned int position,
+                      espeak_POSITION_TYPE position_type,
+                      unsigned int end_position, unsigned int flags,
+                      unsigned int *unique_identifier, void *user_data)
 {
 	(void)size; // unused in non-async modes
 
@@ -707,6 +749,18 @@ espeak_ng_SynthesizeMark(const void *text,
                          unsigned int *unique_identifier,
                          void *user_data)
 {
+	return context_t::global().SynthesizeMark(text, size, index_mark, end_position, flags, unique_identifier, user_data);
+}
+
+espeak_ng_STATUS
+context_t::SynthesizeMark(const void *text,
+                          size_t size,
+                          const char *index_mark,
+                          unsigned int end_position,
+                          unsigned int flags,
+                          unsigned int *unique_identifier,
+                          void *user_data)
+{
 	(void)size; // unused in non-async modes
 
 	unsigned int temp_identifier;
@@ -750,6 +804,11 @@ espeak_ng_SynthesizeMark(const void *text,
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SpeakKeyName(const char *key_name)
 {
+	return context_t::global().SpeakKeyName(key_name);
+}
+
+espeak_ng_STATUS context_t::SpeakKeyName(const char *key_name)
+{
 	// symbolic name, symbolicname_character  - is there a system resource of symbolicnames per language
 
 	if (my_mode & ENOUTPUT_MODE_SYNCHRONOUS)
@@ -767,6 +826,11 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SpeakKeyName(const char *key_name)
 }
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SpeakCharacter(wchar_t character)
+{
+	return context_t::global().SpeakCharacter(character);
+}
+
+espeak_ng_STATUS context_t::SpeakCharacter(wchar_t character)
 {
 	// is there a system resource of character names per language?
 
@@ -794,9 +858,14 @@ ESPEAK_API int espeak_GetParameter(espeak_PARAMETER parameter, int current)
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetParameter(espeak_PARAMETER parameter, int value, int relative)
 {
+	return context_t::global().SetParameter(parameter, value, relative);
+}
+
+espeak_ng_STATUS context_t::SetParameter(espeak_PARAMETER parameter, int value, int relative)
+{
 #if USE_ASYNC
 	if (my_mode & ENOUTPUT_MODE_SYNCHRONOUS)
-		return SetParameter(parameter, value, relative);
+		return ::SetParameter(parameter, value, relative);
 
 	t_espeak_command *c = create_espeak_parameter(parameter, value, relative);
 
@@ -805,11 +874,16 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetParameter(espeak_PARAMETER parameter
 		delete_espeak_command(c);
 	return status;
 #else
-	return SetParameter(parameter, value, relative);
+	return ::SetParameter(parameter, value, relative);
 #endif
 }
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetPunctuationList(const wchar_t *punctlist)
+{
+	return context_t::global().SetPunctuationList(punctlist);
+}
+
+espeak_ng_STATUS context_t::SetPunctuationList(const wchar_t *punctlist)
 {
 	// Set the list of punctuation which are spoken for "some".
 
@@ -853,6 +927,11 @@ ESPEAK_API void espeak_SetPhonemeTrace(int phonememode, FILE *stream)
 
 ESPEAK_API const char *espeak_TextToPhonemes(const void **textptr, int textmode, int phonememode)
 {
+	return context_t::global().TextToPhonemes(textptr, textmode, phonememode);
+}
+
+const char *context_t::TextToPhonemes(const void **textptr, int textmode, int phonememode)
+{
 	/* phoneme_mode
 	    bit 1:   0=eSpeak's ascii phoneme names, 1= International Phonetic Alphabet (as UTF-8 characters).
 	    bit 7:   use (bits 8-23) as a tie within multi-letter phonemes names
@@ -873,6 +952,11 @@ ESPEAK_API const char *espeak_TextToPhonemes(const void **textptr, int textmode,
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Cancel(void)
 {
+	return context_t::global().Cancel();
+}
+
+espeak_ng_STATUS context_t::Cancel(void)
+{
 #if USE_ASYNC
 	fifo_stop();
 	event_clear_all();
@@ -885,7 +969,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Cancel(void)
 	embedded_value[EMBED_T] = 0; // reset echo for pronunciation announcements
 
 	for (int i = 0; i < N_SPEECH_PARAM; i++)
-		SetParameter(i, saved_parameters[i], 0);
+		::SetParameter(i, saved_parameters[i], 0);
 
 	return ENS_OK;
 }
@@ -901,6 +985,11 @@ ESPEAK_API int espeak_IsPlaying(void)
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Synchronize(void)
 {
+	return context_t::global().Synchronize();
+}
+
+espeak_ng_STATUS context_t::Synchronize(void)
+{
 	espeak_ng_STATUS berr = err;
 #if USE_ASYNC
 	while (espeak_IsPlaying())
@@ -911,6 +1000,11 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Synchronize(void)
 }
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Terminate(void)
+{
+	return context_t::global().Terminate();
+}
+
+espeak_ng_STATUS context_t::Terminate(void)
 {
 #if USE_ASYNC
 	fifo_stop();

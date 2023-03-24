@@ -39,6 +39,7 @@
 #include <espeak-ng/encoding.h>
 #include <ucd/ucd.h>
 
+#include "context.hpp"
 #include "ssml.hpp"
 #include "common.hpp"           // for strncpy0
 #include "mnemonics.hpp"               // for LookupMnemName, MNEM_TAB, 
@@ -983,7 +984,13 @@ int ProcessSsmlTag(wchar_t *xml_buf, char *outbuf, int *outix, int n_outbuf, con
 #pragma GCC visibility push(default)
 ESPEAK_API void espeak_SetUriCallback(int (*UriCallback)(int, const char *, const char *))
 {
+	context_t::global().SetUriCallback(UriCallback);
+}
+
+espeak_ng_STATUS context_t::SetUriCallback(int (*UriCallback)(int, const char *, const char *))
+{
 	uri_callback = UriCallback;
+	return ENS_OK;
 }
 #pragma GCC visibility pop
 

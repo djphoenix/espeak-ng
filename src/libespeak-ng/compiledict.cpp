@@ -33,6 +33,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "common.hpp"               // for strncpy0
 #include "compiledict.hpp"
 #include "dictionary.hpp"           // for EncodePhonemes, HashDicti...
@@ -1526,8 +1527,13 @@ static espeak_ng_STATUS compile_dictrules(CompileContext *ctx, FILE *f_in, FILE 
 #pragma GCC visibility push(default)
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, const char *dict_name, FILE *log, int flags, espeak_ng_ERROR_CONTEXT *context)
 {
-	using namespace espeak;
-	
+	espeak_ng_STATUS st = espeak::context_t::global().CompileDictionary(dsource, dict_name, log, flags);
+	if (st != ENS_OK && context) *context = espeak::context_t::global().GetError();
+	return st;
+}
+
+ESPEAK_NG_API espeak_ng_STATUS espeak::context_t::CompileDictionary(const char *dsource, const char *dict_name, FILE *log, int flags)
+{
 	if (!log) log = stderr;
 	if (!dict_name) dict_name = dictionary_name;
 
@@ -1564,7 +1570,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 		snprintf(fname_in, sizeof(fname_in), "%srules", path);
 		if ((f_in = fopen(fname_in, "r")) == NULL) {
 			clean_context(ctx);
-			return create_file_error_context(context, espeak_ng_STATUS(errno), fname_in);
+			return create_file_error_context(&error_context, espeak_ng_STATUS(errno), fname_in);
 		}
 	}
 
@@ -1573,7 +1579,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 		int error = errno;
 		fclose(f_in);
 		clean_context(ctx);
-		return create_file_error_context(context, espeak_ng_STATUS(error), fname_out);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(error), fname_out);
 	}
 
 	value = N_HASH_DICT;

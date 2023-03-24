@@ -39,6 +39,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "voice.hpp"                    // for voice_t, DoVoiceChange, N_PEAKS
 #include "common.hpp"                    // for GetFileLength, strncpy0
 #include "dictionary.hpp"               // for LoadDictionary
@@ -1280,6 +1281,11 @@ using namespace espeak;
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByFile(const char *filename)
 {
+	return context_t::global().SetVoiceByFile(filename);
+}
+
+espeak_ng_STATUS context_t::SetVoiceByFile(const char *filename)
+{
 	int ix;
 	espeak_VOICE voice_selector;
 	char *variant_name;
@@ -1315,6 +1321,11 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByFile(const char *filename)
 }
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
+{
+	return context_t::global().SetVoiceByName(name);
+}
+
+espeak_ng_STATUS context_t::SetVoiceByName(const char *name)
 {
 	espeak_VOICE *v;
 	int ix;
@@ -1366,6 +1377,11 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByName(const char *name)
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByProperties(espeak_VOICE *voice_selector)
 {
+	return context_t::global().SetVoiceByProperties(voice_selector);
+}
+
+espeak_ng_STATUS context_t::SetVoiceByProperties(espeak_VOICE *voice_selector)
+{
 	const char *voice_id;
 	int voice_found;
 
@@ -1381,6 +1397,11 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_SetVoiceByProperties(espeak_VOICE *voic
 }
 
 ESPEAK_API const espeak_VOICE **espeak_ListVoices(espeak_VOICE *voice_spec)
+{
+	return context_t::global().ListVoices(voice_spec);
+}
+
+const espeak_VOICE ** context_t::ListVoices(espeak_VOICE *voice_spec)
 {
 	char path_voices[sizeof(path_home)+12];
 

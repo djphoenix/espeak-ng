@@ -32,6 +32,7 @@
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "synthesize.hpp"
 #include "dictionary.hpp"           // for WritePhMnemonic, GetTranslatedPhone...
 #include "intonation.hpp"           // for CalcPitches
@@ -1599,7 +1600,13 @@ int SpeakNextClause(int control)
 #pragma GCC visibility push(default)
 ESPEAK_API void espeak_SetPhonemeCallback(int (*PhonemeCallback)(const char *))
 {
+	context_t::global().SetPhonemeCallback(PhonemeCallback);
+}
+
+espeak_ng_STATUS context_t::SetPhonemeCallback(int (*PhonemeCallback)(const char *))
+{
 	phoneme_callback = PhonemeCallback;
+	return ENS_OK;
 }
 #pragma GCC visibility pop
 

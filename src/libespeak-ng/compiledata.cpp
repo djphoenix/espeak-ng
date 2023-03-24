@@ -31,10 +31,11 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <espeak-ng/espeak_ng.h>
+#include <espeak-ng/espeak_ng_ctx.h>
 #include <espeak-ng/speak_lib.h>
 #include <espeak-ng/encoding.h>
 
+#include "context.hpp"
 #include "common.hpp"                    // for GetFileLength, strncpy0, ...c
 #include "error.hpp"                    // for create_file_error_context
 #include "mnemonics.hpp"               // for LookupMnemName, MNEM_TAB
@@ -2380,6 +2381,19 @@ espeak_ng_CompilePhonemeDataPath(long rate,
                                  FILE *log,
                                  espeak_ng_ERROR_CONTEXT *context)
 {
+	espeak_ng_STATUS st = context_t::global().CompilePhonemeDataPath(rate, source_path, destination_path, log);
+	if (st != ENS_OK && context) *context = context_t::global().GetError();
+	return st;
+}
+
+espeak_ng_STATUS
+context_t::CompilePhonemeDataPath(
+	long rate,
+	const char *source_path,
+	const char *destination_path,
+	FILE *log
+)
+{
 	if (!log) log = stderr;
 
 	char fname[sizeof(path_home)+58];
@@ -2420,7 +2434,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	ctx->f_in = fopen(fname, "rb");
 	if (ctx->f_in == NULL) {
 		clean_context(ctx);
-		return create_file_error_context(context, espeak_ng_STATUS(errno), fname);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(errno), fname);
 	}
 
 	snprintf(fname, sizeof(fname), "%s/%s", phdst, "phondata-manifest");
@@ -2448,7 +2462,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 		fclose(ctx->f_in);
 		fclose(ctx->f_phcontents);
 		clean_context(ctx);
-		return create_file_error_context(context, espeak_ng_STATUS(error), fname);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(error), fname);
 	}
 
 	snprintf(fname, sizeof(fname), "%s/%s", phdst, "phonindex");
@@ -2459,7 +2473,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 		fclose(ctx->f_phcontents);
 		fclose(ctx->f_phdata);
 		clean_context(ctx);
-		return create_file_error_context(context, espeak_ng_STATUS(error), fname);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(error), fname);
 	}
 
 	snprintf(fname, sizeof(fname), "%s/%s", phdst, "phontab");
@@ -2471,7 +2485,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 		fclose(ctx->f_phdata);
 		fclose(ctx->f_phindex);
 		clean_context(ctx);
-		return create_file_error_context(context, espeak_ng_STATUS(error), fname);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(error), fname);
 	}
 
 	snprintf(fname, sizeof(fname), "%s/compile_prog_log", ctx->phsrc);
@@ -2516,7 +2530,7 @@ espeak_ng_CompilePhonemeDataPath(long rate,
 	if (ctx->f_errors != stderr && ctx->f_errors != stdout)
 		fclose(ctx->f_errors);
 
-	espeak_ng_STATUS status = ReadPhondataManifest(ctx, context);
+	espeak_ng_STATUS status = ReadPhondataManifest(ctx, &error_context);
 	espeak_ng_STATUS res = ctx->error_count > 0 ? ENS_COMPILE_ERROR : ENS_OK;
 	clean_context(ctx);
 	return (status != ENS_OK) ? status : res;
@@ -2534,6 +2548,16 @@ espeak_ng_CompileIntonationPath(const char *source_path,
                                 espeak_ng_ERROR_CONTEXT *context
                                 )
 {
+	espeak_ng_STATUS st = context_t::global().CompileIntonationPath(source_path, destination_path, log);
+	if (st != ENS_OK && context) *context = context_t::global().GetError();
+	return st;
+}
+
+espeak_ng_STATUS context_t::CompileIntonationPath(
+	const char *source_path,
+	const char *destination_path,
+	FILE *log
+) {
 	if (!log) log = stderr;
 	if (!source_path) source_path = path_home;
 	if (!destination_path) destination_path = path_home;
@@ -2569,7 +2593,7 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 			int error = errno;
 			fclose(ctx->f_errors);
 			clean_context(ctx);
-			return create_file_error_context(context, espeak_ng_STATUS(error), buf);
+			return create_file_error_context(&error_context, espeak_ng_STATUS(error), buf);
 		}
 	}
 
@@ -2627,7 +2651,7 @@ espeak_ng_CompileIntonationPath(const char *source_path,
 		fclose(ctx->f_errors);
 		free(tune_data);
 		clean_context(ctx);
-		return create_file_error_context(context, espeak_ng_STATUS(error), buf);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(error), buf);
 	}
 
 	while (!feof(ctx->f_in)) {

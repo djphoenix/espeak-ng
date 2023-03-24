@@ -30,6 +30,7 @@
 
 #include "mbrola.hpp"
 
+#include "context.hpp"
 #include "error.hpp"                // for create_file_error_context
 #include "common.hpp"               // for StringToWord
 #include "mbrola.hpp"               // for MBROLA_TAB
@@ -50,7 +51,14 @@ static const char *_basename(const char *filename)
 }
 
 #pragma GCC visibility push(default)
-espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, espeak_ng_ERROR_CONTEXT *context)
+
+espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, espeak_ng_ERROR_CONTEXT *context) {
+	espeak_ng_STATUS st = espeak::context_t::global().CompileMbrolaVoice(filepath, log);
+	if (st != ENS_OK && context) *context = espeak::context_t::global().GetError();
+	return st;
+}
+
+espeak_ng_STATUS espeak::context_t::CompileMbrolaVoice(const char *filepath, FILE *log)
 {
 	using namespace espeak;
 	
@@ -75,7 +83,7 @@ espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, e
 	MBROLA_TAB data[N_PHONEME_TAB];
 
 	if ((f_in = fopen(filepath, "r")) == NULL)
-		return create_file_error_context(context, espeak_ng_STATUS(errno), filepath);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(errno), filepath);
 
 	while (fgets(buf, sizeof(phoneme), f_in) != NULL) {
 		buf[sizeof(phoneme)-1] = 0;
@@ -114,7 +122,7 @@ espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, e
 	strcpy(mbrola_voice, _basename(filepath));
 	snprintf(buf, sizeof(buf), "%s/mbrola_ph/%s_phtrans", path_home, mbrola_voice);
 	if ((f_out = fopen(buf, "wb")) == NULL)
-		return create_file_error_context(context, espeak_ng_STATUS(errno), buf);
+		return create_file_error_context(&error_context, espeak_ng_STATUS(errno), buf);
 
 	memset(&data[count], 0, sizeof(data[count]));
 	data[count].name = 0; // list terminator
