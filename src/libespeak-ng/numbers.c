@@ -76,6 +76,8 @@ static int n_digit_lookup;
 static char *digit_lookup;
 static int speak_missing_thousands;
 static int number_control;
+static char ph_ordinal2[12];
+static char ph_ordinal2x[12];
 
 typedef struct {
 	const char name[8];
@@ -686,9 +688,6 @@ void SetSpellingStress(Translator *tr, char *phonemes, int control, int n_chars)
 }
 
 // Numbers
-
-static char ph_ordinal2[12];
-static char ph_ordinal2x[12];
 
 static int CheckDotOrdinal(Translator *tr, char *word, char *word_end, WORD_TAB *wtab, int roman)
 {

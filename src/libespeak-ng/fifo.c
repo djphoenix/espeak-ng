@@ -65,6 +65,14 @@ static void init(int process_parameters);
 static int node_counter = 0;
 static bool thread_inited = false;
 
+typedef struct t_node {
+	t_espeak_command *data;
+	struct t_node *next;
+} node;
+
+static node *head = NULL;
+static node *tail = NULL;
+
 enum {
 	MAX_NODE_COUNTER = 400,
 	INACTIVITY_TIMEOUT = 50, // in ms, check that the stream is inactive
@@ -384,14 +392,6 @@ int fifo_is_command_enabled(void)
 {
 	return 0 == my_stop_is_required;
 }
-
-typedef struct t_node {
-	t_espeak_command *data;
-	struct t_node *next;
-} node;
-
-static node *head = NULL;
-static node *tail = NULL;
 
 static espeak_ng_STATUS push(t_espeak_command *the_command)
 {

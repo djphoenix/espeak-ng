@@ -80,6 +80,12 @@ static void setzeroabc(long, long, resonator_ptr);
 static klatt_frame_t kt_frame;
 static klatt_global_t kt_globals;
 
+static klatt_peaks_t peaks[N_PEAKS];
+static int end_wave;
+static int klattp[N_KLATTP];
+static double klattp1[N_KLATTP];
+static double klattp_inc[N_KLATTP];
+
 #define NUMBER_OF_SAMPLES 100
 
 static const int scale_wav_tab[] = { 45, 38, 45, 45, 55, 45 }; // scale output from different voicing sources
@@ -854,12 +860,6 @@ static double DBtoLIN(long dB)
 
 	return (double)(amptable[dB]) * 0.001;
 }
-
-static klatt_peaks_t peaks[N_PEAKS];
-static int end_wave;
-static int klattp[N_KLATTP];
-static double klattp1[N_KLATTP];
-static double klattp_inc[N_KLATTP];
 
 int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice)
 {

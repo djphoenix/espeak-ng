@@ -58,6 +58,10 @@ int dictionary_skipwords;
 char dictionary_name[40];
 static char word_replacement[N_WORD_BYTES];
 
+#define N_PHON_OUT  500  // realloc increment
+static char *phon_out_buf = NULL;   // passes the result of GetTranslatedPhonemeString()
+static unsigned int phon_out_size = 0;
+
 // accented characters which indicate (in some languages) the start of a separate syllable
 static const unsigned short diereses_list[7] = { 0xe4, 0xeb, 0xef, 0xf6, 0xfc, 0xff, 0 };
 
@@ -434,10 +438,6 @@ static const unsigned short ipa1[96] = {
 	0x60,  0x61,  0x62,  0x63,  0x64,  0x65,  0x66,  0x261, 0x68,  0x69,  0x6a,  0x6b,  0x6c,  0x6d,  0x6e,  0x6f,
 	0x70,  0x71,  0x72,  0x73,  0x74,  0x75,  0x76,  0x77,  0x78,  0x79,  0x7a,  0x7b,  0x7c,  0x7d,  0x303, 0x7f
 };
-
-#define N_PHON_OUT  500  // realloc increment
-static char *phon_out_buf = NULL;   // passes the result of GetTranslatedPhonemeString()
-static unsigned int phon_out_size = 0;
 
 char *WritePhMnemonic(char *phon_out, PHONEME_TAB *ph, PHONEME_LIST *plist, int use_ipa, int *flags)
 {
