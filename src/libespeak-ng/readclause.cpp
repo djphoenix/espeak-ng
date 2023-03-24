@@ -53,31 +53,6 @@ namespace espeak {
 
 #define N_XML_BUF   500
 
-static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc);
-
-static const char *xmlbase = ""; // base URL from <speak>
-
-static int ungot_char2 = 0;
-static int ungot_char;
-
-static bool ignore_text = false; // set during <sub> ... </sub>  to ignore text which has been replaced by an alias
-static bool audio_text = false; // set during <audio> ... </audio>
-static bool clear_skipping_text = false; // next clause should clear the skipping_text flag
-static int sayas_mode;
-static int sayas_start;
-
-#define N_SSML_STACK  20
-static int n_ssml_stack;
-static SSML_STACK ssml_stack[N_SSML_STACK];
-
-static espeak_VOICE base_voice;
-static char base_voice_variant_name[40] = { 0 };
-static char current_voice_id[40] = { 0 };
-
-#define N_XML_BUF2 20
-static char ungot_string[N_XML_BUF2+4];
-static int ungot_string_ix = -1;
-
 #define ESPEAKNG_CLAUSE_TYPE_PROPERTY_MASK 0xFFF0000000000000ull
 
 int clause_type_from_codepoint(uint32_t c)
@@ -155,7 +130,7 @@ int context_t::GetC(void)
 	return text_decoder_getc(p_decoder);
 }
 
-static void UngetC(int c)
+void context_t::UngetC(int c)
 {
 	ungot_char = c;
 }
@@ -387,7 +362,7 @@ int context_t::AddNameData(const char *name, int wide)
 	return ix;
 }
 
-void SetVoiceStack(espeak_VOICE *v, const char *variant_name)
+void context_t::SetVoiceStack(espeak_VOICE *v, const char *variant_name)
 {
 	SSML_STACK *sp;
 	sp = &ssml_stack[0];
@@ -988,7 +963,7 @@ void context_t::InitText2(void)
 	xmlbase = NULL;
 }
 
-static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc) {
+void context_t::TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc) {
 	buf[index] = ' ';
 	buf[index+1] = 0;
 

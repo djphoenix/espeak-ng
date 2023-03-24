@@ -55,14 +55,6 @@ struct SYLLABLE {
 	unsigned char pitch2;
 };
 
-static int tone_pitch_env; // used to return pitch envelope
-static int number_pre;
-static int number_tail;
-static int last_primary;
-static int tone_posn;
-static int tone_posn2;
-static int no_tonic;
-
 /* Pitch data for tone types */
 /*****************************/
 
@@ -301,7 +293,7 @@ static const TONE_NUCLEUS tone_nucleus_table[N_TONE_NUCLEUS_TABLE] = {
 #define PRIMARY_STRESSED 6
 #define PRIMARY_LAST     7
 
-static void count_pitch_vowels(SYLLABLE *syllable_tab, int start, int end, int clause_end)
+void context_t::count_pitch_vowels(SYLLABLE *syllable_tab, int start, int end, int clause_end)
 {
 	int ix;
 	int stress;

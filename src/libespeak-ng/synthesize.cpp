@@ -48,34 +48,6 @@
 
 namespace espeak {
 
-static int last_pitch_cmd;
-static int last_amp_cmd;
-static frame_t  *last_frame;
-static int last_wcmdq;
-static int pitch_length;
-static int amp_length;
-static int modn_flags;
-static int fmt_amplitude = 0;
-
-static int syllable_start;
-static int syllable_end;
-static int syllable_centre;
-static int wave_flag = 0;
-
-static voice_t *new_voice = NULL;
-
-static int (*phoneme_callback)(const char *) = NULL;
-
-#define N_FRAME_POOL N_WCMDQ
-static int frame_pool_ix = 0;
-static frame_t frame_pool[N_FRAME_POOL];
-
-static int ix;
-static int embedded_ix;
-static int word_count;
-static int sourceix = 0;
-static WORD_PH_DATA worddata;
-
 #define RMS_GLOTTAL1 35   // vowel before glottal stop
 #define RMS_START 28  // 28
 #define VOWEL_FRONT_LENGTH  50
@@ -91,7 +63,7 @@ const char *WordToString(char buf[5], unsigned int word)
 	return buf;
 }
 
-void SynthesizeInit(void)
+void context_t::SynthesizeInit(void)
 {
 	last_pitch_cmd = 0;
 	last_amp_cmd = 0;
@@ -380,7 +352,7 @@ int context_t::DoSample3(PHONEME_DATA *phdata, int length_mod, int amp)
 	return len;
 }
 
-static frame_t *AllocFrame(void)
+frame_t *context_t::AllocFrame(void)
 {
 	// Allocate a temporary spectrum frame for the wavegen queue. Use a pool which is big
 	// enough to use a round-robin without checks.
@@ -450,7 +422,7 @@ void context_t::formants_reduce_hf(frame_t *fr, int level)
 	}
 }
 
-static frame_t *CopyFrame(frame_t *frame1, int copy)
+frame_t *context_t::CopyFrame(frame_t *frame1, int copy)
 {
 	// create a copy of the specified frame in temporary buffer
 
@@ -470,7 +442,7 @@ static frame_t *CopyFrame(frame_t *frame1, int copy)
 	return frame2;
 }
 
-static frame_t *DuplicateLastFrame(frameref_t *seq, int n_frames, int length)
+frame_t *context_t::DuplicateLastFrame(frameref_t *seq, int n_frames, int length)
 {
 	frame_t *fr;
 
@@ -1146,9 +1118,9 @@ int context_t::Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 #endif
 
 	if (resume == false) {
-		ix = 1;
-		embedded_ix = 0;
-		word_count = 0;
+		gen_ix = 1;
+		embedded_ix_syn = 0;
+		word_count_syn = 0;
 		pitch_length = 0;
 		amp_length = 0;
 		last_frame = NULL;
@@ -1161,8 +1133,8 @@ int context_t::Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 		DoPause(0, 0); // isolate from the previous clause
 	}
 
-	while ((ix < (*n_ph)) && (ix < N_PHONEME_LIST-2)) {
-		p = &phoneme_list[ix];
+	while ((gen_ix < (*n_ph)) && (gen_ix < N_PHONEME_LIST-2)) {
+		p = &phoneme_list[gen_ix];
 		
 		if(output_hooks && output_hooks->outputPhoSymbol)
 		{
@@ -1186,12 +1158,12 @@ int context_t::Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 		PHONEME_LIST *next;
 		PHONEME_LIST *next2;
 
-		prev = &phoneme_list[ix-1];
-		next = &phoneme_list[ix+1];
-		next2 = &phoneme_list[ix+2];
+		prev = &phoneme_list[gen_ix-1];
+		next = &phoneme_list[gen_ix+1];
+		next2 = &phoneme_list[gen_ix+2];
 
 		if (p->synthflags & SFLAG_EMBEDDED)
-			DoEmbedded(&embedded_ix, p->sourceix);
+			DoEmbedded(&embedded_ix_syn, p->sourceix);
 
 		if (p->newword) {
 			if (((p->type == phVOWEL) && (translator->langopts.param[LOPT_WORD_MERGE] & 1)) ||
@@ -1205,7 +1177,7 @@ int context_t::Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 				DoMarker(espeakEVENT_SENTENCE, sourceix, 0, count_sentences); // start of sentence
 
 			if (p->newword & PHLIST_START_OF_WORD)
-				DoMarker(espeakEVENT_WORD, sourceix, p->sourceix >> 11, clause_start_word + word_count++); // NOTE, this count doesn't include multiple-word pronunciations in *_list. eg (of a)
+				DoMarker(espeakEVENT_WORD, sourceix, p->sourceix >> 11, clause_start_word + word_count_syn++); // NOTE, this count doesn't include multiple-word pronunciations in *_list. eg (of a)
 		}
 
 		EndAmplitude();
@@ -1508,7 +1480,7 @@ int context_t::Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 			DoSpect2(ph, 2, &fmtp, p, modulation);
 			break;
 		}
-		ix++;
+		gen_ix++;
 	}
 	EndPitch(1);
 	if (*n_ph > 0) {

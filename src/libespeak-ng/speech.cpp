@@ -67,28 +67,7 @@
 
 namespace espeak {
 
-static unsigned char *outbuf = NULL;
-static int outbuf_size = 0;
-static unsigned char *out_start;
-
-static int event_list_ix = 0;
-static int n_event_list;
-static long count_samples;
-#if USE_LIBPCAUDIO
-static struct audio_object *my_audio = NULL;
-#endif
-
-static unsigned int my_unique_identifier = 0;
-static void *my_user_data = NULL;
-static espeak_ng_OUTPUT_MODE my_mode = ENOUTPUT_MODE_SYNCHRONOUS;
-static int out_samplerate = 0;
-static int voice_samplerate = 22050;
-static const int min_buffer_length = 60; // minimum buffer length in ms
-static espeak_ng_STATUS err = ENS_OK;
-
-static t_espeak_callback *synth_callback = NULL;
-
-void cancel_audio(void)
+void context_t::cancel_audio(void)
 {
 #if USE_LIBPCAUDIO
 	if ((my_mode & ENOUTPUT_MODE_SPEAK_AUDIO) == ENOUTPUT_MODE_SPEAK_AUDIO) {
@@ -97,7 +76,7 @@ void cancel_audio(void)
 #endif
 }
 
-static int dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
+int context_t::dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
 {
 	int a_wave_can_be_played = 1;
 #if USE_ASYNC
@@ -129,7 +108,7 @@ static int dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
 				int error = audio_object_open(my_audio, AUDIO_OBJECT_FORMAT_S16LE, voice_samplerate, 1);
 				if (error != 0) {
 					fprintf(stderr, "error: %s\n", audio_object_strerror(my_audio, error));
-					err = ENS_AUDIO_ERROR;
+					async_err = ENS_AUDIO_ERROR;
 					return -1;
 				}
 #endif
@@ -146,7 +125,7 @@ static int dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
 			int error = audio_object_open(my_audio, AUDIO_OBJECT_FORMAT_S16LE, voice_samplerate, 1);
 			if (error != 0) {
 				fprintf(stderr, "error: %s\n", audio_object_strerror(my_audio, error));
-				err = ENS_AUDIO_ERROR;
+				async_err = ENS_AUDIO_ERROR;
 				return -1;
 			}
 			out_samplerate = voice_samplerate;
@@ -171,8 +150,8 @@ static int dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
 			if ((event->type == espeakEVENT_WORD) && (event->length == 0))
 				break;
 			if ((my_mode & ENOUTPUT_MODE_SYNCHRONOUS) == 0) {
-				err = event_declare(event);
-				if (err != ENS_EVENT_BUFFER_FULL)
+				async_err = event_declare(event);
+				if (async_err != ENS_EVENT_BUFFER_FULL)
 					break;
 				usleep(10000);
 				a_wave_can_be_played = fifo_is_command_enabled();
@@ -191,7 +170,7 @@ static int dispatch_audio(short *outbuf, int length, espeak_EVENT *event)
 	return a_wave_can_be_played == 0; // 1 = stop synthesis, -1 = error
 }
 
-static int create_events(short *outbuf, int length, espeak_EVENT *event_list)
+int context_t::create_events(short *outbuf, int length, espeak_EVENT *event_list)
 {
 	int finished;
 	int i = 0;
@@ -232,8 +211,8 @@ int sync_espeak_terminated_msg(uint32_t unique_identifier, void *user_data)
 
 	if (my_mode == ENOUTPUT_MODE_SPEAK_AUDIO) {
 		while (1) {
-			err = event_declare(event_list);
-			if (err != ENS_EVENT_BUFFER_FULL)
+			async_err = event_declare(event_list);
+			if (async_err != ENS_EVENT_BUFFER_FULL)
 				break;
 			usleep(10000);
 		}
@@ -615,8 +594,7 @@ espeak_ng_STATUS context_t::Initialize()
 	WavegenInit(srate, 0);
 	LoadConfig();
 
-	espeak_VOICE *current_voice_selected = espeak_GetCurrentVoice();
-	memset(current_voice_selected, 0, sizeof(espeak_VOICE));
+	memset(&current_voice_selected, 0, sizeof(espeak_VOICE));
 	SetVoiceStack(NULL, "");
 	SynthesizeInit();
 	InitNamedata();
@@ -996,12 +974,12 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_Synchronize(void)
 
 espeak_ng_STATUS context_t::Synchronize(void)
 {
-	espeak_ng_STATUS berr = err;
+	espeak_ng_STATUS berr = async_err;
 #if USE_ASYNC
 	while (espeak_IsPlaying())
 		usleep(20000);
 #endif
-	err = ENS_OK;
+	async_err = ENS_OK;
 	return berr;
 }
 

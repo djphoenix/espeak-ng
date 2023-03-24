@@ -57,16 +57,6 @@
 
 namespace espeak {
 
-static MBROLA_TAB *mbrola_tab = NULL;
-static int mbrola_control = 0;
-static int mbr_name_prefix = 0;
-
-static char output[50];
-static int phix;
-static int embedded_ix;
-static int word_count;
-static int n_samples;
-
 espeak_ng_STATUS context_t::LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, int *srate)
 {
 	// Load a phoneme name translation table from espeak-ng-data/mbrola
@@ -257,9 +247,9 @@ char *context_t::WritePitch(int env, int pitch1, int pitch2, int split, int fina
 	int env_split;
 	char buf[50];
 
-	MAKE_MEM_UNDEFINED(&output, sizeof(output));
+	MAKE_MEM_UNDEFINED(&output_mbr, sizeof(output_mbr));
 
-	output[0] = 0;
+	output_mbr[0] = 0;
 	pitch_env = envelope_data[env];
 
 	SetPitch2(voice, pitch1, pitch2, &pitch_base, &pitch_range);
@@ -295,7 +285,7 @@ char *context_t::WritePitch(int env, int pitch1, int pitch2, int split, int fina
 
 	if (split >= 0) {
 		snprintf(buf, sizeof(buf), " 0 %d", p1/4096);
-		strcat(output, buf);
+		strcat(output_mbr, buf);
 	}
 
 	// don't use intermediate pitch points for linear rise and fall
@@ -311,7 +301,7 @@ char *context_t::WritePitch(int env, int pitch1, int pitch2, int split, int fina
 				y2 = (y[ix] * env100)/128;
 			if ((y2 > 0) && (y2 <= env100)) {
 				snprintf(buf, sizeof(buf), " %d %d", y2, p2/4096);
-				strcat(output, buf);
+				strcat(output_mbr, buf);
 			}
 		}
 	}
@@ -319,17 +309,17 @@ char *context_t::WritePitch(int env, int pitch1, int pitch2, int split, int fina
 	p_end = p_end/4096;
 	if (split <= 0) {
 		snprintf(buf, sizeof(buf), " %d %d", env100, p_end);
-		strcat(output, buf);
+		strcat(output_mbr, buf);
 	}
 	if (env100 < 100) {
 		snprintf(buf, sizeof(buf), " %d %d", 100, p_end);
-		strcat(output, buf);
+		strcat(output_mbr, buf);
 	}
-	strcat(output, "\n");
+	strcat(output_mbr, "\n");
 
 	if (final)
-		snprintf(output, sizeof(output), "\t100 %d\n", p_end);
-	return output;
+		snprintf(output_mbr, sizeof(output_mbr), "\t100 %d\n", p_end);
+	return output_mbr;
 }
 
 int context_t::MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mbrola)
@@ -357,37 +347,37 @@ int context_t::MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume,
 	char phbuf[5];
 
 	if (!resume) {
-		phix = 1;
-		embedded_ix = 0;
-		word_count = 0;
+		phix_mbr = 1;
+		embedded_ix_mbr = 0;
+		word_count_mbr = 0;
 	}
 
-	while (phix < n_phonemes) {
+	while (phix_mbr < n_phonemes) {
 		if (WcmdqFree() < MIN_WCMDQ)
 			return 1;
 
 		ptr = mbr_buf;
 
-		p = &plist[phix];
-		next = &plist[phix+1];
+		p = &plist[phix_mbr];
+		next = &plist[phix_mbr+1];
 		ph = p->ph;
-		ph_prev = plist[phix-1].ph;
-		ph_next = plist[phix+1].ph;
+		ph_prev = plist[phix_mbr-1].ph;
+		ph_next = plist[phix_mbr+1].ph;
 
 		if (p->synthflags & SFLAG_EMBEDDED)
-			DoEmbedded(&embedded_ix, p->sourceix);
+			DoEmbedded(&embedded_ix_mbr, p->sourceix);
 
 		if (p->newword & PHLIST_START_OF_SENTENCE)
 			DoMarker(espeakEVENT_SENTENCE, (p->sourceix & 0x7ff) + clause_start_char, 0, count_sentences);
 		if (p->newword & PHLIST_START_OF_SENTENCE)
-			DoMarker(espeakEVENT_WORD, (p->sourceix & 0x7ff) + clause_start_char, p->sourceix >> 11, clause_start_word + word_count++);
+			DoMarker(espeakEVENT_WORD, (p->sourceix & 0x7ff) + clause_start_char, p->sourceix >> 11, clause_start_word + word_count_mbr++);
 
 		name = GetMbrName(p, ph, ph_prev, ph_next, &name2, &len_percent, &control);
 		if (control & 1)
-			phix++;
+			phix_mbr++;
 
 		if (name == 0) {
-			phix++;
+			phix_mbr++;
 			continue; // ignore this phoneme
 		}
 
@@ -516,7 +506,7 @@ int context_t::MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume,
 			WcmdqInc();
 		}
 
-		phix++;
+		phix_mbr++;
 	}
 
 	if (!f_mbrola) {
@@ -559,11 +549,11 @@ int context_t::MbrolaFill(int length, bool resume, int amplitude)
 	int value;
 
 	if (!resume)
-		n_samples = samplerate * length / 1000;
+		n_samples_mbr = samplerate * length / 1000;
 
 	req_samples = (out_end - out_ptr)/2;
-	if (req_samples > n_samples)
-		req_samples = n_samples;
+	if (req_samples > n_samples_mbr)
+		req_samples = n_samples_mbr;
 	result = read_MBR((short *)out_ptr, req_samples);
 	if (result <= 0)
 		return 0;
@@ -580,8 +570,8 @@ int context_t::MbrolaFill(int length, bool resume, int amplitude)
 		out_ptr[1] = value >> 8;
 		out_ptr += 2;
 	}
-	n_samples -= result;
-	return n_samples ? 1 : 0;
+	n_samples_mbr -= result;
+	return n_samples_mbr ? 1 : 0;
 }
 
 void MbrolaReset(void)

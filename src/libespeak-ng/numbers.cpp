@@ -75,13 +75,6 @@ namespace espeak {
 #define M_MIDDLE_DOT  M_DOT_ABOVE // duplicate of M_DOT_ABOVE
 #define M_IMPLOSIVE   M_HOOK
 
-static int n_digit_lookup;
-static char *digit_lookup;
-static int speak_missing_thousands;
-static int number_control;
-static char ph_ordinal2[12];
-static char ph_ordinal2x[12];
-
 typedef struct {
 	const char name[8];
 	int accent_flags;    // bit 0, say before the letter name

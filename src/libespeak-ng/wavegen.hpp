@@ -39,6 +39,9 @@ struct wavegen_peaks_t {
 	double right_inc;
 };
 
+#define N_WAVEMULT 128
+#define N_LOWHARM  30
+#define MAX_HARMONIC 400 // 400 * 50Hz = 20 kHz, more than enough
 
 int GetAmplitude(void);
 void InitBreath(void);

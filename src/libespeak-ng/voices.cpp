@@ -55,8 +55,6 @@
 
 namespace espeak {
 
-static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
-
 static const MNEM_TAB genders[] = {
 	{ "male", ENGENDER_MALE },
 	{ "female", ENGENDER_FEMALE },
@@ -67,26 +65,11 @@ static const MNEM_TAB genders[] = {
 static const int formant_rate_22050[9] = { 240, 170, 170, 170, 170, 170, 170, 170, 170 }; // values for 22kHz sample rate
 
 #define DEFAULT_LANGUAGE_PRIORITY  5
-#define N_VOICES_LIST  350
-static int n_voices_list = 0;
-static espeak_VOICE *voices_list[N_VOICES_LIST];
 
-static espeak_VOICE current_voice_selected;
-
-#define N_VOICE_VARIANTS   12
 static const char variants_either[N_VOICE_VARIANTS] = { 1, 2, 12, 3, 13, 4, 14, 5, 11, 0 };
 static const char variants_male[N_VOICE_VARIANTS] = { 1, 2, 3, 4, 5, 6, 0 };
 static const char variants_female[N_VOICE_VARIANTS] = { 11, 12, 13, 14, 0 };
 static const char *const variant_lists[3] = { variants_either, variants_male, variants_female };
-
-static espeak_VOICE **voices = NULL;
-
-static char voice_identifier[40]; // file name for  current_voice_selected
-static char voice_name[40];       // voice name for current_voice_selected
-static char voice_languages[100]; // list of languages and priorities for current_voice_selected
-static char variant_name[40];
-static espeak_VOICE voice_variants[N_VOICE_VARIANTS];
-static char voice_id[50];
 
 static char *fgets_strip(char *buf, int size, FILE *f_in)
 {
@@ -733,7 +716,7 @@ voice_t *context_t::LoadVoice(const char *vname, int control)
 	return voice;
 }
 
-static char *ExtractVoiceVariantName(char *vname, int variant_num, int add_dir)
+char *context_t::ExtractVoiceVariantName(char *vname, int variant_num, int add_dir)
 {
 	// Remove any voice variant suffix (name or number) from a voice name
 	// Returns the voice variant name
@@ -1000,7 +983,7 @@ int context_t::SetVoiceScores(espeak_VOICE *voice_select, espeak_VOICE **voices,
 	return nv;
 }
 
-espeak_VOICE *SelectVoiceByName(espeak_VOICE **voices, const char *name2)
+espeak_VOICE *context_t::SelectVoiceByName(espeak_VOICE **voices, const char *name2)
 {
 	int ix;
 	int match_fname = -1;
@@ -1178,7 +1161,7 @@ char const *context_t::SelectVoice(espeak_VOICE *voice_select, int *found)
 	return vp->identifier;
 }
 
-static void GetVoices(const char *path, int len_path_voices, int is_language_file)
+void context_t::GetVoices(const char *path, int len_path_voices, int is_language_file)
 {
 	char fname[N_PATH_HOME+100];
 
@@ -1232,7 +1215,7 @@ static void GetVoices(const char *path, int len_path_voices, int is_language_fil
 #endif
 }
 
-static int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file) {
+int context_t::AddToVoicesList(const char *fname, int len_path_voices, int is_language_file) {
 	int ftype = GetFileLength(fname);
 
 	if (ftype == -EISDIR) {
@@ -1255,7 +1238,7 @@ static int AddToVoicesList(const char *fname, int len_path_voices, int is_langua
 	return 0;
 }
 
-void FreeVoiceList(void)
+void context_t::FreeVoiceList(void)
 {
 	int ix;
 	for (ix = 0; ix < n_voices_list; ix++) {
@@ -1441,7 +1424,7 @@ const espeak_VOICE ** context_t::ListVoices(espeak_VOICE *voice_spec)
 
 ESPEAK_API espeak_VOICE *espeak_GetCurrentVoice(void)
 {
-	return &current_voice_selected;
+	return &context_t::global().current_voice_selected;
 }
 
 #pragma GCC visibility pop

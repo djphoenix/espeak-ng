@@ -28,14 +28,14 @@
 
 namespace espeak {
 
-typedef struct {
+struct MBROLA_TAB {
         int name;
         unsigned int next_phoneme;
         int mbr_name;
         int mbr_name2;
         int percent; // percentage length of first component
         int control;
-} MBROLA_TAB;
+};
 
 // espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice,
 // 		const char *phtrans, 

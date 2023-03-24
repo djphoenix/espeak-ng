@@ -90,9 +90,6 @@ static const MNEM_TAB ssmltags[] = {
 	{ "", 0 }
 };
 
-static int (*uri_callback)(int, const char *, const char *) = NULL;
-static char voice_name[40];
-
 static int attrcmp(const wchar_t *string1, const char *string2)
 {
 	int ix;
@@ -223,9 +220,9 @@ const char *context_t::VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, 
 	espeak_VOICE voice_select;
 	char language[40];
 
-	MAKE_MEM_UNDEFINED(&voice_name, sizeof(voice_name));
+	MAKE_MEM_UNDEFINED(&ssml_voice_name, sizeof(ssml_voice_name));
 
-	strcpy(voice_name, ssml_stack[0].voice_name);
+	strcpy(ssml_voice_name, ssml_stack[0].voice_name);
 	strcpy(language, ssml_stack[0].language);
 	voice_select.age = ssml_stack[0].voice_age;
 	voice_select.gender = ssml_stack[0].voice_gender;
@@ -238,7 +235,7 @@ const char *context_t::VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, 
 
 		if ((sp->voice_name[0] != 0) && (SelectVoiceByName(NULL, sp->voice_name) != NULL)) {
 			voice_name_specified = 1;
-			strcpy(voice_name, sp->voice_name);
+			strcpy(ssml_voice_name, sp->voice_name);
 			language[0] = 0;
 			voice_select.gender = ENGENDER_UNKNOWN;
 			voice_select.age = 0;
@@ -259,7 +256,7 @@ const char *context_t::VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, 
 			}
 
 			if (voice_name_specified == 0)
-				voice_name[0] = 0; // forget a previous voice name if a language is specified
+				ssml_voice_name[0] = 0; // forget a previous voice name if a language is specified
 		}
 		if (sp->voice_gender != ENGENDER_UNKNOWN)
 			voice_select.gender = sp->voice_gender;
@@ -270,7 +267,7 @@ const char *context_t::VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, 
 			voice_select.variant = sp->voice_variant_number;
 	}
 
-	voice_select.name = voice_name;
+	voice_select.name = ssml_voice_name;
 	voice_select.languages = language;
 	v_id = SelectVoice(&voice_select, &voice_found);
 	if (v_id == NULL)
@@ -280,8 +277,8 @@ const char *context_t::VoiceFromStack(SSML_STACK *ssml_stack, int n_ssml_stack, 
 		// a voice variant has not been selected, use the original voice variant
 		char buf[80];
 		snprintf(buf, sizeof(buf), "%s+%s", v_id, base_voice_variant_name);
-		strncpy0(voice_name, buf, sizeof(voice_name));
-		return voice_name;
+		strncpy0(ssml_voice_name, buf, sizeof(ssml_voice_name));
+		return ssml_voice_name;
 	}
 	return v_id;
 }

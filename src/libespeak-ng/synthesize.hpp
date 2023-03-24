@@ -400,6 +400,8 @@ extern const unsigned char env_fall[128];
 #define N_WCMDQ   170
 #define MIN_WCMDQ  25   // need this many free entries before adding new phoneme
 
+#define N_FRAME_POOL N_WCMDQ
+
 void MarkerEvent(int type, unsigned int char_position, int value, int value2, unsigned char *out_ptr);
 
 #define N_ECHO_BUF 5500   // max of 250mS at 22050 Hz

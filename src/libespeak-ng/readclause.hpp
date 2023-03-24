@@ -28,6 +28,8 @@ typedef struct {
 	int parameter[N_SPEECH_PARAM];
 } PARAM_STACK;
 
+#define N_XML_BUF2 20
+
 int clause_type_from_codepoint(uint32_t c);
 int Eof(void);
 const char *WordToString2(char buf[5], unsigned int word);

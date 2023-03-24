@@ -51,76 +51,9 @@
 
 namespace espeak {
 
-static voice_t *wvoice = NULL;
-
-static int option_harmonic1 = 10;
-static int flutter_amp = 64;
-
-static int general_amplitude = 60;
-static int consonant_amp = 26;
-
-static int PHASE_INC_FACTOR;
-
-static wavegen_peaks_t peaks[N_PEAKS];
-static int peak_harmonic[N_PEAKS];
-static int peak_height[N_PEAKS];
-
-static int voicing;
-static RESONATOR rbreath[N_PEAKS];
-
-#define N_LOWHARM  30
-#define MAX_HARMONIC 400 // 400 * 50Hz = 20 kHz, more than enough
-static int harm_inc[N_LOWHARM]; // only for these harmonics do we interpolate amplitude between steps
-static int *harmspect;
-static int hswitch = 0;
-static int hspect[2][MAX_HARMONIC]; // 2 copies, we interpolate between then
-
-static int nsamples = 0; // number to do
-static int modulation_type = 0;
-static int glottal_flag = 0;
-static int glottal_reduce = 0;
-
-static WGEN_DATA wdata;
-
-static int amp_ix;
-static int amp_inc;
-static unsigned char *amplitude_env = NULL;
-
-static int samplecount = 0; // number done
-static int samplecount_start = 0; // count at start of this segment
-static int end_wave = 0; // continue to end of wave cycle
-static int wavephase;
-static int phaseinc;
-static int cycle_samples; // number of samples in a cycle at current pitch
-static int cbytes;
-static int hf_factor;
-
-static double minus_pi_t;
-static double two_pi_t;
-
-static int const_f0 = 0;
-
-static int Flutter_ix = 0;
-static int agc = 256;
-static int h_switch_sign = 0;
-static int cycle_count = 0;
-static int amplitude2 = 0; // adjusted for pitch
-static int maxh, maxh2;
-static int n_samples;
-static int PlayWave_n_samples;
-static int PlayWave_ix = 0;
-static voice_t v2;
-static bool resume = false;
-static int echo_complete = 0;
-
 // pitch,speed,
 const int embedded_default[N_EMBEDDED_VALUES]    = { 0,     50, espeakRATE_NORMAL, 100, 50,  0,  0, 0, espeakRATE_NORMAL, 0, 0, 0, 0, 0, 0 };
 static const int embedded_max[N_EMBEDDED_VALUES] = { 0, 0x7fff, 2000, 300, 99, 99, 99, 0, 2000, 0, 0, 0, 0, 4, 0 };
-
-#if USE_LIBSONIC
-static sonicStream sonicSpeedupStream = NULL;
-static double sonicSpeed = 1.0;
-#endif
 
 // 1st index=roughness
 // 2nd index=modulation_type
@@ -139,7 +72,6 @@ static const unsigned char modulation_tab[N_ROUGHNESS][8] = {
 
 // Flutter table, to add natural variations to the pitch
 #define N_FLUTTER  0x170
-static int Flutter_inc;
 static const unsigned char Flutter_tab[N_FLUTTER] = {
 	0x80, 0x9b, 0xb5, 0xcb, 0xdc, 0xe8, 0xed, 0xec,
 	0xe6, 0xdc, 0xce, 0xbf, 0xb0, 0xa3, 0x98, 0x90,
@@ -192,24 +124,6 @@ static const unsigned char Flutter_tab[N_FLUTTER] = {
 	0x48, 0x59, 0x6b, 0x7e, 0x8e, 0x9c, 0xa6, 0xaa,
 	0xa9, 0xa3, 0x98, 0x8a, 0x7b, 0x6c, 0x5d, 0x52,
 	0x4a, 0x48, 0x4a, 0x50, 0x5a, 0x67, 0x75, 0x82
-};
-
-// waveform shape table for HF peaks, formants 6,7,8
-#define N_WAVEMULT 128
-static int wavemult_offset = 0;
-static int wavemult_max = 0;
-
-// the presets are for 22050 Hz sample rate.
-// A different rate will need to recalculate the presets in WavegenInit()
-static unsigned char wavemult[N_WAVEMULT] = {
-	  0,   0,   0,   2,   3,   5,   8,  11,  14,  18,  22,  27,  32,  37,  43,  49,
-	 55,  62,  69,  76,  83,  90,  98, 105, 113, 121, 128, 136, 144, 152, 159, 166,
-	174, 181, 188, 194, 201, 207, 213, 218, 224, 228, 233, 237, 240, 244, 246, 249,
-	251, 252, 253, 253, 253, 253, 252, 251, 249, 246, 244, 240, 237, 233, 228, 224,
-	218, 213, 207, 201, 194, 188, 181, 174, 166, 159, 152, 144, 136, 128, 121, 113,
-	105,  98,  90,  83,  76,  69,  62,  55,  49,  43,  37,  32,  27,  22,  18,  14,
-	 11,   8,   5,   3,   2,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0
 };
 
 // set from y = pow(2,x) * 128,  x=-1 to 1
@@ -316,7 +230,6 @@ static const unsigned char pk_shape2[PEAKSHAPEW+1] = {
 	  0
 };
 
-static const unsigned char *pk_shape;
 
 void context_t::WavegenInit(int rate, int wavemult_fact)
 {
@@ -363,7 +276,7 @@ void context_t::WavegenInit(int rate, int wavemult_fact)
 #endif
 }
 
-void WavegenFini(void)
+void context_t::WavegenFini(void)
 {
 #if USE_KLATT
 	KlattFini();
@@ -530,7 +443,7 @@ int context_t::PeaksToHarmspect(wavegen_peaks_t *peaks, int pitch, int *htab, in
 	return hmax; // highest harmonic number
 }
 
-static void AdvanceParameters(void)
+void context_t::AdvanceParameters(void)
 {
 	// Called every 64 samples to increment the formant freq, height, and widths
 	if (wvoice == NULL)
@@ -602,7 +515,7 @@ static double resonator(RESONATOR *r, double input)
 	return x;
 }
 
-static void setresonator(RESONATOR *rp, int freq, int bwidth, int init)
+void context_t::setresonator(RESONATOR *rp, int freq, int bwidth, int init)
 {
 	// freq    Frequency of resonator in Hz
 	// bwidth  Bandwidth of resonator in Hz
@@ -638,7 +551,7 @@ void context_t::InitBreath(void)
 		setresonator(&rbreath[ix], 2000, 200, 1);
 }
 
-static void SetBreath(void)
+void context_t::SetBreath(void)
 {
 	int pk;
 
@@ -654,7 +567,7 @@ static void SetBreath(void)
 	}
 }
 
-static int ApplyBreath(void)
+int context_t::ApplyBreath(void)
 {
 	if (wvoice == NULL)
 		return 0;
@@ -1054,8 +967,8 @@ void context_t::SetEmbedded(int control, int value)
 
 void context_t::WavegenSetVoice(voice_t *v)
 {
-	memcpy(&v2, v, sizeof(v2));
-	wvoice = &v2;
+	memcpy(&wavegen_voice2, v, sizeof(wavegen_voice2));
+	wvoice = &wavegen_voice2;
 
 	if (v->peak_shape == 0)
 		pk_shape = pk_shape1;
@@ -1072,7 +985,7 @@ void context_t::WavegenSetVoice(voice_t *v)
 	MarkerEvent(espeakEVENT_SAMPLERATE, 0, wvoice->samplerate, 0, out_ptr);
 }
 
-static void SetAmplitude(int length, unsigned char *amp_env, int value)
+void context_t::SetAmplitude(int length, unsigned char *amp_env, int value)
 {
 	if (wvoice == NULL)
 		return;
@@ -1251,8 +1164,8 @@ int context_t::WavegenFill2(void)
 		if (WcmdqUsed() <= 0) {
 			if (echo_complete > 0) {
 				// continue to play silence until echo is completed
-				resume = PlaySilence(echo_complete, resume);
-				if (resume == true)
+				wavegen_resume = PlaySilence(echo_complete, wavegen_resume);
+				if (wavegen_resume == true)
 					return 0; // not yet finished
 			}
 			return 1; // queue empty, close sound channel
@@ -1275,14 +1188,14 @@ int context_t::WavegenFill2(void)
 		}
 			break;
 		case WCMD_PAUSE:
-			if (resume == false)
+			if (wavegen_resume == false)
 				echo_complete -= length;
 			wdata.n_mix_wavefile = 0;
 			wdata.amplitude_fmt = 100;
 #if USE_KLATT
 			KlattReset(1);
 #endif
-			result = PlaySilence(length, resume);
+			result = PlaySilence(length, wavegen_resume);
 			break;
 		case WCMD_WAVE:
 			echo_complete = echo_length;
@@ -1290,7 +1203,7 @@ int context_t::WavegenFill2(void)
 #if USE_KLATT
 			KlattReset(1);
 #endif
-			result = PlayWave(length, resume, (unsigned char *)q[2], q[3] & 0xff, q[3] >> 8);
+			result = PlayWave(length, wavegen_resume, (unsigned char *)q[2], q[3] & 0xff, q[3] >> 8);
 			break;
 		case WCMD_WAVE2:
 			// wave file to be played at the same time as synthesis
@@ -1310,14 +1223,14 @@ int context_t::WavegenFill2(void)
 			wdata.n_mix_wavefile = 0; // ... and drop through to WCMD_SPECT case
 		case WCMD_SPECT:
 			echo_complete = echo_length;
-			result = Wavegen(length & 0xffff, q[1] >> 16, resume, (frame_t *)q[2], (frame_t *)q[3], wvoice);
+			result = Wavegen(length & 0xffff, q[1] >> 16, wavegen_resume, (frame_t *)q[2], (frame_t *)q[3], wvoice);
 			break;
 #if USE_KLATT
 		case WCMD_KLATT2: // as WCMD_SPECT but stop any concurrent wave file
 			wdata.n_mix_wavefile = 0; // ... and drop through to WCMD_SPECT case
 		case WCMD_KLATT:
 			echo_complete = echo_length;
-			result = Wavegen_Klatt(length & 0xffff, resume, (frame_t *)q[2], (frame_t *)q[3], &wdata, wvoice);
+			result = Wavegen_Klatt(length & 0xffff, wavegen_resume, (frame_t *)q[2], (frame_t *)q[3], &wdata, wvoice);
 			break;
 #endif
 		case WCMD_MARKER:
@@ -1337,7 +1250,7 @@ int context_t::WavegenFill2(void)
 #if USE_MBROLA
 		case WCMD_MBROLA_DATA:
 			if (wvoice != NULL)
-				result = MbrolaFill(length, resume, (general_amplitude * wvoice->voicing)/64);
+				result = MbrolaFill(length, wavegen_resume, (general_amplitude * wvoice->voicing)/64);
 			break;
 #endif
 		case WCMD_FMT_AMPLITUDE:
@@ -1359,9 +1272,9 @@ int context_t::WavegenFill2(void)
 
 		if (result == 0) {
 			WcmdqIncHead();
-			resume = false;
+			wavegen_resume = false;
 		} else
-			resume = true;
+			wavegen_resume = true;
 	}
 
 	return 0;
@@ -1369,7 +1282,7 @@ int context_t::WavegenFill2(void)
 
 #if USE_LIBSONIC
 // Speed up the audio samples with libsonic.
-static int SpeedUp(short *outbuf, int length_in, int length_out, int end_of_text)
+int context_t::SpeedUp(short *outbuf, int length_in, int length_out, int end_of_text)
 {
 	if (length_in > 0) {
 		if (sonicSpeedupStream == NULL)

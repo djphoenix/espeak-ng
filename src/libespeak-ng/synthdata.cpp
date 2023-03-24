@@ -47,14 +47,6 @@ namespace espeak {
 
 const int version_phdata  = 0x014801;
 
-static int current_phoneme_table;
-
-static unsigned short *phoneme_index = NULL;
-static char *phondata_ptr = NULL;
-static unsigned char *phoneme_tab_data = NULL;
-
-static frameref_t frames_buf[N_SEQ_FRAMES];
-
 espeak_ng_STATUS context_t::ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context)
 {
 	if (!ptr) return espeak_ng_STATUS(EINVAL);
@@ -311,7 +303,7 @@ frameref_t *context_t::LookupSpect(PHONEME_TAB *this_ph, int which, FMT_PARAMS *
 	return frames;
 }
 
-const unsigned char *GetEnvelope(int index)
+const unsigned char *context_t::GetEnvelope(int index)
 {
 	if (index == 0) {
 		fprintf(stderr, "espeak: No envelope\n");

@@ -140,9 +140,6 @@ static const unsigned char wav_factor_350[] = {
 	 45                      // 450
 };
 
-static int len_speeds[3] = { 130, 121, 118 };
-static int more_syllables = 0;
-
 void context_t::SetSpeed(int control)
 {
 	int x;

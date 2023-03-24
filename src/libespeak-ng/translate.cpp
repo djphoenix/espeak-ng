@@ -50,28 +50,6 @@ namespace espeak {
 
 static int CalcWordLength(int source_index, int charix_top, short int *charix, WORD_TAB *words, int word_count);
 
-static char translator2_language[20] = { 0 };
-static char translator3_language[20] = { 0 };
-
-static int count_sayas_digits;
-static int count_words;
-static bool new_sentence;
-static int word_emphasis = 0; // set if emphasis level 3 or 4
-static int embedded_flag = 0; // there are embedded commands to be applied to the next phoneme, used in TranslateWord2()
-
-static int max_clause_pause = 0;
-static bool any_stressed_words;
-static ALPHABET *current_alphabet;
-
-static int embedded_ix;
-static int embedded_read;
-
-// the source text of a single clause (UTF8 bytes)
-static char source[N_TR_SOURCE+40]; // extra space for embedded command & voice change info at end
-
-static int ignore_next_n = 0;
-static char voice_change_name[40];
-
 // other characters which break a word, but don't produce a pause
 static const unsigned short breaks[] = { '_', 0 };
 
@@ -173,7 +151,7 @@ int context_t::TranslateWord(Translator *tr, char *word_start, WORD_TAB *wtab, c
 	return flags;
 }
 
-static void SetPlist2(PHONEME_LIST2 *p, unsigned char phcode)
+void context_t::SetPlist2(PHONEME_LIST2 *p, unsigned char phcode)
 {
 	p->phcode = phcode;
 	p->stresslevel = 0;

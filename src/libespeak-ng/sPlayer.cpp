@@ -6,7 +6,6 @@
 
 namespace espeak {
 
-static speechPlayer_handle_t speechPlayerHandle=NULL;
 static const unsigned int minFadeLength=110;
 
 static int MIN(int a, int b) { return((a) < (b) ? a : b); }
@@ -94,17 +93,17 @@ static void fillSpeechPlayerFrame(WGEN_DATA *wdata, voice_t *wvoice, frame_t * e
 	spFrame->endVoicePitch=spFrame->voicePitch;
 }
 
-void KlattInitSP(void) {
+void context_t::KlattInitSP(void) {
 	speechPlayerHandle=speechPlayer_initialize(22050);
 }
 
-void KlattFiniSP(void) {
+void context_t::KlattFiniSP(void) {
 	if (speechPlayerHandle)
 		speechPlayer_terminate(speechPlayerHandle);
 	speechPlayerHandle = NULL;
 }
 
-void KlattResetSP(void) {
+void context_t::KlattResetSP(void) {
 	KlattFiniSP();
 	KlattInitSP();
 }

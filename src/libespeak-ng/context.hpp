@@ -31,9 +31,22 @@
 #include "readclause.hpp"
 #include "ssml.hpp"
 #include "soundicon.hpp"
+#include "wavegen.hpp"
+
+#if USE_LIBSONIC
+#include "sonic.h"
+#endif
 
 #if USE_KLATT
 #include "klatt.hpp"
+#endif
+
+#if USE_SPEECHPLAYER
+#include "sPlayer.hpp"
+#endif
+
+#if USE_LIBPCAUDIO
+#include <pcaudiolib/audio.h>
 #endif
 
 namespace espeak {
@@ -52,12 +65,28 @@ namespace espeak {
     struct SYLLABLE;
     struct wavegen_peaks_t;
     struct SpectFrame;
+    struct MBROLA_TAB;
 
     struct context_t {
     private:
         espeak_ng_ERROR_CONTEXT error_context;
 
+        uint32_t espeak_rand_state = 0;
+
         int samplerate = 0; // this is set by Wavegeninit()
+        int out_samplerate = 0;
+        int voice_samplerate = 22050;
+
+        long count_samples;
+        #if USE_LIBPCAUDIO
+        audio_object *my_audio = NULL;
+        #endif
+
+        unsigned int my_unique_identifier = 0;
+        void *my_user_data = NULL;
+        espeak_ng_OUTPUT_MODE my_mode = ENOUTPUT_MODE_SYNCHRONOUS;
+        const int min_buffer_length = 60; // minimum buffer length in ms
+        espeak_ng_STATUS async_err = ENS_OK;
 
         char path_home[N_PATH_HOME]; // this is the espeak-ng-data directory
         char word_phonemes[N_WORD_PHONEMES]; // a word translated into phoneme codes
@@ -65,6 +94,27 @@ namespace espeak {
         // Translator *translator = NULL; // the main translator
         Translator *translator2 = NULL; // secondary translator for certain words
         Translator *translator3 = NULL; // tertiary translator for certain words
+        char translator2_language[20] = { 0 };
+        char translator3_language[20] = { 0 };
+
+        int ignore_next_n = 0;
+        char voice_change_name[40];
+
+        int count_sayas_digits;
+        int count_words;
+        bool new_sentence;
+        int word_emphasis = 0; // set if emphasis level 3 or 4
+        int embedded_flag = 0; // there are embedded commands to be applied to the next phoneme, used in TranslateWord2()
+
+        int max_clause_pause = 0;
+        bool any_stressed_words;
+        ALPHABET *current_alphabet;
+
+        int embedded_ix;
+        int embedded_read;
+
+        // the source text of a single clause (UTF8 bytes)
+        char source[N_TR_SOURCE+40]; // extra space for embedded command & voice change info at end
 
         // Several phoneme tables may be loaded into memory. phoneme_tab points to
         // one for the current voice
@@ -75,6 +125,11 @@ namespace espeak {
         int n_phoneme_tables;
         PHONEME_TAB_LIST phoneme_tab_list[N_PHONEME_TABS];
         int phoneme_tab_number = 0;
+        int current_phoneme_table;
+
+        unsigned short *phoneme_index = NULL;
+        char *phondata_ptr = NULL;
+        unsigned char *phoneme_tab_data = NULL;
 
         int n_replace_phonemes;
         REPLACE_PHONEMES replace_phonemes[N_REPLACE_PHONEMES];
@@ -89,6 +144,13 @@ namespace espeak {
         int saved_parameters[N_SPEECH_PARAM]; // Parameters saved on synthesis start
 
         int embedded_value[N_EMBEDDED_VALUES];
+
+        int n_digit_lookup;
+        char *digit_lookup;
+        int speak_missing_thousands;
+        int number_control;
+        char ph_ordinal2[12];
+        char ph_ordinal2x[12];
 
         // list of phonemes in a clause
         int n_phoneme_list;
@@ -105,10 +167,37 @@ namespace espeak {
         voice_t voicedata;
         voice_t *voice = &voicedata;
 
+        #define N_VOICES_LIST  350
+        int n_voices_list = 0;
+        espeak_VOICE *voices_list[N_VOICES_LIST];
+        espeak_VOICE current_voice_selected;
+
+        espeak_VOICE **voices = NULL;
+        char voice_id[50];
+        char voice_identifier[40]; // file name for  current_voice_selected
+        char voice_name[40];       // voice name for current_voice_selected
+        char ssml_voice_name[40];
+        char voice_languages[100]; // list of languages and priorities for current_voice_selected
+        char variant_name[40];
+        espeak_VOICE voice_variants[N_VOICE_VARIANTS];
+        voice_t *new_voice = NULL;
+
+        espeak_VOICE base_voice;
+        char base_voice_variant_name[40] = { 0 };
+        char current_voice_id[40] = { 0 };
+
+        frameref_t frames_buf[N_SEQ_FRAMES];
+
+        int frame_pool_ix = 0;
+        frame_t frame_pool[N_FRAME_POOL];
+
         int tone_points[12] = { 600, 170, 1200, 135, 2000, 110, 3000, 110, -1, 0 };
 
         unsigned char *out_ptr;
         unsigned char *out_end;
+        unsigned char *outbuf = NULL;
+        unsigned char *out_start;
+        int outbuf_size = 0;
 
         int seq_len_adjust; // temporary fix to advance the start point for playing the wav sample
 
@@ -124,6 +213,25 @@ namespace espeak {
         SPEED_FACTORS speed;
 
         espeak_ng_OUTPUT_HOOKS* output_hooks = NULL;
+
+        // waveform shape table for HF peaks, formants 6,7,8
+        int wavemult_offset = 0;
+        int wavemult_max = 0;
+
+        // the presets are for 22050 Hz sample rate.
+        // A different rate will need to recalculate the presets in WavegenInit()
+        unsigned char wavemult[N_WAVEMULT] = {
+            0,   0,   0,   2,   3,   5,   8,  11,  14,  18,  22,  27,  32,  37,  43,  49,
+            55,  62,  69,  76,  83,  90,  98, 105, 113, 121, 128, 136, 144, 152, 159, 166,
+            174, 181, 188, 194, 201, 207, 213, 218, 224, 228, 233, 237, 240, 244, 246, 249,
+            251, 252, 253, 253, 253, 253, 252, 251, 249, 246, 244, 240, 237, 233, 228, 224,
+            218, 213, 207, 201, 194, 188, 181, 174, 166, 159, 152, 144, 136, 128, 121, 113,
+            105,  98,  90,  83,  76,  69,  62,  55,  49,  43,  37,  32,  27,  22,  18,  14,
+            11,   8,   5,   3,   2,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+            0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0
+        };
+
+        const unsigned char *pk_shape;
 
         // the queue of operations passed to wavegen from sythesize
         intptr_t wcmdq[N_WCMDQ][4];
@@ -166,6 +274,126 @@ namespace espeak {
         char *namedata = NULL;
 
         int pre_pause;
+
+        int event_list_ix = 0;
+        int n_event_list;
+
+        int len_speeds[3] = { 130, 121, 118 };
+        int more_syllables = 0;
+
+        const char *xmlbase = ""; // base URL from <speak>
+
+        int n_ssml_stack;
+        SSML_STACK ssml_stack[N_SSML_STACK];
+
+        bool ignore_text = false; // set during <sub> ... </sub>  to ignore text which has been replaced by an alias
+        bool audio_text = false; // set during <audio> ... </audio>
+        bool clear_skipping_text = false; // next clause should clear the skipping_text flag
+        int sayas_mode;
+        int sayas_start;
+
+        int ungot_char2 = 0;
+        int ungot_char;
+
+        char ungot_string[N_XML_BUF2+4];
+        int ungot_string_ix = -1;
+
+        int (*uri_callback)(int, const char *, const char *) = NULL;
+        t_espeak_callback *synth_callback = NULL;
+        int (*phoneme_callback)(const char *) = NULL;
+
+        char word_replacement[N_WORD_BYTES];
+        char *phon_out_buf = NULL;   // passes the result of GetTranslatedPhonemeString()
+        unsigned int phon_out_size = 0;
+
+        int tone_pitch_env; // used to return pitch envelope
+        int number_pre;
+        int number_tail;
+        int last_primary;
+        int tone_posn;
+        int tone_posn2;
+        int no_tonic;
+
+        int last_pitch_cmd;
+        int last_amp_cmd;
+        frame_t  *last_frame;
+        int last_wcmdq;
+        int pitch_length;
+        int amp_length;
+        int modn_flags;
+        int fmt_amplitude = 0;
+
+        int syllable_start;
+        int syllable_end;
+        int syllable_centre;
+        int wave_flag = 0;
+
+        int gen_ix;
+        int embedded_ix_syn;
+        int word_count_syn;
+        int sourceix = 0;
+        WORD_PH_DATA worddata;
+
+        voice_t *wvoice = NULL;
+
+        int option_harmonic1 = 10;
+        int flutter_amp = 64;
+
+        int general_amplitude = 60;
+        int consonant_amp = 26;
+
+        int PHASE_INC_FACTOR;
+
+        wavegen_peaks_t peaks[N_PEAKS];
+        int peak_harmonic[N_PEAKS];
+        int peak_height[N_PEAKS];
+
+        int voicing;
+        RESONATOR rbreath[N_PEAKS];
+
+        int harm_inc[N_LOWHARM]; // only for these harmonics do we interpolate amplitude between steps
+        int *harmspect;
+        int hswitch = 0;
+        int hspect[2][MAX_HARMONIC]; // 2 copies, we interpolate between then
+
+        int nsamples = 0; // number to do
+        int modulation_type = 0;
+        int glottal_flag = 0;
+        int glottal_reduce = 0;
+
+        WGEN_DATA wdata;
+
+        int amp_ix;
+        int amp_inc;
+        unsigned char *amplitude_env = NULL;
+
+        int samplecount = 0; // number done
+        int samplecount_start = 0; // count at start of this segment
+        int end_wave = 0; // continue to end of wave cycle
+        int wavephase;
+        int phaseinc;
+        int cycle_samples; // number of samples in a cycle at current pitch
+        int cbytes;
+        int hf_factor;
+
+        double minus_pi_t;
+        double two_pi_t;
+
+        int const_f0 = 0;
+
+        int Flutter_ix = 0;
+        int agc = 256;
+        int h_switch_sign = 0;
+        int cycle_count = 0;
+        int amplitude2 = 0; // adjusted for pitch
+        int maxh, maxh2;
+        int n_samples;
+        int PlayWave_n_samples;
+        int PlayWave_ix = 0;
+        voice_t wavegen_voice2;
+        bool wavegen_resume = false;
+        int echo_complete = 0;
+        int Flutter_inc;
 
         void LoadConfig(void);
         espeak_ng_STATUS ReadPhFile(void **ptr, const char *fname, int *size, espeak_ng_ERROR_CONTEXT *context);
@@ -323,9 +551,36 @@ namespace espeak {
         void PopParamStack(int tag_type, char *outbuf, int *outix, int *n_param_stack, PARAM_STACK *param_stack, int *speech_parameters);
         void InitNamedata(void);
         int AddNameData(const char *name, int wide);
+        int create_events(short *outbuf, int length, espeak_EVENT *event_list);
+        int dispatch_audio(short *outbuf, int length, espeak_EVENT *event);
+        espeak_VOICE *SelectVoiceByName(espeak_VOICE **voices, const char *name2);
+        void GetVoices(const char *path, int len_path_voices, int is_language_file);
+        int AddToVoicesList(const char *fname, int len_path_voices, int is_language_file);
+        void FreeVoiceList(void);
+        char *ExtractVoiceVariantName(char *vname, int variant_num, int add_dir);
+        const unsigned char *GetEnvelope(int index);
+        frame_t *AllocFrame(void);
+        frame_t *CopyFrame(frame_t *frame1, int copy);
+        frame_t *DuplicateLastFrame(frameref_t *seq, int n_frames, int length);
+        void WavegenFini(void);
+        void SetVoiceStack(espeak_VOICE *v, const char *variant_name);
+        int ApplyBreath(void);
+        void count_pitch_vowels(SYLLABLE *syllable_tab, int start, int end, int clause_end);
+        void SetPlist2(PHONEME_LIST2 *p, unsigned char phcode);
+        void cancel_audio(void);
+        void SynthesizeInit(void);
+        void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc);
+        void AdvanceParameters(void);
+        void setresonator(RESONATOR *rp, int freq, int bwidth, int init);
+        void SetAmplitude(int length, unsigned char *amp_env, int value);
+        void SetBreath(void);
+
+        long espeak_rand(long min, long max);
+        void espeak_srand(long seed);
 
         int Eof(void);
         int GetC(void);
+        void UngetC(int c);
 
         void WcmdqStop(void);
         void WcmdqInc(void);
@@ -358,6 +613,17 @@ namespace espeak {
         #if USE_MBROLA
         int mbrola_delay;
         char mbrola_name[20];
+
+        MBROLA_TAB *mbrola_tab = NULL;
+        int mbrola_control = 0;
+        int mbr_name_prefix = 0;
+
+        char output_mbr[50];
+        int phix_mbr;
+        int embedded_ix_mbr;
+        int word_count_mbr;
+        int n_samples_mbr;
+
         espeak_ng_STATUS LoadMbrolaTable(const char *mbrola_voice, const char *phtrans, int *srate);
         int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mbrola);
         int MbrolaGenerate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume);
@@ -367,24 +633,71 @@ namespace espeak {
         #endif
 
         #if USE_KLATT
+        double parwave_noise;
+        double parwave_voice;
+        double parwave_vlast;
+        double parwave_glotlast;
+        double parwave_sourc;
+
+        double impulsive_source_vwave;
+        double natural_source_vwave;
+
+        klatt_frame_t kt_frame;
+        klatt_global_t kt_globals;
+        int klattp[N_KLATTP];
+        double klattp1[N_KLATTP];
+        double klattp_inc[N_KLATTP];
+
+        int kt_nsamples;
+        int kt_sample_count;
+        int kt_time_count;
+        long kt_skew;
+
+        double kt_nlast;
+        frame_t kt_prev_fr;
+
+        klatt_peaks_t kt_peaks[N_PEAKS];
+        int kt_end_wave;
+
+        double impulsive_source(void);
+        double natural_source(void);
+        double sampled_source(int source_num);
+        void frame_init(klatt_frame_ptr frame);
+        void pitch_synch_par_reset(klatt_frame_ptr frame);
+        void setabc(long int f, long int bw, resonator_ptr rp);
+        void setzeroabc(long int f, long int bw, resonator_ptr rp);
+        void flutter(klatt_frame_ptr frame);
+        double gen_noise(double noise);
         int parwave(klatt_frame_ptr frame, WGEN_DATA *wdata);
+        void KlattInit(void);
+        void KlattFini(void);
+        void KlattReset(int control);
         int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice);
         void SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *wvoice, int control);
         #endif
 
         #if USE_SPEECHPLAYER
+        speechPlayer_handle_t speechPlayerHandle = NULL;
+        void KlattInitSP(void);
+        void KlattFiniSP(void);
+        void KlattResetSP(void);
         int Wavegen_KlattSP(WGEN_DATA *wdata, voice_t *wvoice, int length, int resume, frame_t *fr1, frame_t *fr2);
         bool isKlattFrameFollowing(void);
         #endif
 
         #if USE_LIBSONIC
+        sonicStream sonicSpeedupStream = NULL;
+        double sonicSpeed = 1.0;
+        int SpeedUp(short *outbuf, int length_in, int length_out, int end_of_text);
         void DoSonicSpeed(int value);
-        #endif    
+        #endif
 
         // expose path_home
         friend const char* ::espeak_Info(const char **ptr);
         // expose dictionary_name
         friend void ::espeak_CompileDictionary(const char *path, FILE *log, int flags);
+        // expose current_voice_selected
+        friend espeak_VOICE *::espeak_GetCurrentVoice(void);
 
     public: // TESTS
         espeak_ng_TEXT_DECODER* p_decoder = NULL;

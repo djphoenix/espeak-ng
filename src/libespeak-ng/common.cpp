@@ -329,16 +329,14 @@ int towlower2(unsigned int c, Translator *translator)
 	return ucd_tolower(c);
 }
 
-static uint32_t espeak_rand_state = 0;
-
-long espeak_rand(long min, long max) {
+long context_t::espeak_rand(long min, long max) {
 	// Ref: https://github.com/bminor/glibc/blob/glibc-2.36/stdlib/random_r.c#L364
 	espeak_rand_state = (((uint64_t)espeak_rand_state * 1103515245) + 12345) % 0x7fffffff;
 	long res = (long)espeak_rand_state;
 	return (res % (max-min+1))-min;
 }
 
-void espeak_srand(long seed) {
+void context_t::espeak_srand(long seed) {
 	espeak_rand_state = (uint32_t)(seed);
 	(void)espeak_rand(0, 1); // Dummy flush a generator
 }
@@ -352,8 +350,7 @@ espeak_ng_SetRandSeed(long seed) {
 }
 
 espeak_ng_STATUS espeak::context_t::SetRandSeed(long seed) {
-	// TODO
-	espeak::espeak_srand(seed);
+	espeak_srand(seed);
 	return ENS_OK;
 }
 #pragma GCC visibility pop

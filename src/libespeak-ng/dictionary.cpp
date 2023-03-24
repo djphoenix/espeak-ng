@@ -53,11 +53,7 @@ struct MatchRecord {
 	char *del_fwd;
 };
 
-static char word_replacement[N_WORD_BYTES];
-
 #define N_PHON_OUT  500  // realloc increment
-static char *phon_out_buf = NULL;   // passes the result of GetTranslatedPhonemeString()
-static unsigned int phon_out_size = 0;
 
 // accented characters which indicate (in some languages) the start of a separate syllable
 static const unsigned short diereses_list[7] = { 0xe4, 0xeb, 0xef, 0xf6, 0xfc, 0xff, 0 };

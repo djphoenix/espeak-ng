@@ -171,9 +171,9 @@ typedef struct {
 	double bp_inc;
 }  klatt_peaks_t;
 
-void KlattInit(void);
-void KlattFini(void);
-void KlattReset(int control);
-int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice);
+// void KlattInit(void);
+// void KlattFini(void);
+// void KlattReset(int control);
+// int Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2, WGEN_DATA *wdata, voice_t *wvoice);
 
 }

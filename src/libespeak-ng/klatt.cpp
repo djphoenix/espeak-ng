@@ -45,46 +45,11 @@
 
 namespace espeak {
 
-static int nsamples;
-static int sample_count;
-static int time_count;
-static long skew;
-
-static double parwave_noise;
-static double parwave_voice;
-static double parwave_vlast;
-static double parwave_glotlast;
-static double parwave_sourc;
-
-static double impulsive_source_vwave;
-static double natural_source_vwave;
-
-static double nlast;
-static frame_t prev_fr;
-
 #define getrandom(min, max) espeak_rand((min), (max))
 
 // function prototypes for functions private to this file
 
-static void flutter(klatt_frame_ptr);
-static double sampled_source(int);
-static double impulsive_source(void);
-static double natural_source(void);
-static void pitch_synch_par_reset(klatt_frame_ptr);
-static double gen_noise(double);
 static double DBtoLIN(long);
-static void frame_init(klatt_frame_ptr);
-static void setabc(long, long, resonator_ptr);
-static void setzeroabc(long, long, resonator_ptr);
-
-static klatt_frame_t kt_frame;
-static klatt_global_t kt_globals;
-
-static klatt_peaks_t peaks[N_PEAKS];
-static int end_wave;
-static int klattp[N_KLATTP];
-static double klattp1[N_KLATTP];
-static double klattp_inc[N_KLATTP];
 
 #define NUMBER_OF_SAMPLES 100
 
@@ -182,19 +147,19 @@ static double antiresonator(resonator_ptr r, double input)
    slowly varying sine waves.
  */
 
-static void flutter(klatt_frame_ptr frame)
+void context_t::flutter(klatt_frame_ptr frame)
 {
 	double delta_f0;
 	double fla, flb, flc, fld, fle;
 
 	fla = (double)kt_globals.f0_flutter / 50;
 	flb = (double)kt_globals.original_f0 / 100;
-	flc = sin(M_PI*12.7*time_count); // because we are calling flutter() more frequently, every 2.9mS
-	fld = sin(M_PI*7.1*time_count);
-	fle = sin(M_PI*4.7*time_count);
+	flc = sin(M_PI*12.7*kt_time_count); // because we are calling flutter() more frequently, every 2.9mS
+	fld = sin(M_PI*7.1*kt_time_count);
+	fle = sin(M_PI*4.7*kt_time_count);
 	delta_f0 =  fla * flb * (flc + fld + fle) * 10;
 	frame->F0hz10 = frame->F0hz10 + (long)delta_f0;
-	time_count++;
+	kt_time_count++;
 }
 
 /*
@@ -204,7 +169,7 @@ static void flutter(klatt_frame_ptr frame)
    voice.
  */
 
-static double sampled_source(int source_num)
+double context_t::sampled_source(int source_num)
 {
 	int itemp;
 	double ftemp;
@@ -436,14 +401,14 @@ int context_t::parwave(klatt_frame_ptr frame, WGEN_DATA *wdata)
 		if (echo_head >= N_ECHO_BUF)
 			echo_head = 0;
 
-		sample_count++;
+		kt_sample_count++;
 		if (out_ptr + 2 > out_end)
 			return 1;
 	}
 	return 0;
 }
 
-void KlattReset(int control)
+void context_t::KlattReset(int control)
 {
 	int r_ix;
 
@@ -478,7 +443,7 @@ void KlattReset(int control)
 	}
 }
 
-void KlattFini(void)
+void context_t::KlattFini(void)
 {
 #if USE_SPEECHPLAYER
 	KlattFiniSP();
@@ -491,7 +456,7 @@ void KlattFini(void)
    Use parameters from the input frame to set up resonator coefficients.
  */
 
-static void frame_init(klatt_frame_ptr frame)
+void context_t::frame_init(klatt_frame_ptr frame)
 {
 	double amp_par[7];
 	static const double amp_par_factor[7] = { 0.6, 0.4, 0.15, 0.06, 0.04, 0.022, 0.03 };
@@ -561,7 +526,7 @@ static void frame_init(klatt_frame_ptr frame)
    to Kopen.
  */
 
-static double impulsive_source(void)
+double context_t::impulsive_source(void)
 {
 	static const double doublet[] = { 0.0, 13000000.0, -13000000.0 };
 
@@ -580,7 +545,7 @@ static double impulsive_source(void)
    spectral zero around 800 Hz, magic constants a,b reset pitch synchronously.
  */
 
-static double natural_source(void)
+double context_t::natural_source(void)
 {
 	double lgtemp;
 
@@ -627,7 +592,7 @@ static double natural_source(void)
    B0[nopen - 40] = 1920000 / (nopen * nopen)
  */
 
-static void pitch_synch_par_reset(klatt_frame_ptr frame)
+void context_t::pitch_synch_par_reset(klatt_frame_ptr frame)
 {
 	long temp;
 	double temp1;
@@ -702,14 +667,14 @@ static void pitch_synch_par_reset(klatt_frame_ptr frame)
 		temp = kt_globals.T0 - kt_globals.nopen;
 		if (frame->Kskew > temp)
 			frame->Kskew = temp;
-		if (skew >= 0)
-			skew = frame->Kskew;
+		if (kt_skew >= 0)
+			kt_skew = frame->Kskew;
 		else
-			skew = -frame->Kskew;
+			kt_skew = -frame->Kskew;
 
 		// Add skewness to closed portion of voicing period
-		kt_globals.T0 = kt_globals.T0 + skew;
-		skew = -skew;
+		kt_globals.T0 = kt_globals.T0 + kt_skew;
+		kt_skew = -kt_skew;
 	} else {
 		kt_globals.T0 = 4; // Default for f0 undefined
 		kt_globals.amp_voice = 0.0;
@@ -740,7 +705,7 @@ static void pitch_synch_par_reset(klatt_frame_ptr frame)
    equation constants.
  */
 
-static void setabc(long int f, long int bw, resonator_ptr rp)
+void context_t::setabc(long int f, long int bw, resonator_ptr rp)
 {
 	double r;
 	double arg;
@@ -767,7 +732,7 @@ static void setabc(long int f, long int bw, resonator_ptr rp)
    equation constants.
  */
 
-static void setzeroabc(long int f, long int bw, resonator_ptr rp)
+void context_t::setzeroabc(long int f, long int bw, resonator_ptr rp)
 {
 	double r;
 	double arg;
@@ -810,15 +775,15 @@ static void setzeroabc(long int f, long int bw, resonator_ptr rp)
    the origin in the z-plane, i.e. output = input + (0.75 * lastoutput)
  */
 
-static double gen_noise(double noise)
+double context_t::gen_noise(double noise)
 {
 	long temp;
 
 	temp = (long)getrandom(-8191, 8191);
 	kt_globals.nrand = (long)temp;
 
-	noise = kt_globals.nrand + (0.75 * nlast);
-	nlast = noise;
+	noise = kt_globals.nrand + (0.75 * kt_nlast);
+	kt_nlast = noise;
 
 	return noise;
 }
@@ -877,21 +842,21 @@ int context_t::Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2,
 	int fade;
 
 	if (resume == 0)
-		sample_count = 0;
+		kt_sample_count = 0;
 
-	while (sample_count < nsamples) {
+	while (kt_sample_count < kt_nsamples) {
 		kt_frame.F0hz10 = (wdata->pitch * 10) / 4096;
 
 		// formants F6,F7,F8 are fixed values for cascade resonators, set in KlattInit()
 		// but F6 is used for parallel resonator
 		// F0 is used for the nasal zero
 		for (ix = 0; ix < 6; ix++) {
-			kt_frame.Fhz[ix] = peaks[ix].freq;
+			kt_frame.Fhz[ix] = kt_peaks[ix].freq;
 			if (ix < 4)
-				kt_frame.Bhz[ix] = peaks[ix].bw;
+				kt_frame.Bhz[ix] = kt_peaks[ix].bw;
 		}
 		for (ix = 1; ix < 7; ix++)
-			kt_frame.Ap[ix] = peaks[ix].ap;
+			kt_frame.Ap[ix] = kt_peaks[ix].ap;
 
 		kt_frame.AVdb = klattp[KLATT_AV];
 		kt_frame.AVpdb = klattp[KLATT_AVp];
@@ -905,14 +870,14 @@ int context_t::Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2,
 
 		// advance formants
 		for (pk = 0; pk < N_PEAKS; pk++) {
-			peaks[pk].freq1 += peaks[pk].freq_inc;
-			peaks[pk].freq = (int)peaks[pk].freq1;
-			peaks[pk].bw1 += peaks[pk].bw_inc;
-			peaks[pk].bw = (int)peaks[pk].bw1;
-			peaks[pk].bp1 += peaks[pk].bp_inc;
-			peaks[pk].bp = (int)peaks[pk].bp1;
-			peaks[pk].ap1 += peaks[pk].ap_inc;
-			peaks[pk].ap = (int)peaks[pk].ap1;
+			kt_peaks[pk].freq1 += kt_peaks[pk].freq_inc;
+			kt_peaks[pk].freq = (int)kt_peaks[pk].freq1;
+			kt_peaks[pk].bw1 += kt_peaks[pk].bw_inc;
+			kt_peaks[pk].bw = (int)kt_peaks[pk].bw1;
+			kt_peaks[pk].bp1 += kt_peaks[pk].bp_inc;
+			kt_peaks[pk].bp = (int)kt_peaks[pk].bp1;
+			kt_peaks[pk].ap1 += kt_peaks[pk].ap_inc;
+			kt_peaks[pk].ap = (int)kt_peaks[pk].ap1;
 		}
 
 		// advance other parameters
@@ -922,9 +887,9 @@ int context_t::Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2,
 		}
 
 		for (ix = 0; ix <= 6; ix++) {
-			kt_frame.Fhz_next[ix] = peaks[ix].freq;
+			kt_frame.Fhz_next[ix] = kt_peaks[ix].freq;
 			if (ix < 4)
-				kt_frame.Bhz_next[ix] = peaks[ix].bw;
+				kt_frame.Bhz_next[ix] = kt_peaks[ix].bw;
 		}
 
 		// advance the pitch
@@ -933,7 +898,7 @@ int context_t::Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2,
 		x = wdata->pitch_env[ix] * wdata->pitch_range;
 		wdata->pitch = (x>>8) + wdata->pitch_base;
 
-		kt_globals.nspfr = (nsamples - sample_count);
+		kt_globals.nspfr = (kt_nsamples - kt_sample_count);
 		if (kt_globals.nspfr > STEPSIZE)
 			kt_globals.nspfr = STEPSIZE;
 
@@ -943,13 +908,13 @@ int context_t::Wavegen_Klatt(int length, int resume, frame_t *fr1, frame_t *fr2,
 			return 1; // output buffer is full
 	}
 
-	if (end_wave > 0) {
+	if (kt_end_wave > 0) {
 		fade = 64; // not followed by formant synthesis
 
 		// fade out to avoid a click
 		kt_globals.fadeout = fade;
-		end_wave = 0;
-		sample_count -= fade;
+		kt_end_wave = 0;
+		kt_sample_count -= fade;
 		kt_globals.nspfr = fade;
 		if (parwave(&kt_frame, wdata) == 1)
 			return 1; // output buffer is full
@@ -974,24 +939,24 @@ void context_t::SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *
 		kt_globals.f0_flutter = wvoice->flutter/32;
 	}
 
-	end_wave = 0;
+	kt_end_wave = 0;
 	if (control & 2)
-		end_wave = 1; // fadeout at the end
+		kt_end_wave = 1; // fadeout at the end
 	if (control & 1) {
-		end_wave = 1;
+		kt_end_wave = 1;
 		for (qix = wcmdq_head+1;; qix++) {
 			if (qix >= N_WCMDQ) qix = 0;
 			if (qix == wcmdq_tail) break;
 
 			cmd = wcmdq[qix][0];
 			if (cmd == WCMD_KLATT) {
-				end_wave = 0; // next wave generation is from another spectrum
+				kt_end_wave = 0; // next wave generation is from another spectrum
 
 				fr3 = (frame_t *)wcmdq[qix][2];
 				for (ix = 1; ix < 6; ix++) {
 					if (fr3->ffreq[ix] != fr2->ffreq[ix]) {
 						// there is a discontinuity in formants
-						end_wave = 2;
+						kt_end_wave = 2;
 						break;
 					}
 				}
@@ -1002,14 +967,14 @@ void context_t::SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *
 		}
 
 		for (ix = 1; ix < 6; ix++) {
-			if (prev_fr.ffreq[ix] != fr1->ffreq[ix]) {
+			if (kt_prev_fr.ffreq[ix] != fr1->ffreq[ix]) {
 				// Discontinuity in formants.
 				// end_wave was set in SetSynth_Klatt() to fade out the previous frame
 				KlattReset(0);
 				break;
 			}
 		}
-		memcpy(&prev_fr, fr2, sizeof(prev_fr));
+		memcpy(&kt_prev_fr, fr2, sizeof(kt_prev_fr));
 	}
 
 	for (ix = 0; ix < N_KLATTP; ix++) {
@@ -1022,56 +987,56 @@ void context_t::SetSynth_Klatt(int length, frame_t *fr1, frame_t *fr2, voice_t *
 		}
 	}
 
-	nsamples = length;
+	kt_nsamples = length;
 
 	for (ix = 1; ix < 6; ix++) {
-		peaks[ix].freq1 = (fr1->ffreq[ix] * wvoice->freq[ix] / 256.0) + wvoice->freqadd[ix];
-		peaks[ix].freq = (int)peaks[ix].freq1;
+		kt_peaks[ix].freq1 = (fr1->ffreq[ix] * wvoice->freq[ix] / 256.0) + wvoice->freqadd[ix];
+		kt_peaks[ix].freq = (int)kt_peaks[ix].freq1;
 		next = (fr2->ffreq[ix] * wvoice->freq[ix] / 256.0) + wvoice->freqadd[ix];
-		peaks[ix].freq_inc =  ((next - peaks[ix].freq1) * STEPSIZE) / length;
+		kt_peaks[ix].freq_inc =  ((next - kt_peaks[ix].freq1) * STEPSIZE) / length;
 
 		if (ix < 4) {
 			// klatt bandwidth for f1, f2, f3 (others are fixed)
-			peaks[ix].bw1 = fr1->bw[ix] * 2  * (wvoice->width[ix] / 256.0);
-			peaks[ix].bw = (int)peaks[ix].bw1;
+			kt_peaks[ix].bw1 = fr1->bw[ix] * 2  * (wvoice->width[ix] / 256.0);
+			kt_peaks[ix].bw = (int)kt_peaks[ix].bw1;
 			next = fr2->bw[ix] * 2;
-			peaks[ix].bw_inc =  ((next - peaks[ix].bw1) * STEPSIZE) / length;
+			kt_peaks[ix].bw_inc =  ((next - kt_peaks[ix].bw1) * STEPSIZE) / length;
 		}
 	}
 
 	// nasal zero frequency
-	peaks[0].freq1 = fr1->klattp[KLATT_FNZ] * 2;
-	if (peaks[0].freq1 == 0)
-		peaks[0].freq1 = kt_frame.Fhz[F_NP]; // if no nasal zero, set it to same freq as nasal pole
+	kt_peaks[0].freq1 = fr1->klattp[KLATT_FNZ] * 2;
+	if (kt_peaks[0].freq1 == 0)
+		kt_peaks[0].freq1 = kt_frame.Fhz[F_NP]; // if no nasal zero, set it to same freq as nasal pole
 
-	peaks[0].freq = (int)peaks[0].freq1;
+	kt_peaks[0].freq = (int)kt_peaks[0].freq1;
 	next = fr2->klattp[KLATT_FNZ] * 2;
 	if (next == 0)
 		next = kt_frame.Fhz[F_NP];
 
-	peaks[0].freq_inc = ((next - peaks[0].freq1) * STEPSIZE) / length;
+	kt_peaks[0].freq_inc = ((next - kt_peaks[0].freq1) * STEPSIZE) / length;
 
-	peaks[0].bw1 = 89;
-	peaks[0].bw = 89;
-	peaks[0].bw_inc = 0;
+	kt_peaks[0].bw1 = 89;
+	kt_peaks[0].bw = 89;
+	kt_peaks[0].bw_inc = 0;
 
 	if (fr1->frflags & FRFLAG_KLATT) {
 		// the frame contains additional parameters for parallel resonators
 		for (ix = 1; ix < 7; ix++) {
-			peaks[ix].bp1 = fr1->klatt_bp[ix] * 4; // parallel bandwidth
-			peaks[ix].bp = (int)peaks[ix].bp1;
+			kt_peaks[ix].bp1 = fr1->klatt_bp[ix] * 4; // parallel bandwidth
+			kt_peaks[ix].bp = (int)kt_peaks[ix].bp1;
 			next = fr2->klatt_bp[ix] * 4;
-			peaks[ix].bp_inc =  ((next - peaks[ix].bp1) * STEPSIZE) / length;
+			kt_peaks[ix].bp_inc =  ((next - kt_peaks[ix].bp1) * STEPSIZE) / length;
 
-			peaks[ix].ap1 = fr1->klatt_ap[ix]; // parallal amplitude
-			peaks[ix].ap = (int)peaks[ix].ap1;
+			kt_peaks[ix].ap1 = fr1->klatt_ap[ix]; // parallal amplitude
+			kt_peaks[ix].ap = (int)kt_peaks[ix].ap1;
 			next = fr2->klatt_ap[ix];
-			peaks[ix].ap_inc =  ((next - peaks[ix].ap1) * STEPSIZE) / length;
+			kt_peaks[ix].ap_inc =  ((next - kt_peaks[ix].ap1) * STEPSIZE) / length;
 		}
 	}
 }
 
-void KlattInit(void)
+void context_t::KlattInit(void)
 {
 
 	static const short formant_hz[10] = { 280, 688, 1064, 2806, 3260, 3700, 6500, 7000, 8000, 280 };
@@ -1085,7 +1050,7 @@ void KlattInit(void)
 	KlattInitSP();
 #endif
 
-	sample_count = 0;
+	kt_sample_count = 0;
 
 	kt_globals.synthesis_model = CASCADE_PARALLEL;
 	kt_globals.samrate = 22050;

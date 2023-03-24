@@ -180,6 +180,8 @@ static const MNEM_TAB keyword_tab[] = {
 	{ "", 0 }
 };
 
+#define N_VOICE_VARIANTS   12
+
 // const char *SelectVoice(espeak_VOICE *voice_select, int *found);
 espeak_VOICE *SelectVoiceByName(espeak_VOICE **voices, const char *name);
 // voice_t *LoadVoice(const char *voice_name, int control);
