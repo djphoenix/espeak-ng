@@ -196,7 +196,7 @@ int context_t::create_events(short *outbuf, int length, espeak_EVENT *event_list
 
 #if USE_ASYNC
 
-int sync_espeak_terminated_msg(uint32_t unique_identifier, void *user_data)
+int context_t::sync_espeak_terminated_msg(uint32_t unique_identifier, void *user_data)
 {
 	int finished = 0;
 

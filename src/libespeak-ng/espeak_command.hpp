@@ -135,6 +135,6 @@ int delete_espeak_command(t_espeak_command *the_command);
 void sync_espeak_SetPunctuationList(const wchar_t *punctlist);
 void sync_espeak_SetParameter(espeak_PARAMETER parameter, int value, int relative);
 
-int sync_espeak_terminated_msg(unsigned int unique_identifier, void *user_data);
+// int sync_espeak_terminated_msg(unsigned int unique_identifier, void *user_data);
 
 }

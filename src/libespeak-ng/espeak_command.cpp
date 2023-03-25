@@ -210,7 +210,7 @@ t_espeak_command *create_espeak_voice_name(const char *name)
 	return a_command;
 }
 
-t_espeak_command *create_espeak_voice_spec(espeak_VOICE *voice)
+t_espeak_command *context_t::create_espeak_voice_spec(espeak_VOICE *voice)
 {
 	if (!voice)
 		return NULL;
@@ -237,7 +237,7 @@ t_espeak_command *create_espeak_voice_spec(espeak_VOICE *voice)
 	return a_command;
 }
 
-int delete_espeak_command(t_espeak_command *the_command)
+int context_t::delete_espeak_command(t_espeak_command *the_command)
 {
 	int a_status = 0;
 	if (the_command) {

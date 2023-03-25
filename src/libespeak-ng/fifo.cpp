@@ -253,7 +253,7 @@ static int sleep_until_start_request_or_inactivity(void)
 	return a_start_is_required;
 }
 
-static espeak_ng_STATUS close_stream(void)
+espeak_ng_STATUS context_t::close_stream(void)
 {
 	espeak_ng_STATUS status = espeak_ng_STATUS(pthread_mutex_lock(&my_mutex));
 	if (status != ENS_OK)

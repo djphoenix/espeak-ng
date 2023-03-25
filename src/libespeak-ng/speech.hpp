@@ -74,7 +74,7 @@ namespace espeak {
    #define PATH_ESPEAK_DATA  "/usr/share/espeak-ng-data"
 #endif
 
-void cancel_audio(void);
+// void cancel_audio(void);
 
 extern const int param_defaults[N_SPEECH_PARAM];
 

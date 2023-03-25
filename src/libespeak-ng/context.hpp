@@ -601,6 +601,10 @@ namespace espeak {
         espeak_ng_STATUS sync_espeak_Key(const char *key);
         espeak_ng_STATUS sync_espeak_Char(wchar_t character);
         void sync_espeak_SetPunctuationList(const wchar_t *punctlist);
+        int sync_espeak_terminated_msg(uint32_t unique_identifier, void *user_data);
+        t_espeak_command *create_espeak_voice_spec(espeak_VOICE *voice);
+        int delete_espeak_command(t_espeak_command *the_command);
+        espeak_ng_STATUS close_stream(void);
 
         #if USE_ASYNC
         void process_espeak_command(t_espeak_command *the_command);
