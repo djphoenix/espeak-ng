@@ -709,6 +709,8 @@ namespace espeak {
     public:
         static context_t& global(void);
 
+        ~context_t();
+
         espeak_ng_ERROR_CONTEXT GetError();
         const espeak_VOICE **ListVoices(espeak_VOICE *voice_spec);
         void InitializePath(const char *path);

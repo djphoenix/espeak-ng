@@ -33,6 +33,10 @@ espeak_ng_ERROR_CONTEXT espeak::context_t::GetError() {
     return ctx;
 }
 
+espeak::context_t::~context_t() {
+    free(voices);
+}
+
 #pragma GCC visibility push(default)
 
 ESPEAK_NG_API espeak_ng_CONTEXT* espeak_ng_ctx_New(void) {

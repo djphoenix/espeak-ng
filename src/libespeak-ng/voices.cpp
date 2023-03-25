@@ -1057,7 +1057,7 @@ char const *context_t::SelectVoice(espeak_VOICE *voice_select, int *found)
 	memcpy(&voice_select2, voice_select, sizeof(voice_select2));
 
 	if (n_voices_list == 0)
-		espeak_ListVoices(NULL); // create the voices list
+		ListVoices(NULL); // create the voices list
 
 	if ((voice_select2.languages == NULL) || (voice_select2.languages[0] == 0)) {
 		// no language is specified. Get language from the named voice
@@ -1337,7 +1337,7 @@ espeak_ng_STATUS context_t::SetVoiceByName(const char *name)
 	}
 
 	if (n_voices_list == 0)
-		espeak_ListVoices(NULL); // create the voices list
+		ListVoices(NULL); // create the voices list
 
 	if ((v = SelectVoiceByName(voices_list, buf)) != NULL) {
 		if (LoadVoice(v->identifier, 0) != NULL) {

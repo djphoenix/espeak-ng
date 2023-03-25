@@ -382,7 +382,7 @@ void context_t::SetVoiceStack(espeak_VOICE *v, const char *variant_name)
 	if (variant_name[0] == '!' && variant_name[1] == 'v' && variant_name[2] == PATHSEP)
 		variant_name += 3; // strip variant directory name, !v plus PATHSEP
 	strncpy0(base_voice_variant_name, variant_name, sizeof(base_voice_variant_name));
-	memcpy(&base_voice, espeak_GetCurrentVoice(), sizeof(base_voice));
+	memcpy(&base_voice, &current_voice_selected, sizeof(base_voice));
 }
 
 static void RemoveChar(char *p)
