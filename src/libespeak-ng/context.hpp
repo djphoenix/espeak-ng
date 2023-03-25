@@ -773,10 +773,12 @@ namespace espeak {
             int flags
         );
 
+#if USE_MBROLA
         espeak_ng_STATUS CompileMbrolaVoice(
             const char *path,
             FILE *log
         );
+#endif
 
         espeak_ng_STATUS CompilePhonemeDataPath(
             long rate,

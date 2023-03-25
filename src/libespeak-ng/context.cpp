@@ -164,6 +164,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_CompileDictionary(
     return ctx->CompileDictionary(dsource, dict_name, log, flags);
 }
 
+#if USE_MBROLA
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_CompileMbrolaVoice(
   espeak_ng_CONTEXT *ctx,
   const char *path,
@@ -171,6 +172,7 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_CompileMbrolaVoice(
 ) {
     return ctx->CompileMbrolaVoice(path, log);
 }
+#endif
 
 ESPEAK_NG_API espeak_ng_STATUS espeak_ng_ctx_CompilePhonemeDataPath(
   espeak_ng_CONTEXT *ctx,
