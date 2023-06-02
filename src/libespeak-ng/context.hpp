@@ -45,9 +45,7 @@
 #include "sPlayer.hpp"
 #endif
 
-#if USE_LIBPCAUDIO
-#include <pcaudiolib/audio.h>
-#endif
+struct audio_object;
 
 namespace espeak {
     struct CompileContext;
