@@ -18,6 +18,10 @@ macro(compiled_test _test_name)
     $<TARGET_PROPERTY:espeak-ng,INTERFACE_INCLUDE_DIRECTORIES>
     $<TARGET_PROPERTY:espeak-ng-config,INTERFACE_INCLUDE_DIRECTORIES>
   )
+  set_target_properties(
+    test_${_test_name} PROPERTIES
+    CXX_STANDARD 17
+  )
   if (MINGW)
     target_link_options(test_${_test_name} PUBLIC "-static" "-static-libstdc++")
   endif()
