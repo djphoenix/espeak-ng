@@ -1,0 +1,17 @@
+#!/bin/sh
+# include common script
+. "`dirname $0`/common"
+
+test_cve() {
+	TEST_NAME=$1
+
+	echo "testing CVE-${TEST_NAME}"
+	ESPEAK_DATA_PATH=`pwd` LD_LIBRARY_PATH=src:${LD_LIBRARY_PATH} \
+		$VALGRIND src/espeak-ng -f "$(dirname $0)/cve/${TEST_NAME}.txt" -w /dev/null || exit 1
+}
+
+test_cve 2023-49990
+test_cve 2023-49991
+test_cve 2023-49992
+test_cve 2023-49993
+test_cve 2023-49994
