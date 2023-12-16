@@ -355,6 +355,7 @@ static void SetUpPhonemeTable(int number)
 void SelectPhonemeTable(int number)
 {
 	if (current_phoneme_table == number) return;
+	if (number >= n_phoneme_tables) return;
 	n_phoneme_tab = 0;
 	MAKE_MEM_UNDEFINED(&phoneme_tab, sizeof(phoneme_tab));
 	SetUpPhonemeTable(number); // recursively for included phoneme tables
