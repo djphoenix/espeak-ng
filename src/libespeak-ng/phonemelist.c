@@ -245,6 +245,7 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 	// transfer all the phonemes of the clause into phoneme_list
 	ph = phoneme_tab[phonPAUSE];
 	ph_list3[0].ph = ph;
+	ph_list3[0].sourceix = 1;
 	word_start = 1;
 
 	SelectPhonemeTable(tr->phoneme_tab_ix);
