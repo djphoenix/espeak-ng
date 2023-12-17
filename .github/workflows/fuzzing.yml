@@ -82,7 +82,9 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: crash-${{ matrix.arch }}-${{ matrix.lang }}.1
-        path: crash-* timeout-*
+        path: |
+          crash-*
+          timeout-*
     - name: Fuzz function synth_espeak() with language-specific input
       run:   cp dictsource/${{ matrix.lang }}_* tests/fuzzing/CORPUS_DIR/ || true ; FUZZ_VOICE=${{ matrix.lang }} tests/fuzzing/synth_fuzzer.test -seed=1  -runs=10000 -max_len=4096 tests/fuzzing/CORPUS_DIR
     - name: Store the crash POC
@@ -90,4 +92,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: crash-${{ matrix.arch }}-${{ matrix.lang }}.2
-        path: crash-* timeout-*
+        path: |
+          crash-*
+          timeout-*
