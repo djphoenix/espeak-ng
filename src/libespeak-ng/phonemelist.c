@@ -296,6 +296,8 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 
 		if (ph == NULL) continue;
 
+		unsigned short tmp = ph_list3[0].sourceix;
+		ph_list3[0].sourceix = 1;
 		InterpretPhoneme(tr, 0x100, plist3, &phdata, &worddata);
 
 		if ((alternative = phdata.pd_param[pd_CHANGE_NEXTPHONEME]) > 0) {
@@ -331,6 +333,8 @@ void MakePhonemeList(Translator *tr, int post_pause, bool start_sentence)
 				ReInterpretPhoneme(ph, ph2, plist3, tr, &phdata, &worddata);
 			}
 		}
+
+		ph_list3[0].sourceix = tmp;
 
 		if ((ph->type == phVOWEL) && (deleted == false)) {
 			// Check for consecutive unstressed syllables, even across word boundaries.
