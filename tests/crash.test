@@ -19,3 +19,4 @@ test_crash cve-2023-49994 en
 
 test_crash crash-53a4b3e047f35f45d02d0f730fa8840f73f0266a da
 test_crash crash-45b7f16de695c6df809d486bb3c2c37926f5aee1 da
+test_crash crash-283aa5f38c59b7658bb13854645c00b0169d8dbc en
