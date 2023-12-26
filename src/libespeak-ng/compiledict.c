@@ -213,7 +213,7 @@ void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len)
 
 	buf[0] = 0;
 	if ((stress = flags[0] & 0xf) != 0) {
-		sprintf(buf, "%s", LookupMnemName(mnem_flags, stress + 0x40));
+		snprintf(buf, buf_len, "%s", LookupMnemName(mnem_flags, stress + 0x40));
 		total = strlen(buf);
 		buf += total;
 	}
@@ -225,7 +225,7 @@ void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len)
 			total += len;
 			if (total >= buf_len)
 				continue;
-			sprintf(buf, " %s", name);
+			snprintf(buf, buf_len - total, " %s", name);
 			buf += len;
 		}
 	}
@@ -325,11 +325,11 @@ char *DecodeRule(const char *group_chars, int group_length, char *rule, int cont
 			suffix_char = 'S';
 			if (flags & (SUFX_P >> 8))
 				suffix_char = 'P';
-			sprintf(suffix, "%c%d", suffix_char, rule[2] & 0x7f);
+			snprintf(suffix, sizeof(suffix), "%c%d", suffix_char, rule[2] & 0x7f);
 			rule += 3;
 			for (ix = 0; ix < 9; ix++) {
 				if (flags & 1)
-					sprintf(&suffix[strlen(suffix)], "%c", flag_chars[ix]);
+					snprintf(&suffix[strlen(suffix)], sizeof(suffix) - strlen(suffix), "%c", flag_chars[ix]);
 				flags = (flags >> 1);
 			}
 			strcpy(p, suffix);
@@ -364,11 +364,11 @@ char *DecodeRule(const char *group_chars, int group_length, char *rule, int cont
 	p_end = p + sizeof(output) - 1;
 
 	if (linenum > 0) {
-		sprintf(p, "%5d:\t", linenum);
+		snprintf(p, p_end-p, "%5d:\t", linenum);
 		p += 7;
 	}
 	if (condition_num > 0) {
-		sprintf(p, "?%d ", condition_num);
+		snprintf(p, p_end-p, "?%d ", condition_num);
 		p = &p[strlen(p)];
 	}
 	if (((ix = strlen(buf_pre)) > 0) || at_start) {
@@ -722,9 +722,9 @@ static int compile_dictlist_file(CompileContext *ctx, const char *path, const ch
 	ctx->text_mode = false;
 
 	// try with and without '.txt' extension
-	sprintf(fname, "%s%s.txt", path, filename);
+	snprintf(fname, sizeof(fname), "%s%s.txt", path, filename);
 	if ((f_in = fopen(fname, "r")) == NULL) {
-		sprintf(fname, "%s%s", path, filename);
+		snprintf(fname, sizeof(fname), "%s%s", path, filename);
 		if ((f_in = fopen(fname, "r")) == NULL)
 			return -1;
 	}
@@ -1162,7 +1162,7 @@ static char *compile_rule(CompileContext *ctx, char *input)
 	}
 
 	if (ctx->rule_post[0] != 0) {
-		sprintf(&output[len], "%c%s", RULE_POST, ctx->rule_post);
+		snprintf(&output[len], sizeof(output)-len, "%c%s", RULE_POST, ctx->rule_post);
 		len += (strlen(ctx->rule_post)+1);
 	}
 	output[len++] = 0;
@@ -1552,17 +1552,17 @@ ESPEAK_NG_API espeak_ng_STATUS espeak_ng_CompileDictionary(const char *dsource, 
 		ctx->f_log = stderr;
 
 	// try with and without '.txt' extension
-	sprintf(path, "%s%s_", dsource, dict_name);
-	sprintf(fname_in, "%srules.txt", path);
+	snprintf(path, sizeof(path), "%s%s_", dsource, dict_name);
+	snprintf(fname_in, sizeof(fname_in), "%srules.txt", path);
 	if ((f_in = fopen(fname_in, "r")) == NULL) {
-		sprintf(fname_in, "%srules", path);
+		snprintf(fname_in, sizeof(fname_in), "%srules", path);
 		if ((f_in = fopen(fname_in, "r")) == NULL) {
 			clean_context(ctx);
 			return create_file_error_context(context, errno, fname_in);
 		}
 	}
 
-	sprintf(fname_out, "%s%c%s_dict", path_home, PATHSEP, dict_name);
+	snprintf(fname_out, sizeof(fname_out), "%s%c%s_dict", path_home, PATHSEP, dict_name);
 	if ((f_out = fopen(fname_out, "wb+")) == NULL) {
 		int error = errno;
 		fclose(f_in);

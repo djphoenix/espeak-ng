@@ -211,7 +211,7 @@ int LoadDictionary(Translator *tr, const char *name, int no_error)
 	// Load a pronunciation data file into memory
 	// bytes 0-3:  offset to rules data
 	// bytes 4-7:  number of hash table entries
-	sprintf(fname, "%s%c%s_dict", path_home, PATHSEP, name);
+	snprintf(fname, sizeof(fname), "%s%c%s_dict", path_home, PATHSEP, name);
 	size = GetFileLength(fname);
 
 	if (tr->data_dictlist != NULL) {
@@ -2176,7 +2176,7 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 						if (tr->letter_bits_offset > 0) {
 							// not a Latin alphabet, switch to the default Latin alphabet language
 							if ((letter <= 0x241) && iswalpha(letter)) {
-								sprintf(phonemes, "%cen", phonSWITCH);
+								snprintf(phonemes, ph_size, "%cen", phonSWITCH);
 								return 0;
 							}
 						}
@@ -2217,12 +2217,12 @@ int TranslateRules(Translator *tr, char *p_start, char *phonemes, int ph_size, c
 
 						if (((alphabet = AlphabetFromChar(letter)) != NULL)  && (alphabet->offset != tr->letter_bits_offset)) {
 							if (tr->langopts.alt_alphabet == alphabet->offset) {
-								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(word_buf, tr->langopts.alt_alphabet_lang));
+								snprintf(phonemes, ph_size, "%c%s", phonSWITCH, WordToString2(word_buf, tr->langopts.alt_alphabet_lang));
 								return 0;
 							}
 							if (alphabet->flags & AL_WORDS) {
 								// switch to the nominated language for this alphabet
-								sprintf(phonemes, "%c%s", phonSWITCH, WordToString2(word_buf, alphabet->language));
+								snprintf(phonemes, ph_size, "%c%s", phonSWITCH, WordToString2(word_buf, alphabet->language));
 								return 0;
 							}
 						}
@@ -2793,7 +2793,7 @@ int LookupDictList(Translator *tr, char **wordptr, char *ph_out, unsigned int *f
 				// only use replacement text if this is the original word, not if a prefix or suffix has been removed
 				word_replacement[0] = 0;
 				word_replacement[1] = ' ';
-				sprintf(&word_replacement[2], "%s ", ph_out); // replacement word, preceded by zerochar and space
+				snprintf(&word_replacement[2], sizeof(word_replacement)-2, "%s ", ph_out); // replacement word, preceded by zerochar and space
 
 				word1 = *wordptr;
 				*wordptr = &word_replacement[2];

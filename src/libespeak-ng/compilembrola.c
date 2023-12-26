@@ -106,7 +106,7 @@ espeak_ng_STATUS espeak_ng_CompileMbrolaVoice(const char *filepath, FILE *log, e
 	fclose(f_in);
 
 	strcpy(mbrola_voice, basename(filepath));
-	sprintf(buf, "%s/mbrola_ph/%s_phtrans", path_home, mbrola_voice);
+	snprintf(buf, sizeof(buf), "%s/mbrola_ph/%s_phtrans", path_home, mbrola_voice);
 	if ((f_out = fopen(buf, "wb")) == NULL)
 		return create_file_error_context(context, errno, buf);
 

@@ -623,7 +623,7 @@ espeak_ng_STATUS sync_espeak_Char(wchar_t character)
 	my_unique_identifier = 0;
 	my_user_data = NULL;
 
-	sprintf(buf, "<say-as interpret-as=\"tts:char\">&#%d;</say-as>", character);
+	snprintf(buf, sizeof(buf), "<say-as interpret-as=\"tts:char\">&#%d;</say-as>", character);
 	return Synthesize(0, buf, espeakSSML);
 }
 

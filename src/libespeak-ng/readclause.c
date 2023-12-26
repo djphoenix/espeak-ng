@@ -284,7 +284,7 @@ static int AnnouncePunctuation(Translator *tr, int c1, int *c2_ptr, char *output
 
 	if ((soundicon = LookupSoundicon(c1)) >= 0) {
 		// add an embedded command to play the soundicon
-		sprintf(buf, "\001%dI ", soundicon);
+		snprintf(buf, sizeof(buf), "\001%dI ", soundicon);
 		UngetC(c2);
 	} else {
 		if ((c1 == '.') && (end_clause) && (c2 != '.')) {
@@ -309,24 +309,24 @@ static int AnnouncePunctuation(Translator *tr, int c1, int *c2_ptr, char *output
 				UngetC(c2);
 
 			if (punct_count == 1)
-				sprintf(buf, " %s", punctname); // we need the space before punctname, to ensure it doesn't merge with the previous word  (eg.  "2.-a")
+				snprintf(buf, sizeof(buf), " %s", punctname); // we need the space before punctname, to ensure it doesn't merge with the previous word  (eg.  "2.-a")
 			else if (punct_count < 4) {
 				buf[0] = 0;
 				if (embedded_value[EMBED_S] < 300)
-					sprintf(buf, "\001+10S"); // Speak punctuation name faster, unless we are already speaking fast.  It would upset Sonic SpeedUp
+					snprintf(buf, sizeof(buf), "\001+10S"); // Speak punctuation name faster, unless we are already speaking fast.  It would upset Sonic SpeedUp
 
 				char buf2[80];
 				while (punct_count-- > 0) {
-					sprintf(buf2, " %s", punctname);
+					snprintf(buf2, sizeof(buf2), " %s", punctname);
 					strcat(buf, buf2);
 				}
 
 				if (embedded_value[EMBED_S] < 300) {
-					sprintf(buf2, " \001-10S");
+					snprintf(buf2, sizeof(buf2), " \001-10S");
 					strcat(buf, buf2);
 				}
 			} else
-				sprintf(buf, " %s %d %s",
+				snprintf(buf, sizeof(buf), " %s %d %s",
 				        punctname, punct_count, punctname);
 		} else {
 			// end the clause now and pick up the punctuation next time
@@ -574,7 +574,7 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 				} else {
 					c2 = GetC();
 				}
-				sprintf(ungot_string, "%s%c%c", &xml_buf2[0], c1, c2);
+				snprintf(ungot_string, sizeof(ungot_string), "%s%c%c", &xml_buf2[0], c1, c2);
 
 				int found = -1;
 				if (c1 == ';') {
@@ -828,7 +828,7 @@ int ReadClause(Translator *tr, char *buf, short *charix, int *charix_top, int n_
 
 				p2 = &buf[ix];
 				char cn_buf[60];
-				sprintf(p2, "%s", LookupCharName(cn_buf, tr, c1, true));
+				snprintf(p2, sizeof(buf)-ix, "%s", LookupCharName(cn_buf, tr, c1, true));
 				if (p2[0] != 0) {
 					ix += strlen(p2);
 					announced_punctuation = c1;
