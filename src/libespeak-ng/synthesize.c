@@ -1576,6 +1576,7 @@ int SpeakNextClause(int control)
 		return 1;
 	}
 
+	phoneme_list[0].sourceix = 1;
 	Generate(phoneme_list, &n_phoneme_list, 0);
 
 	if (voice_change != NULL) {
