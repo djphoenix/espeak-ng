@@ -2999,6 +2999,10 @@ static void DollarRule(char *word[], char *word_start, int consumed, int group_l
 	// $list or $p_alt
 	// make a copy of the word up to the post-match characters
 	int ix = *word - word_start + consumed + group_length + 1;
+	if (ix >= N_WORD_BYTES) {
+		*failed = 1;
+		return;
+	}
 	memcpy(word_buf, word_start-1, ix);
 	word_buf[ix] = ' ';
 	word_buf[ix+1] = 0;

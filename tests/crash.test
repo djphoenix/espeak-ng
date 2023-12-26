@@ -6,7 +6,7 @@ test_crash() {
 	TEST_NAME=$1
 	TEST_LANG=$2
 
-	echo "testing CVE-${TEST_NAME}"
+	echo "testing ${TEST_NAME}"
 	ESPEAK_DATA_PATH=`pwd` LD_LIBRARY_PATH=src:${LD_LIBRARY_PATH} \
 		$VALGRIND src/espeak-ng -v$TEST_LANG -f "$(dirname $0)/crash_vectors/${TEST_NAME}.txt" -w /dev/null || exit 1
 }
@@ -18,3 +18,4 @@ test_crash cve-2023-49993 en
 test_crash cve-2023-49994 en
 
 test_crash crash-53a4b3e047f35f45d02d0f730fa8840f73f0266a da
+test_crash crash-45b7f16de695c6df809d486bb3c2c37926f5aee1 da
