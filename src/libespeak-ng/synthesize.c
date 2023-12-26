@@ -1176,7 +1176,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 		{
 			char buf[30];
 			int dummy=0;
-			WritePhMnemonic(buf, p->ph, p, 0, &dummy);
+			WritePhMnemonic(buf, sizeof(buf), p->ph, p, 0, &dummy);
 			DoPhonemeAlignment(strdup(buf),p->type);
 		}
 
@@ -1226,7 +1226,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 			if ((p->type == phVOWEL) && (prev->type == phLIQUID || prev->type == phNASAL)) {
 				// For vowels following a liquid or nasal, do the phoneme event after the vowel-start
 			} else {
-				WritePhMnemonic(phoneme_name, p->ph, p, use_ipa, NULL);
+				WritePhMnemonic(phoneme_name, sizeof(phoneme_name), p->ph, p, use_ipa, NULL);
 				DoPhonemeMarker(espeakEVENT_PHONEME, sourceix, 0, phoneme_name);
 				done_phoneme_marker = true;
 			}
@@ -1490,7 +1490,7 @@ int Generate(PHONEME_LIST *phoneme_list, int *n_ph, bool resume)
 			}
 
 			if ((option_phoneme_events) && (done_phoneme_marker == false)) {
-				WritePhMnemonic(phoneme_name, p->ph, p, use_ipa, NULL);
+				WritePhMnemonic(phoneme_name, sizeof(phoneme_name), p->ph, p, use_ipa, NULL);
 				DoPhonemeMarker(espeakEVENT_PHONEME, sourceix, 0, phoneme_name);
 			}
 

@@ -402,7 +402,7 @@ int MbrolaTranslate(PHONEME_LIST *plist, int n_phonemes, bool resume, FILE *f_mb
 
 		if (ph->code != phonEND_WORD) {
 			char phoneme_name[16];
-			WritePhMnemonic(phoneme_name, p->ph, p, option_phoneme_events & espeakINITIALIZE_PHONEME_IPA, NULL);
+			WritePhMnemonic(phoneme_name, sizeof(phoneme_name), p->ph, p, option_phoneme_events & espeakINITIALIZE_PHONEME_IPA, NULL);
 			DoPhonemeMarker(espeakEVENT_PHONEME, (p->sourceix & 0x7ff) + clause_start_char, 0, phoneme_name);
 		}
 

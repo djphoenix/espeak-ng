@@ -30,7 +30,8 @@ char *DecodeRule(const char *group_chars,
 		int group_length,
 		char *rule,
 		int control,
-		char *output);
+		char *output,
+		size_t out_sz);
 
 void print_dictionary_flags(unsigned int *flags,
 		char *buf,

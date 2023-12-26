@@ -50,7 +50,7 @@
 
 #define N_XML_BUF   500
 
-static void DecodeWithPhonemeMode(char *buf, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]);
+static void DecodeWithPhonemeMode(char *buf, size_t buf_sz, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]);
 static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc);
 
 static const char *xmlbase = ""; // base URL from <speak>
@@ -188,8 +188,9 @@ static const char *LookupSpecial(Translator *tr, const char *string, char *text_
 	char *string1 = (char *)string;
 
 	flags[0] = flags[1] = 0;
-	if (LookupDictList(tr, &string1, phonemes, flags, 0, NULL)) {
-		DecodeWithPhonemeMode(text_out, phonemes, tr, NULL, flags);
+	if (LookupDictList(tr, &string1, phonemes, sizeof(phonemes), flags, 0, NULL)) {
+		// TODO: dynamic text_out size
+		DecodeWithPhonemeMode(text_out, 30, phonemes, tr, NULL, flags);
 		return text_out;
 	}
 	return NULL;
@@ -217,15 +218,15 @@ static const char *LookupCharName(char buf[60], Translator *tr, int c, bool only
 
 	if (only == true) {
 		string = &single_letter[2];
-		LookupDictList(tr, &string, phonemes, flags, 0, NULL);
+		LookupDictList(tr, &string, phonemes, sizeof(phonemes), flags, 0, NULL);
 	}
 
 	if (only == false) {
 		string = &single_letter[1];
-		if (LookupDictList(tr, &string, phonemes, flags, 0, NULL) == 0) {
+		if (LookupDictList(tr, &string, phonemes, sizeof(phonemes), flags, 0, NULL) == 0) {
 			// try _* then *
 			string = &single_letter[2];
-			if (LookupDictList(tr, &string, phonemes, flags, 0, NULL) == 0) {
+			if (LookupDictList(tr, &string, phonemes, sizeof(phonemes), flags, 0, NULL) == 0) {
 				// now try the rules
 				single_letter[1] = ' ';
 				TranslateRules(tr, &single_letter[2], phonemes, sizeof(phonemes), NULL, 0, NULL);
@@ -237,9 +238,9 @@ static const char *LookupCharName(char buf[60], Translator *tr, int c, bool only
     		SetTranslator2(ESPEAKNG_DEFAULT_VOICE);
     		string = &single_letter[1];
     		single_letter[1] = '_';
-    		if (LookupDictList(translator2, &string, phonemes, flags, 0, NULL) == 0) {
+    		if (LookupDictList(translator2, &string, phonemes, sizeof(phonemes), flags, 0, NULL) == 0) {
     			string = &single_letter[2];
-    			LookupDictList(translator2, &string, phonemes, flags, 0, NULL);
+    			LookupDictList(translator2, &string, phonemes, sizeof(phonemes), flags, 0, NULL);
     		}
     		if (phonemes[0])
     			lang_name = ESPEAKNG_DEFAULT_VOICE;
@@ -249,11 +250,12 @@ static const char *LookupCharName(char buf[60], Translator *tr, int c, bool only
 	}
 
 	if (phonemes[0]) {
+		// TODO: dynamic buf size
 		if (lang_name) {
-			DecodeWithPhonemeMode(buf, phonemes, tr, translator2, flags);
+			DecodeWithPhonemeMode(buf, 60, phonemes, tr, translator2, flags);
 			SelectPhonemeTable(voice->phoneme_tab_ix); // revert to original phoneme table
 		} else {
-			DecodeWithPhonemeMode(buf, phonemes, tr, NULL, flags);
+			DecodeWithPhonemeMode(buf, 60, phonemes, tr, NULL, flags);
 		}
 	} else if (only == false)
 		strcpy(buf, "[\002(X1)(X1)(X1)]]");
@@ -1006,16 +1008,16 @@ static void TerminateBufWithSpaceAndZero(char *buf, int index, int *ungetc) {
 	}
 }
 
-static void DecodeWithPhonemeMode(char *buf, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]) {
+static void DecodeWithPhonemeMode(char *buf, size_t buf_sz, char *phonemes, Translator *tr, Translator *tr2, unsigned int flags[]) {
 	char phonemes2[55];
 	if (tr2 == NULL) {
 		SetWordStress(tr, phonemes, flags, -1, 0);
-		DecodePhonemes(phonemes, phonemes2);
-		sprintf(buf, "[\002%s]]", phonemes2);
+		DecodePhonemes(phonemes, phonemes2, sizeof(phonemes2));
+		snprintf(buf, buf_sz, "[\002%s]]", phonemes2);
 	} else {
 		SetWordStress(tr2, phonemes, flags, -1, 0);
-	    DecodePhonemes(phonemes, phonemes2);
+	    DecodePhonemes(phonemes, phonemes2, sizeof(phonemes2));
 			char wbuf[5];
-	    sprintf(buf, "[\002_^_%s %s _^_%s]]", ESPEAKNG_DEFAULT_VOICE, phonemes2, WordToString2(wbuf, tr->translator_name));
+	    snprintf(buf, buf_sz, "[\002_^_%s %s _^_%s]]", ESPEAKNG_DEFAULT_VOICE, phonemes2, WordToString2(wbuf, tr->translator_name));
     }
 }

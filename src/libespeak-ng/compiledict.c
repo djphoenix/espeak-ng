@@ -231,7 +231,7 @@ void print_dictionary_flags(unsigned int *flags, char *buf, int buf_len)
 	}
 }
 
-char *DecodeRule(const char *group_chars, int group_length, char *rule, int control, char *output)
+char *DecodeRule(const char *group_chars, int group_length, char *rule, int control, char *output, size_t out_sz)
 {
 	// Convert compiled match template to ascii
 
@@ -361,7 +361,7 @@ char *DecodeRule(const char *group_chars, int group_length, char *rule, int cont
 	*p = 0;
 
 	p = output;
-	p_end = p + sizeof(output) - 1;
+	p_end = p + out_sz - 1;
 
 	if (linenum > 0) {
 		snprintf(p, p_end-p, "%5d:\t", linenum);
